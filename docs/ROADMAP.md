@@ -15,3 +15,4 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Next highest-priority milestone completed: role-aware trust and moderation insights in expanded UI surfaces
 - ✅ Sprint 3 reliability hardening delivered: storage health checks, audit hash-chain integrity, queue latency metrics/alerts, admin reliability API, incident declare/resolve controls, and admin UI surfaces
 - ✅ Sprint 3 governance operations runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
+- ✅ Sprint 3 community contributor expansion delivered (`docs/CONTRIBUTOR_EXPANSION.md`, `CONTRIBUTING.md`)

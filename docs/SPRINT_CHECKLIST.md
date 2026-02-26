@@ -13,19 +13,16 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary (Sprint 3 — Reliability Hardening)
-- ✅ Delivered reliability domain module (`apps/web/src/lib/reliability/index.ts`) with storage health checks, audit hash-chain integrity verification, and queue latency metrics with threshold-based alerts.
-- ✅ Delivered incident control module (`apps/web/src/lib/incident/index.ts`) with human-confirmed declare/resolve lifecycle, input validation, and in-memory runtime store.
-- ✅ Shipped `GET /api/admin/reliability` (admin-only) returning full reliability status with governance assertions and immutable audit trace.
-- ✅ Shipped `GET /api/admin/incident` + `POST /api/admin/incident` (admin-only, human-confirmed) with declare/resolve actions and immutable audit emission for all state changes.
-- ✅ Expanded admin UI in `apps/web/src/app/page.tsx` with Reliability Status panel (storage, audit chain, queue latency, alerts, governance assertions) and Incident Controls panel (declare/resolve form, active incident list).
-- ✅ Fixed `ReliabilityThresholds` type to use mutable `number` fields, eliminating TypeScript literal-type inference errors in tests.
-- ✅ All 66 tests passing, typecheck clean, production build successful.
+## Latest run summary (Sprint 3 — Contributor Expansion)
+- ✅ Added contributor expansion guide (`docs/CONTRIBUTOR_EXPANSION.md`) with onboarding paths, review SLA targets, triage standards, and done criteria.
+- ✅ Updated `CONTRIBUTING.md` with contribution tracks (docs/tests, product, governance), explicit onboarding links, and enforcement-sensitive change callouts.
+- ✅ Marked Sprint 3 community expansion complete in both roadmap trackers (`ROADMAP.md`, `docs/ROADMAP.md`).
+- ✅ Sprint checklist now reflects Sprint 3 closure and points to next execution priorities.
 
 ## Next actions
 1. Execute Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md` and capture follow-ups.
 2. Plan migration path from file-based governed persistence to indexed relational storage.
-3. Expand community contributor guidance and onboarding docs for pilot launch.
+3. Define Sprint 4 scope (pilot feedback loop, persistence migration milestones, contributor issue pipeline).
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
