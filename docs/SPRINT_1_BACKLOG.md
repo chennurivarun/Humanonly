@@ -25,7 +25,7 @@
 - Updated roadmap + sprint tracker + docs for milestone closure and Sprint 3 transition (`README.md`, `ROADMAP.md`, `docs/*`).
 
 ## Remaining priorities
-1. Sprint 3 pilot readiness hardening: observability, incident runbooks, and governance-ops drills.
+1. Sprint 3 reliability hardening: observability, queue latency instrumentation, and governance-ops drills.
 2. Replace file-backed durability with indexed relational storage for multi-instance scale.
 3. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
 

@@ -23,6 +23,6 @@
 - [x] Role-aware trust + moderation insights surfaces (member trust profile, moderator queue intelligence, trend windows)
 
 ## Sprint 3
-- [ ] Pilot launch readiness runbook
+- [x] Pilot launch readiness runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - [ ] Reliability hardening (durability, observability, incident controls)
 - [ ] Community contributor expansion

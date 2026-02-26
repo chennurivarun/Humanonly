@@ -20,9 +20,9 @@
 - ✅ Added dedicated moderation insights tests and refreshed roadmap/checklist docs for Sprint 3 handoff.
 
 ## Next actions
-1. Build Sprint 3 pilot readiness runbook (incident response, governance escalation, operator checklist).
-2. Add observability and reliability hardening tasks (audit-store health checks, queue latency instrumentation).
-3. Plan migration path from file-based governed persistence to indexed relational storage.
+1. Add observability and reliability hardening tasks (audit-store health checks, queue latency instrumentation).
+2. Plan migration path from file-based governed persistence to indexed relational storage.
+3. Execute a Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md` and capture follow-ups.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.

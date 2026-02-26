@@ -30,7 +30,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
 - ✅ Role-aware trust + moderation insights UI for members/moderators/admins with 7d/30d trend windows
-- ⏳ Next: Sprint 3 pilot hardening (reliability + governance operations)
+- ✅ Sprint 3 pilot governance runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
+- ⏳ Next: Sprint 3 reliability hardening (durability checks, observability, incident controls)
 
 ## Local Development
 ```bash

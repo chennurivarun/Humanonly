@@ -13,4 +13,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Appeals workflow + immutable moderation action logs delivered
 - ✅ Admin dashboard metrics delivered
 - ✅ Next highest-priority milestone completed: role-aware trust and moderation insights in expanded UI surfaces
-- 🚧 Next highest-priority milestone: Sprint 3 pilot launch hardening (reliability + governance ops runbook)
+- 🚧 Next highest-priority milestone: Sprint 3 reliability hardening (observability, durability checks, incident controls)
+- ✅ Sprint 3 governance operations runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
