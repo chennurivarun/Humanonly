@@ -10,9 +10,18 @@ export type AuditAction =
   | "feed.requested"
   | "report.created"
   | "reports.queue.requested"
-  | "moderation.override.applied";
+  | "moderation.override.applied"
+  | "trust.user.requested"
+  | "trust.self.requested";
 
-export type AuditTargetType = "identity" | "authorization" | "post" | "feed" | "report" | "moderation_queue";
+export type AuditTargetType =
+  | "identity"
+  | "authorization"
+  | "post"
+  | "feed"
+  | "report"
+  | "moderation_queue"
+  | "trust_score";
 
 export type AuditRecord = {
   actorId: string;
