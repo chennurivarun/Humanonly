@@ -21,5 +21,19 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - Contributor-ready repository setup
 - Week-1 MVP architecture decisions
 
+## Sprint 1 Progress
+- ✅ Runnable Next.js app scaffold in `apps/web`
+- ✅ MVP APIs: `posts`, `feed`, `reports` + moderation queue
+- ✅ Audit stubs for post/report/feed/moderation actions
+- ⏳ Next: auth scaffold + human override controls
+
+## Local Development
+```bash
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000.
+
 ## Contributing
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

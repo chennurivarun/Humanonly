@@ -6,9 +6,11 @@
 - Contributor onboarding
 
 ## Sprint 1 (Week 1 MVP)
-- Auth + onboarding
-- Post creation + feed
-- Report flow + basic moderation queue
+- [ ] Auth + onboarding
+- [x] Post creation + feed
+- [x] Report flow + basic moderation queue
+- [x] Audit stubs for posts/feed/reports/moderation reads
+- Next phase: auth scaffold + admin human override control
 
 ## Sprint 2
 - Trust scoring v1
