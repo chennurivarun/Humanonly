@@ -9,4 +9,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Basic UI for create post / feed / report completed
 - ✅ Smoke tests for core onboarding/content/moderation flows delivered
 - ✅ Durable governed storage + immutable audit persistence delivered
-- 🚧 Next highest-priority milestone: Sprint 2 trust scoring v1 baseline
+- ✅ Sprint 2 trust scoring v1 baseline API/model delivered
+- 🚧 Next highest-priority milestone: appeals workflow + action logs

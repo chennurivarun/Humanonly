@@ -17,7 +17,7 @@
 - [x] Durable governed storage snapshot for identities/posts/reports
 
 ## Sprint 2
-- [ ] Trust scoring v1
+- [x] Trust scoring v1 baseline (API + rationale model)
 - [ ] Appeals + action logs
 - [ ] Admin dashboard metrics
 

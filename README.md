@@ -26,7 +26,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Smoke tests for core onboarding/content/moderation flows
 - ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
-- ⏳ Next: Sprint 2 trust scoring v1 + appeals/action-log dashboarding
+- ✅ Sprint 2 trust scoring v1 baseline API/model delivered
+- ⏳ Next: appeals/action-log workflow + dashboarding
 
 ## Local Development
 ```bash

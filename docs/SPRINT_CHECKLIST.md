@@ -19,6 +19,11 @@
 - ✅ Added automated tests for governed persistence + tamper detection on audit chains.
 
 ## Next actions
-1. Define and implement Sprint 2 trust scoring v1 domain model + API surfaces.
-2. Build appeals workflow that references immutable audit records and requires explicit human adjudication.
-3. Add admin metrics endpoints/views for trust movement, queue throughput, and override rates.
+1. Build appeals workflow that references immutable audit records and requires explicit human adjudication.
+2. Add admin metrics endpoints/views for trust movement, queue throughput, and override rates.
+3. Integrate trust score views into onboarding/profile and moderator triage surfaces.
+
+## Sprint 2 progress (new)
+- ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
+- ✅ Added trust APIs: `GET /api/trust/me` (self) and `GET /api/trust/:userId` (moderator/admin).
+- ✅ Added trust scoring tests for baseline and penalty/reward behavior (`apps/web/src/lib/trust.test.ts`).
