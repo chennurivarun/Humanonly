@@ -9,17 +9,17 @@
 - [x] Auth + onboarding
 - [x] Post creation + feed
 - [x] Report flow + basic moderation queue
-- [x] Audit stubs for posts/feed/reports/moderation reads
+- [x] Immutable audit persistence for posts/feed/reports/moderation actions
 - [x] Human override control (admin-only)
 - [x] Seed script + local dev docs
 - [x] Basic UI for create post / feed / report
 - [x] Smoke tests for core flows
-- Next phase: finalize durable storage + immutable audit persistence before Sprint 2 trust scoring.
+- [x] Durable governed storage snapshot for identities/posts/reports
 
 ## Sprint 2
-- Trust scoring v1
-- Appeals + action logs
-- Admin dashboard metrics
+- [ ] Trust scoring v1
+- [ ] Appeals + action logs
+- [ ] Admin dashboard metrics
 
 ## Sprint 3
 - Pilot launch

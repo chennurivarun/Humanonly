@@ -6,3 +6,4 @@ coverage
 .DS_Store
 *.tsbuildinfo
 apps/web/.seed/
+apps/web/.data/

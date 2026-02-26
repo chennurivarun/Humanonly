@@ -89,23 +89,30 @@ export function parseCreateReportPayload(payload: unknown): { postId: string; re
 export function createPostRecord(
   store: ContentStore,
   input: { authorId: string; body: string },
-  nowIso = new Date().toISOString()
+  options: {
+    nowIso?: string;
+    persist?: () => void;
+  } = {}
 ): Post {
   const post: Post = {
     id: randomUUID(),
     authorId: input.authorId,
     body: input.body,
-    createdAt: nowIso
+    createdAt: options.nowIso ?? new Date().toISOString()
   };
 
   store.posts.unshift(post);
+  options.persist?.();
   return post;
 }
 
 export function createReportRecord(
   store: ContentStore,
   input: { postId: string; reporterId: string; reason: string },
-  nowIso = new Date().toISOString()
+  options: {
+    nowIso?: string;
+    persist?: () => void;
+  } = {}
 ): Report {
   const referencedPost = store.posts.find((post) => post.id === input.postId);
   if (!referencedPost) {
@@ -118,10 +125,11 @@ export function createReportRecord(
     reporterId: input.reporterId,
     reason: input.reason,
     status: "open",
-    createdAt: nowIso
+    createdAt: options.nowIso ?? new Date().toISOString()
   };
 
   store.reports.unshift(report);
+  options.persist?.();
   return report;
 }
 

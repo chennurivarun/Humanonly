@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireHumanSession } from "@/lib/auth/guards";
 import { writeAuditStub } from "@/lib/audit";
 import { ContentValidationError, createPostRecord, parseCreatePostPayload } from "@/lib/content";
-import { db } from "@/lib/store";
+import { db, persistStore } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   const sessionResult = await requireHumanSession("member");
@@ -23,10 +23,16 @@ export async function POST(request: NextRequest) {
     throw error;
   }
 
-  const post = createPostRecord(db, {
-    authorId: sessionResult.session.user.id,
-    body: command.body
-  });
+  const post = createPostRecord(
+    db,
+    {
+      authorId: sessionResult.session.user.id,
+      body: command.body
+    },
+    {
+      persist: persistStore
+    }
+  );
 
   await writeAuditStub({
     actorId: sessionResult.session.user.id,

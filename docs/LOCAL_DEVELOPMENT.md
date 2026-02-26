@@ -21,9 +21,15 @@ NEXTAUTH_SECRET=replace-with-long-random-secret
 HUMANONLY_ADMIN_HANDLES=chief_admin
 HUMANONLY_MODERATOR_HANDLES=queue_mod
 HUMANONLY_SEED_FILE=.seed/local-seed.json
+HUMANONLY_DATA_FILE=.data/store.json
+HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 ```
 
-`HUMANONLY_SEED_FILE` is optional. When set, the in-memory store hydrates from the seed snapshot during app startup.
+- `HUMANONLY_SEED_FILE` is optional and used for first-run bootstrap.
+- `HUMANONLY_DATA_FILE` is the durable governed snapshot for identities/posts/reports.
+- `HUMANONLY_AUDIT_LOG_FILE` is an append-only immutable audit trail with hash chaining.
+
+If `HUMANONLY_DATA_FILE` already exists, it takes precedence over seed bootstrap data.
 
 ## 3) Generate deterministic local seed data
 
@@ -55,7 +61,7 @@ Open `http://localhost:3000`.
 4. For moderator/admin handles, inspect queue data at `GET /api/reports`.
 5. For admin handles, apply emergency override via `POST /api/moderation/override`.
 
-All actions emit audit stubs to server logs.
+All actions emit immutable audit records to `HUMANONLY_AUDIT_LOG_FILE` (JSONL hash chain).
 
 ## Seeded demo identities
 

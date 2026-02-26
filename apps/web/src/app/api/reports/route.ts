@@ -6,7 +6,7 @@ import {
   createReportRecord,
   parseCreateReportPayload
 } from "@/lib/content";
-import { db } from "@/lib/store";
+import { db, persistStore } from "@/lib/store";
 
 export async function GET() {
   const sessionResult = await requireHumanSession("moderator");
@@ -51,11 +51,17 @@ export async function POST(request: NextRequest) {
 
   let report;
   try {
-    report = createReportRecord(db, {
-      postId: command.postId,
-      reporterId: sessionResult.session.user.id,
-      reason: command.reason
-    });
+    report = createReportRecord(
+      db,
+      {
+        postId: command.postId,
+        reporterId: sessionResult.session.user.id,
+        reason: command.reason
+      },
+      {
+        persist: persistStore
+      }
+    );
   } catch (error) {
     if (error instanceof ContentValidationError && error.code === "POST_NOT_FOUND") {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 404 });

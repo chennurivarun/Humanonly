@@ -19,12 +19,14 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 ## Sprint 1 Progress
 - ✅ Runnable Next.js app scaffold in `apps/web`
 - ✅ MVP APIs: `posts`, `feed`, `reports` + moderation queue
-- ✅ Audit stubs for post/report/feed/moderation actions
 - ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
 - ✅ Admin-only human override control with explicit human confirmation
 - ✅ Seed script + deterministic local bootstrap docs
 - ✅ Basic monochrome UI for create post/feed/report
-- ⏳ Next: smoke tests for core onboarding/content/moderation flows
+- ✅ Smoke tests for core onboarding/content/moderation flows
+- ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports
+- ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
+- ⏳ Next: Sprint 2 trust scoring v1 + appeals/action-log dashboarding
 
 ## Local Development
 ```bash
@@ -43,6 +45,8 @@ NEXTAUTH_SECRET=replace-with-long-random-secret
 HUMANONLY_ADMIN_HANDLES=chief_admin
 HUMANONLY_MODERATOR_HANDLES=queue_mod,backup_mod
 HUMANONLY_SEED_FILE=.seed/local-seed.json
+HUMANONLY_DATA_FILE=.data/store.json
+HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 ```
 
 Any onboarded handle matching the allow-lists gets the mapped role.

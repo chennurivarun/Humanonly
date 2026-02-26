@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireHumanSession } from "@/lib/auth/guards";
 import { writeAuditStub } from "@/lib/audit";
-import { db } from "@/lib/store";
+import { db, persistStore } from "@/lib/store";
 import { OverrideValidationError, parseOverrideCommand } from "@/lib/moderation/override";
 
 export async function POST(request: NextRequest) {
@@ -47,6 +47,8 @@ export async function POST(request: NextRequest) {
     },
     createdAt: new Date().toISOString()
   });
+
+  persistStore();
 
   return NextResponse.json({
     data: {

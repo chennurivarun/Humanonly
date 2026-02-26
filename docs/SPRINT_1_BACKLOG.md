@@ -11,21 +11,21 @@
 - [x] Human override control (admin-only)
 - [x] Seed script + local dev docs
 - [x] Basic UI for create post / feed / report
-- [ ] Add smoke tests for core flows
+- [x] Add smoke tests for core flows
 
 ## Completed in this run
-- Delivered a production-grade monochrome product surface for post creation, feed browsing, and in-feed reporting (`apps/web/src/app/page.tsx`).
-- Added reusable content-domain validation/service module for post/report payloads and feed pagination with author metadata enrichment (`apps/web/src/lib/content.ts`).
-- Refactored `posts`, `feed`, and `reports` API routes to use shared domain services and structured validation errors.
-- Added unit tests for content validation, report/post invariants, and feed cursor behavior (`apps/web/src/lib/content.test.ts`).
-- Expanded global monochrome design system tokens/classes for production-ready forms, cards, notices, and feed layouts (`apps/web/src/app/globals.css`).
+- Replaced volatile in-memory-only runtime state with governed durable snapshots persisted to `HUMANONLY_DATA_FILE` (`apps/web/src/lib/store.ts`, `apps/web/src/lib/governed-store.ts`).
+- Added immutable audit persistence with append-only JSONL records and SHA-256 hash chaining (`apps/web/src/lib/audit.ts`).
+- Wired post/report mutations and admin overrides to persist durable state after writes (`apps/web/src/app/api/posts/route.ts`, `apps/web/src/app/api/reports/route.ts`, `apps/web/src/app/api/moderation/override/route.ts`).
+- Added production-focused tests for governed snapshot persistence and immutable audit integrity (`apps/web/src/lib/governed-store.test.ts`, `apps/web/src/lib/audit.test.ts`).
+- Updated local development and architecture docs for new durability/audit runtime contracts (`docs/LOCAL_DEVELOPMENT.md`, `docs/ARCHITECTURE.md`).
 
 ## Remaining priorities
-1. Add smoke tests for onboarding → post → report → moderation queue + override.
-2. Prepare durable persistence migration plan (replace in-memory store + audit stub).
-3. Harden identity proofing beyond MVP credentials onboarding.
+1. Implement Sprint 2 trust scoring v1 with transparent scoring rationale and guardrails.
+2. Build appeals workflow + human review action logs over immutable audit data.
+3. Ship admin dashboard metrics for queue health, override usage, and trust trend visibility.
 
 ## Risks
-- In-memory store remains non-durable between runtime restarts without `HUMANONLY_SEED_FILE`.
+- File-based durability is suitable for single-node operation but needs DB-backed concurrency controls for horizontal scale.
 - Auth onboarding is still MVP-grade and requires stronger production identity verification.
 - NextAuth beta remains in use until stable v5 migration is completed.

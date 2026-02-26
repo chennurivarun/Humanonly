@@ -8,4 +8,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Seed script + local dev docs delivered
 - ✅ Basic UI for create post / feed / report completed
 - ✅ Smoke tests for core onboarding/content/moderation flows delivered
-- 🚧 Next highest-priority milestone: Durable storage + immutable audit persistence plan
+- ✅ Durable governed storage + immutable audit persistence delivered
+- 🚧 Next highest-priority milestone: Sprint 2 trust scoring v1 baseline
