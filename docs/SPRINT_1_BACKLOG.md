@@ -8,24 +8,24 @@
 - [x] Feed endpoint (latest + pagination)
 - [x] Report endpoint + moderator queue API
 - [x] Audit log table + writer utility (stubbed for Sprint 1)
-- [ ] Human override control (admin-only)
-- [ ] Seed script + local dev docs
+- [x] Human override control (admin-only)
+- [x] Seed script + local dev docs
 - [ ] Basic UI for create post / feed / report
 - [ ] Add smoke tests for core flows
 
 ## Completed in this run
-- Added Auth.js credentials-based onboarding with explicit human attestation.
-- Added role-aware access control (member/moderator/admin) for sensitive APIs.
-- Added authorization-denial audit events for traceability.
-- Added monochrome onboarding + identity status surfaces.
-- Added onboarding unit tests (credential parsing + role resolution).
+- Added a production-grade seed module with governance assertions (`humanExpressionOnly`, `aiManagedOperationsOnly`, `humanGovernedDecisionsOnly`, `auditabilityRequired`, `humanOverrideReservedForAdmins`).
+- Added deterministic local fixture generation via `npm run seed` (`apps/web/scripts/seed.ts`).
+- Added startup seed hydration via `HUMANONLY_SEED_FILE` with strict validation + fail-fast error handling.
+- Added unit tests for seed creation, governance assertion validation, relationship integrity, and store hydration.
+- Documented local bootstrap workflow in `docs/LOCAL_DEVELOPMENT.md` and updated README.
 
 ## Remaining priorities
-1. Admin human override control endpoint + UI affordance (audit-first).
-2. Seed script for local demo data and role bootstrap.
-3. Smoke tests covering onboarding → post → report → moderation queue.
+1. Build basic monochrome UI flows for create post / feed / report.
+2. Add smoke tests for onboarding → post → report → moderation queue + override.
+3. Prepare durable persistence migration plan (replace in-memory store + audit stub).
 
 ## Risks
-- In-memory store resets on restart; no durable identity/audit persistence yet.
+- In-memory store remains non-durable between runtime restarts without `HUMANONLY_SEED_FILE`.
 - Credentials onboarding is MVP-grade; production needs stronger identity proofing.
 - NextAuth beta in use until stable v5 release is adopted.

@@ -10,6 +10,7 @@
     "build": "npm run build -w apps/web",
     "start": "npm run start -w apps/web",
     "typecheck": "npm run typecheck -w apps/web",
-    "test": "npm run test -w apps/web"
+    "test": "npm run test -w apps/web",
+    "seed": "npm run seed -w apps/web"
   }
 }

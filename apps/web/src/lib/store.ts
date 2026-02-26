@@ -1,3 +1,5 @@
+import { seedStoreFromFile, SeedValidationError } from "@/lib/seed";
+
 export type HumanRole = "member" | "moderator" | "admin";
 
 export type IdentityProfile = {
@@ -63,3 +65,23 @@ export const db = {
   reports,
   users
 };
+
+function loadSeedDataIfConfigured() {
+  const seedFile = process.env.HUMANONLY_SEED_FILE?.trim();
+  if (!seedFile) {
+    return;
+  }
+
+  try {
+    const summary = seedStoreFromFile(db, seedFile);
+    console.info(`[seed] loaded ${summary.users} users, ${summary.posts} posts, ${summary.reports} reports from ${seedFile}`);
+  } catch (error) {
+    if (error instanceof SeedValidationError) {
+      throw new Error(`Failed to load HUMANONLY_SEED_FILE: ${error.message}`);
+    }
+
+    throw error;
+  }
+}
+
+loadSeedDataIfConfigured();

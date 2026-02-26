@@ -9,16 +9,16 @@
 - [x] Add report endpoint + moderation queue API
 - [x] Add audit writer stubs for enforcement-sensitive actions
 - [x] Human override control (admin-only)
-- [ ] Seed script + local dev docs
+- [x] Seed script + local dev docs
 - [ ] Basic UI for create post / feed / report
 - [ ] Add smoke tests for core flows
 
 ## Latest run summary
-- ✅ Completed milestone: Auth + onboarding scaffold with role-aware authorization.
-- ✅ Governance coverage improved: explicit human attestation + audit trail for denied access.
-- ✅ Monochrome UI baseline now applied to onboarding and identity status surfaces.
+- ✅ Completed milestone: deterministic seed script + local bootstrap docs.
+- ✅ Governance enforcement added to seed fixtures (human-only expression, AI ops boundaries, human-governed decisions, auditability, admin override constraints).
+- ✅ Added strict seed validation and startup hydration (`HUMANONLY_SEED_FILE`) with test coverage.
 
 ## Next actions
-1. Add seed tooling + docs for deterministic local demo setup.
-2. Add basic UI for create post / feed / report / moderation override.
-3. Add smoke tests for the full moderation happy-path.
+1. Implement monochrome UI for create post, feed browsing, and report submission.
+2. Add smoke tests for onboarding → posting → reporting → moderation queue/override.
+3. Lock a durable storage plan for identities, posts/reports, and immutable audit logs.

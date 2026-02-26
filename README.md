@@ -22,26 +22,31 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Audit stubs for post/report/feed/moderation actions
 - ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
 - ✅ Admin-only human override control with explicit human confirmation
-- ⏳ Next: seed scripts and end-to-end smoke tests
+- ✅ Seed script + deterministic local bootstrap docs
+- ⏳ Next: basic UI for create post/feed/report + smoke tests
 
 ## Local Development
 ```bash
 npm install
+npm run seed
 npm run dev
 ```
 
 Then open http://localhost:3000.
 
-### Optional role bootstrap env vars
-Create `apps/web/.env.local` if you want moderator/admin sessions during local testing:
+### Local env setup
+Create `apps/web/.env.local` for role bootstrap + seed hydration:
 
 ```bash
 NEXTAUTH_SECRET=replace-with-long-random-secret
 HUMANONLY_ADMIN_HANDLES=chief_admin
 HUMANONLY_MODERATOR_HANDLES=queue_mod,backup_mod
+HUMANONLY_SEED_FILE=.seed/local-seed.json
 ```
 
 Any onboarded handle matching the allow-lists gets the mapped role.
+
+See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and seed options.
 
 ## Key Endpoints
 - `POST /api/posts` — create post (authenticated + human verified)

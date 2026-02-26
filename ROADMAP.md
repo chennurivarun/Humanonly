@@ -11,10 +11,10 @@
 - [x] Report flow + basic moderation queue
 - [x] Audit stubs for posts/feed/reports/moderation reads
 - [x] Human override control (admin-only)
-- [ ] Seed script + local dev docs
+- [x] Seed script + local dev docs
 - [ ] Basic UI for create post / feed / report
 - [ ] Smoke tests for core flows
-- Next phase: durable seed flow + basic UI/smoke coverage.
+- Next phase: basic UI/smoke coverage before Sprint 2 trust scoring.
 
 ## Sprint 2
 - Trust scoring v1
