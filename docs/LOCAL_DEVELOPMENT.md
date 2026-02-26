@@ -47,6 +47,16 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## UI walkthrough (Sprint 1)
+
+1. Sign in from `/onboarding` using one of the seeded handles.
+2. Create a post from the home-page composer.
+3. Browse the feed and use **Report post** on any item.
+4. For moderator/admin handles, inspect queue data at `GET /api/reports`.
+5. For admin handles, apply emergency override via `POST /api/moderation/override`.
+
+All actions emit audit stubs to server logs.
+
 ## Seeded demo identities
 
 - `chief_admin` → admin

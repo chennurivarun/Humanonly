@@ -23,7 +23,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
 - ✅ Admin-only human override control with explicit human confirmation
 - ✅ Seed script + deterministic local bootstrap docs
-- ⏳ Next: basic UI for create post/feed/report + smoke tests
+- ✅ Basic monochrome UI for create post/feed/report
+- ⏳ Next: smoke tests for core onboarding/content/moderation flows
 
 ## Local Development
 ```bash

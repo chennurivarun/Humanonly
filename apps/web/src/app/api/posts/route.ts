@@ -1,7 +1,7 @@
-import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { requireHumanSession } from "@/lib/auth/guards";
 import { writeAuditStub } from "@/lib/audit";
+import { ContentValidationError, createPostRecord, parseCreatePostPayload } from "@/lib/content";
 import { db } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
@@ -10,24 +10,23 @@ export async function POST(request: NextRequest) {
     return sessionResult.response;
   }
 
-  const body = await request.json().catch(() => null);
-  if (!body?.body || typeof body.body !== "string") {
-    return NextResponse.json({ error: "body is required" }, { status: 400 });
+  const payload = await request.json().catch(() => null);
+
+  let command;
+  try {
+    command = parseCreatePostPayload(payload);
+  } catch (error) {
+    if (error instanceof ContentValidationError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
+    }
+
+    throw error;
   }
 
-  const message = body.body.trim();
-  if (!message) {
-    return NextResponse.json({ error: "body cannot be empty" }, { status: 400 });
-  }
-
-  const post = {
-    id: randomUUID(),
+  const post = createPostRecord(db, {
     authorId: sessionResult.session.user.id,
-    body: message,
-    createdAt: new Date().toISOString()
-  };
-
-  db.posts.unshift(post);
+    body: command.body
+  });
 
   await writeAuditStub({
     actorId: sessionResult.session.user.id,

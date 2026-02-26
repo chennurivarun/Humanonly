@@ -10,15 +10,15 @@
 - [x] Add audit writer stubs for enforcement-sensitive actions
 - [x] Human override control (admin-only)
 - [x] Seed script + local dev docs
-- [ ] Basic UI for create post / feed / report
+- [x] Basic UI for create post / feed / report
 - [ ] Add smoke tests for core flows
 
 ## Latest run summary
-- ✅ Completed milestone: deterministic seed script + local bootstrap docs.
-- ✅ Governance enforcement added to seed fixtures (human-only expression, AI ops boundaries, human-governed decisions, auditability, admin override constraints).
-- ✅ Added strict seed validation and startup hydration (`HUMANONLY_SEED_FILE`) with test coverage.
+- ✅ Completed milestone: monochrome UI for post creation, feed browsing, and in-feed report submission.
+- ✅ Refactored content APIs to use shared domain validators/services for payload parsing, invariants, and feed pagination.
+- ✅ Added unit test coverage for content validation + feed pagination behavior.
 
 ## Next actions
-1. Implement monochrome UI for create post, feed browsing, and report submission.
-2. Add smoke tests for onboarding → posting → reporting → moderation queue/override.
-3. Lock a durable storage plan for identities, posts/reports, and immutable audit logs.
+1. Add smoke tests for onboarding → posting → reporting → moderation queue/override.
+2. Lock a durable storage plan for identities, posts/reports, and immutable audit logs.
+3. Replace credential-only proofing with stronger identity verification before production launch.

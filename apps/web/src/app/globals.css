@@ -7,6 +7,8 @@
   --text-muted: #4d4d4d;
   --border: #d6d6d6;
   --border-strong: #b3b3b3;
+  --danger-bg: #f1f1f1;
+  --danger-border: #a3a3a3;
 }
 
 * {
@@ -27,7 +29,7 @@ a {
 }
 
 main {
-  max-width: 840px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 3rem 1.25rem 4rem;
 }
@@ -35,8 +37,12 @@ main {
 h1,
 h2,
 h3 {
+  margin: 0;
   letter-spacing: -0.02em;
-  margin-top: 0;
+}
+
+p {
+  margin: 0;
 }
 
 .card {
@@ -46,17 +52,57 @@ h3 {
   padding: 1rem;
 }
 
+.post-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.9rem;
+  background: #ffffff;
+}
+
 .grid {
   display: grid;
   gap: 1rem;
 }
 
 .grid-2 {
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.stack-sm {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.stack-md {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.stack-lg {
+  display: grid;
+  gap: 1rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.row.spread {
+  justify-content: space-between;
+}
+
+.row.align-center {
+  align-items: center;
 }
 
 .text-muted {
   color: var(--text-muted);
+}
+
+.text-small {
+  font-size: 0.86rem;
 }
 
 .badge {
@@ -79,6 +125,8 @@ button {
   padding: 0.6rem 0.9rem;
   cursor: pointer;
   font-weight: 600;
+  font: inherit;
+  text-decoration: none;
 }
 
 .button.secondary,
@@ -92,18 +140,24 @@ button:disabled {
   cursor: not-allowed;
 }
 
-input[type="text"] {
+input[type="text"],
+textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.62rem 0.72rem;
   background: #ffffff;
+  font: inherit;
+}
+
+textarea {
+  min-height: 104px;
+  resize: vertical;
 }
 
 label {
   font-weight: 600;
   display: block;
-  margin-bottom: 0.35rem;
 }
 
 .field {
@@ -113,4 +167,27 @@ label {
 .list {
   margin: 0;
   padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.notice {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 0.65rem 0.75rem;
+}
+
+.notice.danger {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
+
+.post-author {
+  margin: 0;
+}
+
+.post-body {
+  margin: 0;
+  white-space: pre-wrap;
 }

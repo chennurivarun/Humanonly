@@ -1,7 +1,11 @@
-import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { requireHumanSession } from "@/lib/auth/guards";
 import { writeAuditStub } from "@/lib/audit";
+import {
+  ContentValidationError,
+  createReportRecord,
+  parseCreateReportPayload
+} from "@/lib/content";
 import { db } from "@/lib/store";
 
 export async function GET() {
@@ -32,21 +36,33 @@ export async function POST(request: NextRequest) {
     return sessionResult.response;
   }
 
-  const body = await request.json().catch(() => null);
-  if (!body?.postId || !body?.reason) {
-    return NextResponse.json({ error: "postId and reason are required" }, { status: 400 });
+  const payload = await request.json().catch(() => null);
+
+  let command;
+  try {
+    command = parseCreateReportPayload(payload);
+  } catch (error) {
+    if (error instanceof ContentValidationError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
+    }
+
+    throw error;
   }
 
-  const report = {
-    id: randomUUID(),
-    postId: String(body.postId),
-    reporterId: sessionResult.session.user.id,
-    reason: String(body.reason),
-    status: "open" as const,
-    createdAt: new Date().toISOString()
-  };
+  let report;
+  try {
+    report = createReportRecord(db, {
+      postId: command.postId,
+      reporterId: sessionResult.session.user.id,
+      reason: command.reason
+    });
+  } catch (error) {
+    if (error instanceof ContentValidationError && error.code === "POST_NOT_FOUND") {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 404 });
+    }
 
-  db.reports.unshift(report);
+    throw error;
+  }
 
   await writeAuditStub({
     actorId: sessionResult.session.user.id,
@@ -55,7 +71,7 @@ export async function POST(request: NextRequest) {
     targetId: report.id,
     metadata: {
       postId: report.postId,
-      reason: report.reason,
+      reasonLength: report.reason.length,
       reporterHandle: sessionResult.session.user.handle
     },
     createdAt: new Date().toISOString()
