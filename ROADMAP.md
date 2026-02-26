@@ -13,8 +13,8 @@
 - [x] Human override control (admin-only)
 - [x] Seed script + local dev docs
 - [x] Basic UI for create post / feed / report
-- [ ] Smoke tests for core flows
-- Next phase: add smoke coverage before Sprint 2 trust scoring.
+- [x] Smoke tests for core flows
+- Next phase: finalize durable storage + immutable audit persistence before Sprint 2 trust scoring.
 
 ## Sprint 2
 - Trust scoring v1

@@ -7,4 +7,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Human override control (admin-only) delivered
 - ✅ Seed script + local dev docs delivered
 - ✅ Basic UI for create post / feed / report completed
-- 🚧 Next highest-priority milestone: Smoke tests for core onboarding/content/moderation flows
+- ✅ Smoke tests for core onboarding/content/moderation flows delivered
+- 🚧 Next highest-priority milestone: Durable storage + immutable audit persistence plan
