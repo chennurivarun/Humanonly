@@ -21,7 +21,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ MVP APIs: `posts`, `feed`, `reports` + moderation queue
 - ✅ Audit stubs for post/report/feed/moderation actions
 - ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
-- ⏳ Next: admin human override controls, seed scripts, and end-to-end smoke tests
+- ✅ Admin-only human override control with explicit human confirmation
+- ⏳ Next: seed scripts and end-to-end smoke tests
 
 ## Local Development
 ```bash
@@ -47,6 +48,7 @@ Any onboarded handle matching the allow-lists gets the mapped role.
 - `GET /api/feed` — paginated feed read (audit logged)
 - `POST /api/reports` — create report (authenticated + human verified)
 - `GET /api/reports` — moderation queue (moderator/admin only)
+- `POST /api/moderation/override` — admin-only emergency override for report status (audit logged)
 - `GET|POST /api/auth/[...nextauth]` — Auth.js handlers
 
 ## Contributing

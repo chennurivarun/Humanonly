@@ -5,7 +5,8 @@ export type AuditAction =
   | "post.created"
   | "feed.requested"
   | "report.created"
-  | "reports.queue.requested";
+  | "reports.queue.requested"
+  | "moderation.override.applied";
 
 export type AuditTargetType = "identity" | "authorization" | "post" | "feed" | "report" | "moderation_queue";
 

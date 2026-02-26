@@ -22,6 +22,7 @@ Human content only; AI supports operations under strict governance.
 - Role-aware API guards gate moderation endpoints.
 - Authorization denials emit audit records.
 - Feed/report/post actions emit audit stub records.
+- Admin-only moderation override endpoint requires explicit human confirmation and emits audit records.
 
 ## Non-Negotiables
 - Every enforcement action emits an audit record.
