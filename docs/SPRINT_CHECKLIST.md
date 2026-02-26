@@ -14,16 +14,19 @@
 - [x] Add smoke tests for core flows
 
 ## Latest run summary
-- ✅ Delivered durable governed runtime storage (`HUMANONLY_DATA_FILE`) and removed dependency on volatile in-memory-only state.
-- ✅ Upgraded audit logging to append-only immutable JSONL with sequence + SHA-256 hash chaining (`HUMANONLY_AUDIT_LOG_FILE`).
-- ✅ Added automated tests for governed persistence + tamper detection on audit chains.
+- ✅ Delivered appeals workflow with human-confirmed moderator/admin adjudication and immutable audit linkage.
+- ✅ Shipped `GET /api/moderation/action-log` to expose moderation timelines from hash-chained audit data.
+- ✅ Extended durable governed state + seed contracts to include appeals with legacy snapshot compatibility.
+- ✅ Added appeals/action-log tests and expanded smoke flow through appeal adjudication.
 
 ## Next actions
-1. Build appeals workflow that references immutable audit records and requires explicit human adjudication.
-2. Add admin metrics endpoints/views for trust movement, queue throughput, and override rates.
-3. Integrate trust score views into onboarding/profile and moderator triage surfaces.
+1. Build admin dashboard metrics for trust movement, queue throughput, appeal resolution time, and override rates.
+2. Surface moderation/action-log/trust insights in role-aware UI components.
+3. Plan Sprint 3 pilot launch hardening (observability, reliability, and governance ops).
 
-## Sprint 2 progress (new)
+## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
 - ✅ Added trust APIs: `GET /api/trust/me` (self) and `GET /api/trust/:userId` (moderator/admin).
 - ✅ Added trust scoring tests for baseline and penalty/reward behavior (`apps/web/src/lib/trust.test.ts`).
+- ✅ Added appeals APIs and adjudication flow (`/api/appeals`, `/api/appeals/:appealId/decision`).
+- ✅ Added immutable moderation action-log API (`/api/moderation/action-log`).

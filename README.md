@@ -24,10 +24,11 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Seed script + deterministic local bootstrap docs
 - ✅ Basic monochrome UI for create post/feed/report
 - ✅ Smoke tests for core onboarding/content/moderation flows
-- ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports
+- ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports/appeals
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
-- ⏳ Next: appeals/action-log workflow + dashboarding
+- ✅ Appeals workflow + immutable moderation action log APIs delivered
+- ⏳ Next: admin dashboard metrics and trust/queue observability views
 
 ## Local Development
 ```bash
@@ -60,6 +61,9 @@ See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and 
 - `POST /api/reports` — create report (authenticated + human verified)
 - `GET /api/reports` — moderation queue (moderator/admin only)
 - `POST /api/moderation/override` — admin-only emergency override for report status (audit logged)
+- `GET|POST /api/appeals` — create appeals + moderator appeal queue
+- `POST /api/appeals/:appealId/decision` — moderator/admin adjudication with explicit human confirmation
+- `GET /api/moderation/action-log` — immutable moderation timeline from chained audit records
 - `GET|POST /api/auth/[...nextauth]` — Auth.js handlers
 
 ## Contributing

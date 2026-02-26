@@ -3,8 +3,10 @@ import path from "node:path";
 
 const SUPPORTED_SEED_VERSION = 1;
 const REPORT_STATUSES = new Set(["open", "triaged", "resolved"] as const);
+const APPEAL_STATUSES = new Set(["open", "under_review", "upheld", "granted"] as const);
 
 type ReportStatus = "open" | "triaged" | "resolved";
+type AppealStatus = "open" | "under_review" | "upheld" | "granted";
 type HumanRole = "member" | "moderator" | "admin";
 
 export type SeedIdentity = {
@@ -34,6 +36,20 @@ export type SeedReport = {
   createdAt: string;
 };
 
+export type SeedAppeal = {
+  id: string;
+  reportId: string;
+  appellantId: string;
+  reason: string;
+  status: AppealStatus;
+  appealedAuditRecordId?: string;
+  createdAt: string;
+  updatedAt: string;
+  decidedAt?: string;
+  decidedById?: string;
+  decisionRationale?: string;
+};
+
 export type SeedSnapshot = {
   version: typeof SUPPORTED_SEED_VERSION;
   generatedAt: string;
@@ -47,18 +63,21 @@ export type SeedSnapshot = {
   users: SeedIdentity[];
   posts: SeedPost[];
   reports: SeedReport[];
+  appeals: SeedAppeal[];
 };
 
 export type SeedableStore = {
   users: SeedIdentity[];
   posts: SeedPost[];
   reports: SeedReport[];
+  appeals: SeedAppeal[];
 };
 
 export type SeedApplySummary = {
   users: number;
   posts: number;
   reports: number;
+  appeals: number;
 };
 
 export class SeedValidationError extends Error {
@@ -68,12 +87,17 @@ export class SeedValidationError extends Error {
     | "USERS_REQUIRED"
     | "POSTS_REQUIRED"
     | "REPORTS_REQUIRED"
+    | "APPEALS_REQUIRED"
     | "DUPLICATE_USER_ID"
     | "DUPLICATE_USER_HANDLE"
+    | "DUPLICATE_APPEAL_ID"
     | "UNKNOWN_POST_AUTHOR"
     | "UNKNOWN_REPORT_POST"
     | "UNKNOWN_REPORTER"
+    | "UNKNOWN_APPEAL_REPORT"
+    | "UNKNOWN_APPELLANT"
     | "INVALID_REPORT_STATUS"
+    | "INVALID_APPEAL_STATUS"
     | "INVALID_GOVERNANCE_ASSERTION";
 
   constructor(code: SeedValidationError["code"], message: string) {
@@ -118,6 +142,17 @@ function expectReportStatus(value: unknown): ReportStatus {
   }
 
   throw new SeedValidationError("INVALID_REPORT_STATUS", "report status must be open, triaged, or resolved");
+}
+
+function expectAppealStatus(value: unknown): AppealStatus {
+  if (value === "open" || value === "under_review" || value === "upheld" || value === "granted") {
+    return value;
+  }
+
+  throw new SeedValidationError(
+    "INVALID_APPEAL_STATUS",
+    "appeal status must be open, under_review, upheld, or granted"
+  );
 }
 
 function createTimestampFactory(referenceIso: string) {
@@ -224,6 +259,19 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
     }
   ];
 
+  const appeals: SeedAppeal[] = [
+    {
+      id: "apl_open_sample",
+      reportId: "rpt_triaged_sample",
+      appellantId: "usr_civic_reader",
+      reason: "Requesting second human review for context that may have been missed.",
+      status: "open",
+      appealedAuditRecordId: "seed_record_report_triaged_sample",
+      createdAt: stamp(-10),
+      updatedAt: stamp(-10)
+    }
+  ];
+
   return {
     version: SUPPORTED_SEED_VERSION,
     generatedAt: nowIso,
@@ -236,7 +284,8 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
     },
     users,
     posts,
-    reports
+    reports,
+    appeals
   };
 }
 
@@ -246,7 +295,8 @@ function cloneSnapshot(snapshot: SeedSnapshot): SeedSnapshot {
     governance: { ...snapshot.governance },
     users: snapshot.users.map((user) => ({ ...user })),
     posts: snapshot.posts.map((post) => ({ ...post })),
-    reports: snapshot.reports.map((report) => ({ ...report }))
+    reports: snapshot.reports.map((report) => ({ ...report })),
+    appeals: snapshot.appeals.map((appeal) => ({ ...appeal }))
   };
 }
 
@@ -290,6 +340,11 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
 
   if (!Array.isArray(body.reports)) {
     throw new SeedValidationError("REPORTS_REQUIRED", "reports array is required");
+  }
+
+  const rawAppeals = body.appeals;
+  if (rawAppeals !== undefined && !Array.isArray(rawAppeals)) {
+    throw new SeedValidationError("APPEALS_REQUIRED", "appeals must be an array when provided");
   }
 
   const users = body.users.map((rawUser, index): SeedIdentity => {
@@ -343,6 +398,62 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
     };
   });
 
+  const appeals = (rawAppeals ?? []).map((rawAppeal, index): SeedAppeal => {
+    if (!rawAppeal || typeof rawAppeal !== "object") {
+      throw new SeedValidationError("INVALID_JSON", `appeals[${index}] must be an object`);
+    }
+
+    const appeal = rawAppeal as Record<string, unknown>;
+
+    const parsed: SeedAppeal = {
+      id: expectNonEmptyString(appeal.id, `appeals[${index}].id`),
+      reportId: expectNonEmptyString(appeal.reportId, `appeals[${index}].reportId`),
+      appellantId: expectNonEmptyString(appeal.appellantId, `appeals[${index}].appellantId`),
+      reason: expectNonEmptyString(appeal.reason, `appeals[${index}].reason`),
+      status: expectAppealStatus(appeal.status),
+      createdAt: expectIso(appeal.createdAt, `appeals[${index}].createdAt`),
+      updatedAt: expectIso(appeal.updatedAt, `appeals[${index}].updatedAt`)
+    };
+
+    if (appeal.appealedAuditRecordId !== undefined) {
+      parsed.appealedAuditRecordId = expectNonEmptyString(
+        appeal.appealedAuditRecordId,
+        `appeals[${index}].appealedAuditRecordId`
+      );
+    }
+
+    if (appeal.decidedAt !== undefined) {
+      parsed.decidedAt = expectIso(appeal.decidedAt, `appeals[${index}].decidedAt`);
+    }
+
+    if (appeal.decidedById !== undefined) {
+      parsed.decidedById = expectNonEmptyString(appeal.decidedById, `appeals[${index}].decidedById`);
+    }
+
+    if (appeal.decisionRationale !== undefined) {
+      parsed.decisionRationale = expectNonEmptyString(
+        appeal.decisionRationale,
+        `appeals[${index}].decisionRationale`
+      );
+    }
+
+    if ((parsed.status === "upheld" || parsed.status === "granted") && !parsed.decidedAt) {
+      throw new SeedValidationError(
+        "INVALID_JSON",
+        `appeals[${index}] with status=${parsed.status} must include decidedAt`
+      );
+    }
+
+    if ((parsed.status === "upheld" || parsed.status === "granted") && !parsed.decidedById) {
+      throw new SeedValidationError(
+        "INVALID_JSON",
+        `appeals[${index}] with status=${parsed.status} must include decidedById`
+      );
+    }
+
+    return parsed;
+  });
+
   const userIds = new Set<string>();
   const handles = new Set<string>();
 
@@ -367,6 +478,7 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
     postIds.add(post.id);
   }
 
+  const reportIds = new Set<string>();
   for (const report of reports) {
     if (!REPORT_STATUSES.has(report.status)) {
       throw new SeedValidationError("INVALID_REPORT_STATUS", `invalid report status: ${report.status}`);
@@ -378,6 +490,41 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
 
     if (!userIds.has(report.reporterId)) {
       throw new SeedValidationError("UNKNOWN_REPORTER", `report ${report.id} references unknown reporter ${report.reporterId}`);
+    }
+
+    reportIds.add(report.id);
+  }
+
+  const appealIds = new Set<string>();
+  for (const appeal of appeals) {
+    if (!APPEAL_STATUSES.has(appeal.status)) {
+      throw new SeedValidationError("INVALID_APPEAL_STATUS", `invalid appeal status: ${appeal.status}`);
+    }
+
+    if (appealIds.has(appeal.id)) {
+      throw new SeedValidationError("DUPLICATE_APPEAL_ID", `duplicate appeal id: ${appeal.id}`);
+    }
+    appealIds.add(appeal.id);
+
+    if (!reportIds.has(appeal.reportId)) {
+      throw new SeedValidationError(
+        "UNKNOWN_APPEAL_REPORT",
+        `appeal ${appeal.id} references unknown report ${appeal.reportId}`
+      );
+    }
+
+    if (!userIds.has(appeal.appellantId)) {
+      throw new SeedValidationError(
+        "UNKNOWN_APPELLANT",
+        `appeal ${appeal.id} references unknown appellant ${appeal.appellantId}`
+      );
+    }
+
+    if (appeal.decidedById && !userIds.has(appeal.decidedById)) {
+      throw new SeedValidationError(
+        "UNKNOWN_APPELLANT",
+        `appeal ${appeal.id} references unknown reviewer ${appeal.decidedById}`
+      );
     }
   }
 
@@ -393,7 +540,8 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
     },
     users,
     posts,
-    reports
+    reports,
+    appeals
   };
 }
 
@@ -403,11 +551,13 @@ export function applySeedSnapshot(store: SeedableStore, snapshot: SeedSnapshot):
   store.users.splice(0, store.users.length, ...parsed.users.map((user) => ({ ...user })));
   store.posts.splice(0, store.posts.length, ...parsed.posts.map((post) => ({ ...post })));
   store.reports.splice(0, store.reports.length, ...parsed.reports.map((report) => ({ ...report })));
+  store.appeals.splice(0, store.appeals.length, ...parsed.appeals.map((appeal) => ({ ...appeal })));
 
   return {
     users: parsed.users.length,
     posts: parsed.posts.length,
-    reports: parsed.reports.length
+    reports: parsed.reports.length,
+    appeals: parsed.appeals.length
   };
 }
 

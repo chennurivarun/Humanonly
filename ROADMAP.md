@@ -18,7 +18,7 @@
 
 ## Sprint 2
 - [x] Trust scoring v1 baseline (API + rationale model)
-- [ ] Appeals + action logs
+- [x] Appeals + action logs
 - [ ] Admin dashboard metrics
 
 ## Sprint 3

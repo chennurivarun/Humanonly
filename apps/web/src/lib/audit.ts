@@ -11,6 +11,10 @@ export type AuditAction =
   | "report.created"
   | "reports.queue.requested"
   | "moderation.override.applied"
+  | "appeal.created"
+  | "appeals.queue.requested"
+  | "appeal.reviewed"
+  | "moderation.action_log.requested"
   | "trust.user.requested"
   | "trust.self.requested";
 
@@ -21,6 +25,8 @@ export type AuditTargetType =
   | "feed"
   | "report"
   | "moderation_queue"
+  | "appeal"
+  | "audit_log"
   | "trust_score";
 
 export type AuditRecord = {
@@ -221,6 +227,14 @@ export function readAuditLog(filePath = resolveAuditFilePath()): ImmutableAuditR
   });
 }
 
+export function findAuditRecordById(recordId: string, records = readAuditLog()): ImmutableAuditRecord | null {
+  if (!recordId.trim()) {
+    return null;
+  }
+
+  return records.find((record) => record.recordId === recordId) ?? null;
+}
+
 export function verifyAuditLogChain(records: ImmutableAuditRecord[]): { valid: true } | { valid: false; reason: string } {
   let previousHash: string | null = null;
 
@@ -265,4 +279,9 @@ export function verifyAuditLogChain(records: ImmutableAuditRecord[]): { valid: t
   }
 
   return { valid: true };
+}
+
+export function resetAuditStateForTests() {
+  cachedAuditState = null;
+  writeQueue = Promise.resolve();
 }

@@ -35,13 +35,29 @@ export type Report = {
   createdAt: string;
 };
 
+export type Appeal = {
+  id: string;
+  reportId: string;
+  appellantId: string;
+  reason: string;
+  status: "open" | "under_review" | "upheld" | "granted";
+  appealedAuditRecordId?: string;
+  createdAt: string;
+  updatedAt: string;
+  decidedAt?: string;
+  decidedById?: string;
+  decisionRationale?: string;
+};
+
 const posts: Post[] = [];
 const reports: Report[] = [];
+const appeals: Appeal[] = [];
 const users: IdentityProfile[] = [];
 
 export const db: GovernedStore = {
   posts,
   reports,
+  appeals,
   users
 };
 
@@ -99,7 +115,7 @@ function loadDurableStoreIfPresent(): boolean {
   try {
     const summary = hydrateGovernedStoreFromFile(db, configuredStoreFilePath());
     console.info(
-      `[store] loaded durable snapshot (${summary.users} users, ${summary.posts} posts, ${summary.reports} reports) from ${resolvedStorePath}`
+      `[store] loaded durable snapshot (${summary.users} users, ${summary.posts} posts, ${summary.reports} reports, ${summary.appeals} appeals) from ${resolvedStorePath}`
     );
     return true;
   } catch (error) {
@@ -119,7 +135,9 @@ function loadSeedDataIfConfigured(): boolean {
 
   try {
     const summary = hydrateGovernedStoreFromFile(db, seedFile);
-    console.info(`[seed] loaded ${summary.users} users, ${summary.posts} posts, ${summary.reports} reports from ${seedFile}`);
+    console.info(
+      `[seed] loaded ${summary.users} users, ${summary.posts} posts, ${summary.reports} reports, ${summary.appeals} appeals from ${seedFile}`
+    );
     persistStore();
     return true;
   } catch (error) {

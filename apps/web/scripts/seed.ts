@@ -40,6 +40,7 @@ function main() {
   console.info(`  users: ${snapshot.users.length}`);
   console.info(`  posts: ${snapshot.posts.length}`);
   console.info(`  reports: ${snapshot.reports.length}`);
+  console.info(`  appeals: ${snapshot.appeals.length}`);
   console.info("");
   console.info("Next steps:");
   console.info(`  1) export HUMANONLY_SEED_FILE=${options.output}`);

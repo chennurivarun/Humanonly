@@ -42,6 +42,17 @@ function buildStore(): GovernedStore {
         status: "open",
         createdAt: "2026-02-01T00:20:00.000Z"
       }
+    ],
+    appeals: [
+      {
+        id: "apl_1",
+        reportId: "rpt_1",
+        appellantId: "usr_1",
+        reason: "Need second review",
+        status: "open",
+        createdAt: "2026-02-01T00:30:00.000Z",
+        updatedAt: "2026-02-01T00:30:00.000Z"
+      }
     ]
   };
 }
@@ -54,6 +65,7 @@ describe("governed store persistence", () => {
     assert.equal(snapshot.users.length, 1);
     assert.equal(snapshot.posts.length, 1);
     assert.equal(snapshot.reports.length, 1);
+    assert.equal(snapshot.appeals.length, 1);
   });
 
   it("persists and rehydrates durable store snapshots", () => {
@@ -67,7 +79,8 @@ describe("governed store persistence", () => {
     const recovered: GovernedStore = {
       users: [],
       posts: [],
-      reports: []
+      reports: [],
+      appeals: []
     };
 
     const summary = hydrateGovernedStoreFromFile(recovered, durablePath);
@@ -75,11 +88,13 @@ describe("governed store persistence", () => {
     assert.deepEqual(summary, {
       users: 1,
       posts: 1,
-      reports: 1
+      reports: 1,
+      appeals: 1
     });
 
     assert.equal(recovered.users[0]?.handle, "founder");
     assert.equal(recovered.posts[0]?.id, "pst_1");
     assert.equal(recovered.reports[0]?.status, "open");
+    assert.equal(recovered.appeals[0]?.status, "open");
   });
 });

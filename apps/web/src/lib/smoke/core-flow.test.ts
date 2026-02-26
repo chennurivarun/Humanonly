@@ -10,24 +10,32 @@ import {
 } from "@/lib/content";
 import { buildIdentityProfile, parseOnboardingCredentials } from "@/lib/auth/onboarding";
 import { parseOverrideCommand } from "@/lib/moderation/override";
-import type { IdentityProfile, Post, Report } from "@/lib/store";
+import {
+  applyAppealDecision,
+  createAppealRecord,
+  parseCreateAppealPayload,
+  parseReviewAppealPayload
+} from "@/lib/moderation/appeals";
+import type { Appeal, IdentityProfile, Post, Report } from "@/lib/store";
 
 type TestStore = {
   users: IdentityProfile[];
   posts: Post[];
   reports: Report[];
+  appeals: Appeal[];
 };
 
 function createStore(): TestStore {
   return {
     users: [],
     posts: [],
-    reports: []
+    reports: [],
+    appeals: []
   };
 }
 
-describe("smoke: onboarding -> post -> feed -> report -> override", () => {
-  it("covers the core sprint 1 moderation path", () => {
+describe("smoke: onboarding -> post -> feed -> report -> override -> appeal", () => {
+  it("covers the core sprint moderation and appeals path", () => {
     const store = createStore();
 
     const author = buildIdentityProfile(
@@ -90,6 +98,38 @@ describe("smoke: onboarding -> post -> feed -> report -> override", () => {
 
     const queueAfterOverride = store.reports.filter((item) => item.status !== "resolved");
     assert.equal(queueAfterOverride.length, 0);
+
+    const appealCommand = parseCreateAppealPayload({
+      reportId: report.id,
+      reason: "Requesting second human review before final closure"
+    });
+
+    const appeal = createAppealRecord(store, {
+      reportId: appealCommand.reportId,
+      appellantId: author.id,
+      reason: appealCommand.reason,
+      appealedAuditRecordId: "audit_record_override_1"
+    });
+
+    assert.equal(appeal.status, "open");
+
+    const reviewCommand = parseReviewAppealPayload(
+      {
+        decision: "grant",
+        reason: "Human reviewer reopened report for additional context",
+        humanConfirmed: true
+      },
+      appeal.id
+    );
+
+    const adjudication = applyAppealDecision(store, {
+      ...reviewCommand,
+      reviewerId: admin.id
+    });
+
+    assert.equal(adjudication.appeal.status, "granted");
+    assert.equal(adjudication.report.status, "triaged");
+    assert.equal(adjudication.reportReopened, true);
   });
 
   it("fails fast on invalid report payload during the smoke flow", () => {

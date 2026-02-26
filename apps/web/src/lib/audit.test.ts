@@ -9,7 +9,9 @@ describe("audit persistence", () => {
     const tempDir = mkdtempSync(path.join(tmpdir(), "humanonly-audit-"));
     process.env.HUMANONLY_AUDIT_LOG_FILE = path.join(tempDir, "audit.jsonl");
 
-    const { readAuditLog, verifyAuditLogChain, writeAuditStub } = await import("./audit");
+    const { readAuditLog, resetAuditStateForTests, verifyAuditLogChain, writeAuditStub } = await import("./audit");
+
+    resetAuditStateForTests();
 
     await writeAuditStub({
       actorId: "usr_1",

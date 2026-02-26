@@ -12,7 +12,8 @@ function buildEmptyStore(): SeedableStore {
   return {
     users: [],
     posts: [],
-    reports: []
+    reports: [],
+    appeals: []
   };
 }
 
@@ -25,6 +26,7 @@ describe("createDefaultSeedSnapshot", () => {
     assert.equal(snapshot.users.length, 4);
     assert.equal(snapshot.posts.length, 3);
     assert.equal(snapshot.reports.length, 3);
+    assert.equal(snapshot.appeals.length, 1);
   });
 });
 
@@ -54,6 +56,18 @@ describe("parseSeedSnapshot", () => {
       (error) => error instanceof SeedValidationError && error.code === "INVALID_GOVERNANCE_ASSERTION"
     );
   });
+
+  it("accepts legacy snapshots that do not include appeals", () => {
+    const snapshot = createDefaultSeedSnapshot();
+    const legacyPayload = {
+      ...snapshot
+    } as Record<string, unknown>;
+
+    delete legacyPayload.appeals;
+
+    const parsed = parseSeedSnapshot(legacyPayload);
+    assert.deepEqual(parsed.appeals, []);
+  });
 });
 
 describe("applySeedSnapshot", () => {
@@ -66,11 +80,13 @@ describe("applySeedSnapshot", () => {
     assert.deepEqual(summary, {
       users: 4,
       posts: 3,
-      reports: 3
+      reports: 3,
+      appeals: 1
     });
 
     assert.equal(store.users[0]?.handle, "chief_admin");
     assert.equal(store.posts[0]?.authorId, "usr_human_author");
     assert.equal(store.reports[0]?.status, "open");
+    assert.equal(store.appeals[0]?.status, "open");
   });
 });

@@ -26,7 +26,7 @@ HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 ```
 
 - `HUMANONLY_SEED_FILE` is optional and used for first-run bootstrap.
-- `HUMANONLY_DATA_FILE` is the durable governed snapshot for identities/posts/reports.
+- `HUMANONLY_DATA_FILE` is the durable governed snapshot for identities/posts/reports/appeals.
 - `HUMANONLY_AUDIT_LOG_FILE` is an append-only immutable audit trail with hash chaining.
 
 If `HUMANONLY_DATA_FILE` already exists, it takes precedence over seed bootstrap data.
@@ -42,7 +42,7 @@ Default output: `apps/web/.seed/local-seed.json`
 Optional flags:
 
 ```bash
-npm run seed -- --output .seed/my-demo.json --reference-time 2026-02-20T12:00:00.000Z
+npm run seed -w apps/web -- --output .seed/my-demo.json --reference-time 2026-02-20T12:00:00.000Z
 ```
 
 ## 4) Start the app
@@ -53,13 +53,15 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## UI walkthrough (Sprint 1)
+## UI + API walkthrough (Sprint 2)
 
 1. Sign in from `/onboarding` using one of the seeded handles.
 2. Create a post from the home-page composer.
 3. Browse the feed and use **Report post** on any item.
-4. For moderator/admin handles, inspect queue data at `GET /api/reports`.
-5. For admin handles, apply emergency override via `POST /api/moderation/override`.
+4. As reporter or reported author, submit an appeal via `POST /api/appeals` with report id + rationale.
+5. For moderator/admin handles, inspect report queue data at `GET /api/reports` and appeal queue data at `GET /api/appeals`.
+6. Adjudicate appeal decisions with explicit human confirmation using `POST /api/appeals/:appealId/decision`.
+7. Inspect immutable moderation timeline at `GET /api/moderation/action-log`.
 
 All actions emit immutable audit records to `HUMANONLY_AUDIT_LOG_FILE` (JSONL hash chain).
 
@@ -79,5 +81,6 @@ Use onboarding (`/onboarding`) with:
 
 - 3 posts
 - 3 reports (`open`, `triaged`, `resolved`)
+- 1 open appeal linked to a triaged report
 
-This gives a ready moderation queue + override test surface without manual bootstrapping.
+This gives a ready moderation queue + override + appeal adjudication test surface without manual bootstrapping.

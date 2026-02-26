@@ -24,9 +24,11 @@ Human content only; AI supports operations under strict governance.
 - Authorization denials emit immutable audit records.
 - Feed/report/post actions emit immutable audit records.
 - Admin-only moderation override endpoint requires explicit human confirmation and emits immutable audit records.
-- Runtime state (identities, posts, reports) persists to a governed durable snapshot.
+- Appeals require human-authored rationale and human-confirmed adjudication by moderator/admin reviewers.
+- Moderation action logs are assembled from immutable audit hash-chain records for forensic auditability.
+- Runtime state (identities, posts, reports, appeals) persists to a governed durable snapshot.
 
 ## Non-Negotiables
 - Every enforcement action emits an audit record.
-- Permanent actions require human confirmation.
+- Permanent actions and appeal decisions require human confirmation.
 - Emergency override endpoint exists and is tested.

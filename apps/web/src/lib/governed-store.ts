@@ -5,7 +5,7 @@ import {
   type SeedSnapshot,
   writeSeedSnapshotToFile
 } from "@/lib/seed";
-import type { IdentityProfile, Post, Report } from "@/lib/store";
+import type { Appeal, IdentityProfile, Post, Report } from "@/lib/store";
 
 export const GOVERNANCE_ASSERTIONS = {
   humanExpressionOnly: true,
@@ -19,6 +19,7 @@ export type GovernedStore = {
   users: IdentityProfile[];
   posts: Post[];
   reports: Report[];
+  appeals: Appeal[];
 };
 
 function cloneStoreRows<T>(rows: T[]): T[] {
@@ -37,7 +38,8 @@ export function createGovernedSnapshot(
     },
     users: cloneStoreRows(store.users),
     posts: cloneStoreRows(store.posts),
-    reports: cloneStoreRows(store.reports)
+    reports: cloneStoreRows(store.reports),
+    appeals: cloneStoreRows(store.appeals)
   };
 }
 
