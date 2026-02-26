@@ -13,16 +13,19 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary
-- ✅ Delivered role-aware moderation insights domain model with queue health, trust-enriched queue entities, immutable action previews, and 7d/30d trend windows.
-- ✅ Shipped `GET /api/moderation/insights` (moderator/admin) with immutable audit logging for request traceability.
-- ✅ Expanded product UI with member trust profile + moderator/admin insight surfaces under the monochrome design system.
-- ✅ Added dedicated moderation insights tests and refreshed roadmap/checklist docs for Sprint 3 handoff.
+## Latest run summary (Sprint 3 — Reliability Hardening)
+- ✅ Delivered reliability domain module (`apps/web/src/lib/reliability/index.ts`) with storage health checks, audit hash-chain integrity verification, and queue latency metrics with threshold-based alerts.
+- ✅ Delivered incident control module (`apps/web/src/lib/incident/index.ts`) with human-confirmed declare/resolve lifecycle, input validation, and in-memory runtime store.
+- ✅ Shipped `GET /api/admin/reliability` (admin-only) returning full reliability status with governance assertions and immutable audit trace.
+- ✅ Shipped `GET /api/admin/incident` + `POST /api/admin/incident` (admin-only, human-confirmed) with declare/resolve actions and immutable audit emission for all state changes.
+- ✅ Expanded admin UI in `apps/web/src/app/page.tsx` with Reliability Status panel (storage, audit chain, queue latency, alerts, governance assertions) and Incident Controls panel (declare/resolve form, active incident list).
+- ✅ Fixed `ReliabilityThresholds` type to use mutable `number` fields, eliminating TypeScript literal-type inference errors in tests.
+- ✅ All 66 tests passing, typecheck clean, production build successful.
 
 ## Next actions
-1. Add observability and reliability hardening tasks (audit-store health checks, queue latency instrumentation).
+1. Execute Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md` and capture follow-ups.
 2. Plan migration path from file-based governed persistence to indexed relational storage.
-3. Execute a Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md` and capture follow-ups.
+3. Expand community contributor guidance and onboarding docs for pilot launch.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.

@@ -133,6 +133,10 @@ p {
   font-weight: 600;
 }
 
+.status-pill.danger {
+  background: var(--surface-strong);
+}
+
 .button,
 button {
   border: 1px solid var(--border-strong);
@@ -158,7 +162,8 @@ button:disabled {
 }
 
 input[type="text"],
-textarea {
+textarea,
+select {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 10px;

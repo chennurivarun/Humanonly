@@ -17,6 +17,10 @@ export type AuditAction =
   | "moderation.action_log.requested"
   | "moderation.insights.requested"
   | "admin.metrics.requested"
+  | "admin.reliability.requested"
+  | "admin.incident.declared"
+  | "admin.incident.resolved"
+  | "admin.incident.listed"
   | "trust.user.requested"
   | "trust.self.requested";
 
@@ -30,7 +34,9 @@ export type AuditTargetType =
   | "appeal"
   | "audit_log"
   | "trust_score"
-  | "metrics";
+  | "metrics"
+  | "reliability"
+  | "incident";
 
 export type AuditRecord = {
   actorId: string;

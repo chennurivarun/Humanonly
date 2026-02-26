@@ -16,7 +16,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - `packages/core` — shared domain logic (trust, moderation, policy)
 - `docs` — manifesto, governance, roadmap, architecture
 
-## Sprint 1 Progress
+## Progress Snapshot
 - ✅ Runnable Next.js app scaffold in `apps/web`
 - ✅ MVP APIs: `posts`, `feed`, `reports` + moderation queue
 - ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
@@ -31,7 +31,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
 - ✅ Role-aware trust + moderation insights UI for members/moderators/admins with 7d/30d trend windows
 - ✅ Sprint 3 pilot governance runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
-- ⏳ Next: Sprint 3 reliability hardening (durability checks, observability, incident controls)
+- ✅ Sprint 3 reliability hardening delivered (storage health checks, audit chain integrity, queue latency alerts, admin incident controls)
+- ⏳ Next: community contributor expansion + durable relational storage migration
 
 ## Local Development
 ```bash
@@ -68,6 +69,8 @@ See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and 
 - `POST /api/appeals/:appealId/decision` — moderator/admin adjudication with explicit human confirmation
 - `GET /api/moderation/action-log` — immutable moderation timeline from chained audit records
 - `GET /api/moderation/insights` — role-aware moderation/trust queue intelligence + trend windows (moderator/admin)
+- `GET /api/admin/reliability` — reliability status (durability + audit-chain integrity + queue latency alerts)
+- `GET|POST /api/admin/incident` — admin incident declare/list/resolve controls (human-confirmed + audited)
 - `GET|POST /api/auth/[...nextauth]` — Auth.js handlers
 
 ## Contributing

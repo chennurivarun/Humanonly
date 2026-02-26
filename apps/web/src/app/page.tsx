@@ -74,6 +74,59 @@ type AdminMetrics = {
   };
 };
 
+type StorageHealthCheck = {
+  label: string;
+  filePath: string;
+  exists: boolean;
+  sizeBytes: number | null;
+  lastModifiedAt: string | null;
+  healthy: boolean;
+};
+
+type QueueLatencyAlert = {
+  metric: string;
+  value: number;
+  threshold: number;
+  exceeded: boolean;
+};
+
+type ReliabilityStatus = {
+  generatedAt: string;
+  governance: Record<string, boolean>;
+  healthy: boolean;
+  storage: StorageHealthCheck[];
+  auditChain: {
+    totalRecords: number;
+    lastSequence: number | null;
+    chainValid: boolean;
+    chainError: string | null;
+  };
+  queueLatency: {
+    openReports: number;
+    openAppeals: number;
+    oldestOpenReportAgeHours: number | null;
+    oldestOpenAppealAgeHours: number | null;
+    alerts: QueueLatencyAlert[];
+  };
+};
+
+type IncidentSeverity = "sev1" | "sev2" | "sev3";
+
+type Incident = {
+  id: string;
+  severity: IncidentSeverity;
+  title: string;
+  description: string;
+  declaredById: string;
+  declaredAt: string;
+  humanConfirmed: boolean;
+  status: "open" | "resolved";
+  resolvedAt: string | null;
+  resolvedById: string | null;
+  resolutionNotes: string | null;
+  linkedAuditRecordId: string | null;
+};
+
 type ModerationInsights = {
   generatedAt: string;
   queueHealth: {
@@ -236,6 +289,25 @@ export default function Home() {
   const [adminMetricsError, setAdminMetricsError] = useState<string | null>(null);
   const [isLoadingAdminMetrics, setIsLoadingAdminMetrics] = useState(false);
 
+  const [reliabilityStatus, setReliabilityStatus] = useState<ReliabilityStatus | null>(null);
+  const [reliabilityError, setReliabilityError] = useState<string | null>(null);
+  const [isLoadingReliability, setIsLoadingReliability] = useState(false);
+
+  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const [isLoadingIncidents, setIsLoadingIncidents] = useState(false);
+
+  const [incidentAction, setIncidentAction] = useState<"declare" | "resolve">("declare");
+  const [incidentSeverity, setIncidentSeverity] = useState<IncidentSeverity>("sev3");
+  const [incidentTitle, setIncidentTitle] = useState("");
+  const [incidentDescription, setIncidentDescription] = useState("");
+  const [incidentHumanConfirmed, setIncidentHumanConfirmed] = useState(false);
+  const [incidentResolveId, setIncidentResolveId] = useState("");
+  const [incidentResolutionNotes, setIncidentResolutionNotes] = useState("");
+  const [isSubmittingIncident, setIsSubmittingIncident] = useState(false);
+  const [incidentFeedback, setIncidentFeedback] = useState<string | null>(null);
+  const [incidentError, setIncidentError] = useState<string | null>(null);
+
   const loadFeed = useCallback(async (mode: "replace" | "append", cursor?: string | null) => {
     if (mode === "replace") {
       setIsLoadingFeed(true);
@@ -367,6 +439,66 @@ export default function Home() {
     }
   }, [isAdmin]);
 
+  const loadReliabilityStatus = useCallback(async () => {
+    if (!isAdmin) {
+      setReliabilityStatus(null);
+      setReliabilityError(null);
+      return;
+    }
+
+    setIsLoadingReliability(true);
+    setReliabilityError(null);
+
+    try {
+      const response = await fetch("/api/admin/reliability", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: ReliabilityStatus };
+      setReliabilityStatus(payload.data ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load reliability status";
+      setReliabilityError(message);
+    } finally {
+      setIsLoadingReliability(false);
+    }
+  }, [isAdmin]);
+
+  const loadIncidents = useCallback(async () => {
+    if (!isAdmin) {
+      setIncidents([]);
+      setIncidentsError(null);
+      return;
+    }
+
+    setIsLoadingIncidents(true);
+    setIncidentsError(null);
+
+    try {
+      const response = await fetch("/api/admin/incident", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: Incident[] };
+      setIncidents(Array.isArray(payload.data) ? payload.data : []);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load incidents";
+      setIncidentsError(message);
+    } finally {
+      setIsLoadingIncidents(false);
+    }
+  }, [isAdmin]);
+
   useEffect(() => {
     void loadFeed("replace");
   }, [loadFeed]);
@@ -382,6 +514,63 @@ export default function Home() {
   useEffect(() => {
     void loadAdminMetrics();
   }, [loadAdminMetrics]);
+
+  useEffect(() => {
+    void loadReliabilityStatus();
+  }, [loadReliabilityStatus]);
+
+  useEffect(() => {
+    void loadIncidents();
+  }, [loadIncidents]);
+
+  async function handleSubmitIncident(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIncidentError(null);
+    setIncidentFeedback(null);
+    setIsSubmittingIncident(true);
+
+    try {
+      const body =
+        incidentAction === "declare"
+          ? {
+              action: "declare",
+              severity: incidentSeverity,
+              title: incidentTitle,
+              description: incidentDescription,
+              humanConfirmed: incidentHumanConfirmed
+            }
+          : {
+              action: "resolve",
+              incidentId: incidentResolveId,
+              resolutionNotes: incidentResolutionNotes,
+              humanConfirmed: incidentHumanConfirmed
+            };
+
+      const response = await fetch("/api/admin/incident", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const label = incidentAction === "declare" ? "Incident declared." : "Incident resolved.";
+      setIncidentFeedback(label);
+      setIncidentTitle("");
+      setIncidentDescription("");
+      setIncidentResolveId("");
+      setIncidentResolutionNotes("");
+      setIncidentHumanConfirmed(false);
+      await Promise.all([loadIncidents(), loadReliabilityStatus()]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Incident action failed";
+      setIncidentError(message);
+    } finally {
+      setIsSubmittingIncident(false);
+    }
+  }
 
   async function handleCreatePost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -456,7 +645,7 @@ export default function Home() {
   return (
     <main className="stack-lg">
       <section className="card stack-md">
-        <p className="badge">Sprint 2 · Role-aware insights delivered</p>
+        <p className="badge">Sprint 3 · Reliability hardening delivered</p>
         <h1>HumanOnly MVP</h1>
         <p className="text-muted">
           Human expression only. AI-managed operations. Human-governed decisions. Every
@@ -781,6 +970,287 @@ export default function Home() {
           ) : (
             <p className="text-muted">No metrics available yet.</p>
           )}
+        </section>
+      ) : null}
+
+      {isAdmin ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Reliability status</h2>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void loadReliabilityStatus()}
+              disabled={isLoadingReliability}
+            >
+              {isLoadingReliability ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {reliabilityError ? <p className="notice danger">{reliabilityError}</p> : null}
+
+          {reliabilityStatus ? (
+            <div className="stack-md">
+              <div className="row align-center">
+                <span className={`status-pill${reliabilityStatus.healthy ? "" : " danger"}`}>
+                  {reliabilityStatus.healthy ? "Healthy" : "Degraded"}
+                </span>
+                <p className="text-small text-muted">Generated {formatTimestamp(reliabilityStatus.generatedAt)}</p>
+              </div>
+
+              <div className="grid grid-2">
+                <article className="post-card stack-sm">
+                  <h3>Storage health</h3>
+                  {reliabilityStatus.storage.map((check) => (
+                    <div key={check.label} className="stack-sm">
+                      <div className="row spread align-center">
+                        <p className="text-small">
+                          <strong>{check.label}</strong>
+                        </p>
+                        <span className={`status-pill${check.healthy ? "" : " danger"}`}>
+                          {check.healthy ? "OK" : "Missing"}
+                        </span>
+                      </div>
+                      {check.exists ? (
+                        <>
+                          <p className="text-small text-muted">Size: {check.sizeBytes ?? "-"} bytes</p>
+                          <p className="text-small text-muted">
+                            Last modified: {check.lastModifiedAt ? formatTimestamp(check.lastModifiedAt) : "-"}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-small text-muted">File not present on disk</p>
+                      )}
+                    </div>
+                  ))}
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Audit chain integrity</h3>
+                  <div className="row align-center">
+                    <span className={`status-pill${reliabilityStatus.auditChain.chainValid ? "" : " danger"}`}>
+                      {reliabilityStatus.auditChain.chainValid ? "Valid" : "Broken"}
+                    </span>
+                  </div>
+                  <p className="text-small text-muted">Total records: {reliabilityStatus.auditChain.totalRecords}</p>
+                  <p className="text-small text-muted">
+                    Last sequence: {reliabilityStatus.auditChain.lastSequence ?? "-"}
+                  </p>
+                  {reliabilityStatus.auditChain.chainError ? (
+                    <p className="notice danger text-small">{reliabilityStatus.auditChain.chainError}</p>
+                  ) : null}
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Queue latency</h3>
+                  <p className="text-small text-muted">Open reports: {reliabilityStatus.queueLatency.openReports}</p>
+                  <p className="text-small text-muted">Open appeals: {reliabilityStatus.queueLatency.openAppeals}</p>
+                  <p className="text-small text-muted">
+                    Oldest open report: {reliabilityStatus.queueLatency.oldestOpenReportAgeHours ?? "-"}h
+                  </p>
+                  <p className="text-small text-muted">
+                    Oldest open appeal: {reliabilityStatus.queueLatency.oldestOpenAppealAgeHours ?? "-"}h
+                  </p>
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Threshold alerts</h3>
+                  {reliabilityStatus.queueLatency.alerts.length === 0 ? (
+                    <p className="text-small text-muted">No alerts configured.</p>
+                  ) : (
+                    <ul className="list text-small">
+                      {reliabilityStatus.queueLatency.alerts.map((alert) => (
+                        <li key={alert.metric}>
+                          <span className={alert.exceeded ? "notice danger" : ""}>
+                            {alert.metric}: {alert.value} / {alert.threshold}
+                            {alert.exceeded ? " — EXCEEDED" : " — ok"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+              </div>
+
+              <article className="post-card stack-sm">
+                <h3>Governance assertions</h3>
+                <ul className="list text-small">
+                  {Object.entries(reliabilityStatus.governance).map(([key, value]) => (
+                    <li key={key}>
+                      {key}: <strong>{String(value)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </div>
+          ) : (
+            <p className="text-muted">No reliability snapshot available. Click Refresh to load.</p>
+          )}
+        </section>
+      ) : null}
+
+      {isAdmin ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Incident controls</h2>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void loadIncidents()}
+              disabled={isLoadingIncidents}
+            >
+              {isLoadingIncidents ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          <p className="text-muted text-small">
+            Admin-gated, human-confirmed incident declare/resolve. Every action is immutably audited.
+          </p>
+
+          {incidentsError ? <p className="notice danger">{incidentsError}</p> : null}
+
+          <div className="grid grid-2">
+            <article className="post-card stack-sm">
+              <h3>Active incidents</h3>
+              {incidents.length === 0 ? (
+                <p className="text-small text-muted">No incidents declared.</p>
+              ) : (
+                <div className="stack-sm">
+                  {incidents.map((incident) => (
+                    <div key={incident.id} className={`notice stack-sm${incident.status === "open" ? " danger" : ""}`}>
+                      <div className="row spread align-center">
+                        <p className="text-small">
+                          <strong>{incident.title}</strong>
+                        </p>
+                        <span className="status-pill">{incident.severity.toUpperCase()}</span>
+                      </div>
+                      <p className="text-small text-muted">{incident.description}</p>
+                      <div className="row align-center">
+                        <span className={`status-pill${incident.status === "open" ? " danger" : ""}`}>
+                          {incident.status}
+                        </span>
+                        <p className="text-small text-muted">
+                          Declared {formatTimestamp(incident.declaredAt)} by {incident.declaredById}
+                        </p>
+                      </div>
+                      {incident.status === "resolved" && incident.resolvedAt ? (
+                        <p className="text-small text-muted">
+                          Resolved {formatTimestamp(incident.resolvedAt)}: {incident.resolutionNotes}
+                        </p>
+                      ) : null}
+                      <p className="text-small text-muted">ID: {incident.id}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </article>
+
+            <article className="post-card stack-sm">
+              <h3>Declare / resolve incident</h3>
+              <form className="stack-sm" onSubmit={(e) => void handleSubmitIncident(e)}>
+                <div className="row">
+                  <label className="text-small">
+                    <input
+                      type="radio"
+                      name="incidentAction"
+                      value="declare"
+                      checked={incidentAction === "declare"}
+                      onChange={() => setIncidentAction("declare")}
+                    />{" "}
+                    Declare
+                  </label>
+                  <label className="text-small">
+                    <input
+                      type="radio"
+                      name="incidentAction"
+                      value="resolve"
+                      checked={incidentAction === "resolve"}
+                      onChange={() => setIncidentAction("resolve")}
+                    />{" "}
+                    Resolve
+                  </label>
+                </div>
+
+                {incidentAction === "declare" ? (
+                  <>
+                    <label htmlFor="incidentSeverity">Severity</label>
+                    <select
+                      id="incidentSeverity"
+                      value={incidentSeverity}
+                      onChange={(e) => setIncidentSeverity(e.target.value as IncidentSeverity)}
+                    >
+                      <option value="sev1">Sev-1 (Critical)</option>
+                      <option value="sev2">Sev-2 (Major)</option>
+                      <option value="sev3">Sev-3 (Minor)</option>
+                    </select>
+                    <label htmlFor="incidentTitle">Title</label>
+                    <input
+                      id="incidentTitle"
+                      type="text"
+                      maxLength={200}
+                      value={incidentTitle}
+                      onChange={(e) => setIncidentTitle(e.target.value)}
+                      placeholder="Brief incident title"
+                      required
+                    />
+                    <label htmlFor="incidentDescription">Description</label>
+                    <textarea
+                      id="incidentDescription"
+                      maxLength={2000}
+                      value={incidentDescription}
+                      onChange={(e) => setIncidentDescription(e.target.value)}
+                      placeholder="Describe the incident, impact, and initial assessment"
+                      required
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label htmlFor="incidentResolveId">Incident ID</label>
+                    <input
+                      id="incidentResolveId"
+                      type="text"
+                      value={incidentResolveId}
+                      onChange={(e) => setIncidentResolveId(e.target.value)}
+                      placeholder="inc_..."
+                      required
+                    />
+                    <label htmlFor="incidentResolutionNotes">Resolution notes</label>
+                    <textarea
+                      id="incidentResolutionNotes"
+                      maxLength={2000}
+                      value={incidentResolutionNotes}
+                      onChange={(e) => setIncidentResolutionNotes(e.target.value)}
+                      placeholder="Describe what was done to resolve the incident"
+                      required
+                    />
+                  </>
+                )}
+
+                <label className="text-small">
+                  <input
+                    type="checkbox"
+                    checked={incidentHumanConfirmed}
+                    onChange={(e) => setIncidentHumanConfirmed(e.target.checked)}
+                  />{" "}
+                  I confirm this action is authorized and human-reviewed
+                </label>
+
+                <div className="row spread">
+                  <p className="text-small text-muted">Human confirmation required to proceed</p>
+                  <button type="submit" disabled={isSubmittingIncident || !incidentHumanConfirmed}>
+                    {isSubmittingIncident
+                      ? "Submitting..."
+                      : incidentAction === "declare"
+                        ? "Declare incident"
+                        : "Resolve incident"}
+                  </button>
+                </div>
+              </form>
+
+              {incidentFeedback ? <p className="notice">{incidentFeedback}</p> : null}
+              {incidentError ? <p className="notice danger">{incidentError}</p> : null}
+            </article>
+          </div>
         </section>
       ) : null}
 

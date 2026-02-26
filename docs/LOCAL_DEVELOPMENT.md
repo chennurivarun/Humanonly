@@ -53,7 +53,7 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## UI + API walkthrough (Sprint 2)
+## UI + API walkthrough (Sprint 3)
 
 1. Sign in from `/onboarding` using one of the seeded handles.
 2. Create a post from the home-page composer.
@@ -63,6 +63,8 @@ Open `http://localhost:3000`.
 6. For moderator/admin handles, inspect role-aware queue/trend context from **Moderation insights** (`GET /api/moderation/insights`).
 7. Adjudicate appeal decisions with explicit human confirmation using `POST /api/appeals/:appealId/decision`.
 8. Inspect immutable moderation timeline at `GET /api/moderation/action-log`.
+9. As an admin, inspect reliability posture from `GET /api/admin/reliability` (storage health, audit hash-chain integrity, queue latency alerts).
+10. As an admin, run incident drill controls using `GET|POST /api/admin/incident` with explicit `humanConfirmed: true` for declare/resolve actions.
 
 All actions emit immutable audit records to `HUMANONLY_AUDIT_LOG_FILE` (JSONL hash chain).
 

@@ -24,5 +24,5 @@
 
 ## Sprint 3
 - [x] Pilot launch readiness runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
-- [ ] Reliability hardening (durability, observability, incident controls)
+- [x] Reliability hardening (durability, observability, incident controls)
 - [ ] Community contributor expansion
