@@ -11,5 +11,6 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Durable governed storage + immutable audit persistence delivered
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action logs delivered
-- ✅ Next highest-priority milestone completed: admin dashboard metrics
-- 🚧 Next highest-priority milestone: role-aware trust and moderation insights in expanded UI surfaces
+- ✅ Admin dashboard metrics delivered
+- ✅ Next highest-priority milestone completed: role-aware trust and moderation insights in expanded UI surfaces
+- 🚧 Next highest-priority milestone: Sprint 3 pilot launch hardening (reliability + governance ops runbook)

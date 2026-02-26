@@ -15,6 +15,7 @@ export type AuditAction =
   | "appeals.queue.requested"
   | "appeal.reviewed"
   | "moderation.action_log.requested"
+  | "moderation.insights.requested"
   | "admin.metrics.requested"
   | "trust.user.requested"
   | "trust.self.requested";

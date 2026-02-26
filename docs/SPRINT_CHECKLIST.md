@@ -14,15 +14,15 @@
 - [x] Add smoke tests for core flows
 
 ## Latest run summary
-- ✅ Delivered appeals workflow with human-confirmed moderator/admin adjudication and immutable audit linkage.
-- ✅ Shipped `GET /api/moderation/action-log` to expose moderation timelines from hash-chained audit data.
-- ✅ Extended durable governed state + seed contracts to include appeals with legacy snapshot compatibility.
-- ✅ Added appeals/action-log tests and expanded smoke flow through appeal adjudication.
+- ✅ Delivered role-aware moderation insights domain model with queue health, trust-enriched queue entities, immutable action previews, and 7d/30d trend windows.
+- ✅ Shipped `GET /api/moderation/insights` (moderator/admin) with immutable audit logging for request traceability.
+- ✅ Expanded product UI with member trust profile + moderator/admin insight surfaces under the monochrome design system.
+- ✅ Added dedicated moderation insights tests and refreshed roadmap/checklist docs for Sprint 3 handoff.
 
 ## Next actions
-1. Surface moderation/action-log/trust insights in broader role-aware UI components (moderator + member views).
-2. Add trend windows (7d/30d) for trust movement, queue throughput, and appeal resolution analytics.
-3. Plan Sprint 3 pilot launch hardening (observability, reliability, and governance ops).
+1. Build Sprint 3 pilot readiness runbook (incident response, governance escalation, operator checklist).
+2. Add observability and reliability hardening tasks (audit-store health checks, queue latency instrumentation).
+3. Plan migration path from file-based governed persistence to indexed relational storage.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
@@ -31,3 +31,4 @@
 - ✅ Added appeals APIs and adjudication flow (`/api/appeals`, `/api/appeals/:appealId/decision`).
 - ✅ Added immutable moderation action-log API (`/api/moderation/action-log`).
 - ✅ Added admin metrics API + dashboard panel (`/api/admin/metrics`) for reports, appeals, trust distribution, and override rates.
+- ✅ Added role-aware moderation insights API + UI surfaces with trend analytics (`/api/moderation/insights`, `src/app/page.tsx`).

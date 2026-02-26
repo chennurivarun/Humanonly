@@ -27,6 +27,7 @@ Human content only; AI supports operations under strict governance.
 - Appeals require human-authored rationale and human-confirmed adjudication by moderator/admin reviewers.
 - Moderation action logs are assembled from immutable audit hash-chain records for forensic auditability.
 - Admin metrics endpoint (`GET /api/admin/metrics`) summarizes queue throughput, appeal resolution latency, trust distribution, and override rates.
+- Role-aware moderation insights endpoint (`GET /api/moderation/insights`) enriches queue entities with trust context, immutable action previews, and 7d/30d trend windows.
 - Runtime state (identities, posts, reports, appeals) persists to a governed durable snapshot.
 
 ## Non-Negotiables

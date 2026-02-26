@@ -59,9 +59,10 @@ Open `http://localhost:3000`.
 2. Create a post from the home-page composer.
 3. Browse the feed and use **Report post** on any item.
 4. As reporter or reported author, submit an appeal via `POST /api/appeals` with report id + rationale.
-5. For moderator/admin handles, inspect report queue data at `GET /api/reports` and appeal queue data at `GET /api/appeals`.
-6. Adjudicate appeal decisions with explicit human confirmation using `POST /api/appeals/:appealId/decision`.
-7. Inspect immutable moderation timeline at `GET /api/moderation/action-log`.
+5. For any authenticated member, inspect trust rationale in the **Trust profile** panel (`GET /api/trust/me`).
+6. For moderator/admin handles, inspect role-aware queue/trend context from **Moderation insights** (`GET /api/moderation/insights`).
+7. Adjudicate appeal decisions with explicit human confirmation using `POST /api/appeals/:appealId/decision`.
+8. Inspect immutable moderation timeline at `GET /api/moderation/action-log`.
 
 All actions emit immutable audit records to `HUMANONLY_AUDIT_LOG_FILE` (JSONL hash chain).
 

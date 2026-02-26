@@ -30,6 +30,20 @@ type ApiErrorPayload = {
   error?: string;
 };
 
+type TrustRationaleEvent = {
+  code: string;
+  delta: number;
+  reason: string;
+};
+
+type TrustScore = {
+  userId: string;
+  score: number;
+  tier: "restricted" | "watch" | "steady" | "trusted";
+  rationale: TrustRationaleEvent[];
+  computedAt: string;
+};
+
 type AdminMetrics = {
   generatedAt: string;
   reports: {
@@ -60,6 +74,91 @@ type AdminMetrics = {
   };
 };
 
+type ModerationInsights = {
+  generatedAt: string;
+  queueHealth: {
+    openReports: number;
+    triagedReports: number;
+    openAppeals: number;
+    underReviewAppeals: number;
+    oldestOpenReportAgeHours: number | null;
+    oldestOpenAppealAgeHours: number | null;
+  };
+  trends: {
+    windowDays: number;
+    reportsCreated: number;
+    reportsResolved: number;
+    queueThroughputPercent: number;
+    appealsCreated: number;
+    appealsResolved: number;
+    medianAppealResolutionHours: number | null;
+    activeUsers: number;
+    activeAverageTrustScore: number;
+    activeTrustByTier: {
+      restricted: number;
+      watch: number;
+      steady: number;
+      trusted: number;
+    };
+  }[];
+  reports: {
+    id: string;
+    createdAt: string;
+    status: "open" | "triaged" | "resolved";
+    reason: string;
+    post: {
+      id: string;
+      preview: string;
+    } | null;
+    reporter: {
+      id: string;
+      handle: string;
+      role: "member" | "moderator" | "admin";
+    } | null;
+    author: {
+      id: string;
+      handle: string;
+      role: "member" | "moderator" | "admin";
+    } | null;
+    reporterTrust: TrustScore | null;
+    authorTrust: TrustScore | null;
+  }[];
+  appeals: {
+    id: string;
+    reportId: string;
+    createdAt: string;
+    updatedAt: string;
+    status: "open" | "under_review" | "upheld" | "granted";
+    reason: string;
+    appellant: {
+      id: string;
+      handle: string;
+      role: "member" | "moderator" | "admin";
+    } | null;
+    appellantTrust: TrustScore | null;
+    linkedReportStatus: "open" | "triaged" | "resolved" | null;
+  }[];
+  trustWatchlist: {
+    user: {
+      id: string;
+      handle: string;
+      role: "member" | "moderator" | "admin";
+    };
+    trust: TrustScore;
+  }[];
+  recentActionLog: {
+    chain: { valid: true } | { valid: false; reason: string };
+    entries: {
+      sequence: number;
+      createdAt: string;
+      action: string;
+      actorHandle: string | null;
+      reportStatus?: string;
+      appealStatus?: string;
+    }[];
+  };
+};
+
 function formatTimestamp(value: string): string {
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) {
@@ -70,6 +169,17 @@ function formatTimestamp(value: string): string {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(new Date(parsed));
+}
+
+function formatTierLabel(value: string): string {
+  return value
+    .split("_")
+    .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
+    .join(" ");
+}
+
+function formatTierDelta(value: number): string {
+  return value >= 0 ? `+${value}` : `${value}`;
 }
 
 async function readErrorMessage(response: Response): Promise<string> {
@@ -89,10 +199,13 @@ async function readErrorMessage(response: Response): Promise<string> {
 
 export default function Home() {
   const { data: session, status } = useSession();
+
   const canParticipate = useMemo(
     () => Boolean(session?.user && session.user.humanVerified),
     [session?.user]
   );
+  const isAdmin = session?.user?.role === "admin";
+  const canViewModerationInsights = session?.user?.role === "moderator" || session?.user?.role === "admin";
 
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -110,6 +223,14 @@ export default function Home() {
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
   const [reportFeedback, setReportFeedback] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
+
+  const [selfTrust, setSelfTrust] = useState<TrustScore | null>(null);
+  const [selfTrustError, setSelfTrustError] = useState<string | null>(null);
+  const [isLoadingSelfTrust, setIsLoadingSelfTrust] = useState(false);
+
+  const [moderationInsights, setModerationInsights] = useState<ModerationInsights | null>(null);
+  const [moderationInsightsError, setModerationInsightsError] = useState<string | null>(null);
+  const [isLoadingModerationInsights, setIsLoadingModerationInsights] = useState(false);
 
   const [adminMetrics, setAdminMetrics] = useState<AdminMetrics | null>(null);
   const [adminMetricsError, setAdminMetricsError] = useState<string | null>(null);
@@ -156,8 +277,68 @@ export default function Home() {
     }
   }, []);
 
+  const loadSelfTrust = useCallback(async () => {
+    if (!session?.user) {
+      setSelfTrust(null);
+      setSelfTrustError(null);
+      return;
+    }
+
+    setIsLoadingSelfTrust(true);
+    setSelfTrustError(null);
+
+    try {
+      const response = await fetch("/api/trust/me", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: TrustScore };
+      setSelfTrust(payload.data ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load trust profile";
+      setSelfTrustError(message);
+    } finally {
+      setIsLoadingSelfTrust(false);
+    }
+  }, [session?.user?.id]);
+
+  const loadModerationInsights = useCallback(async () => {
+    if (!canViewModerationInsights) {
+      setModerationInsights(null);
+      setModerationInsightsError(null);
+      return;
+    }
+
+    setIsLoadingModerationInsights(true);
+    setModerationInsightsError(null);
+
+    try {
+      const response = await fetch("/api/moderation/insights?windows=7,30&queueLimit=8&actionLogLimit=8", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: ModerationInsights };
+      setModerationInsights(payload.data ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load moderation insights";
+      setModerationInsightsError(message);
+    } finally {
+      setIsLoadingModerationInsights(false);
+    }
+  }, [canViewModerationInsights]);
+
   const loadAdminMetrics = useCallback(async () => {
-    if (session?.user?.role !== "admin") {
+    if (!isAdmin) {
       setAdminMetrics(null);
       setAdminMetricsError(null);
       return;
@@ -184,11 +365,19 @@ export default function Home() {
     } finally {
       setIsLoadingAdminMetrics(false);
     }
-  }, [session?.user?.role]);
+  }, [isAdmin]);
 
   useEffect(() => {
     void loadFeed("replace");
   }, [loadFeed]);
+
+  useEffect(() => {
+    void loadSelfTrust();
+  }, [loadSelfTrust]);
+
+  useEffect(() => {
+    void loadModerationInsights();
+  }, [loadModerationInsights]);
 
   useEffect(() => {
     void loadAdminMetrics();
@@ -216,7 +405,7 @@ export default function Home() {
 
       setPostBody("");
       setPostFeedback("Post published to the feed.");
-      await loadFeed("replace");
+      await Promise.all([loadFeed("replace"), loadSelfTrust(), loadModerationInsights(), loadAdminMetrics()]);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to publish post";
       setPostError(message);
@@ -255,6 +444,7 @@ export default function Home() {
       setReportFeedback("Report submitted for moderator review.");
       setReportReason("");
       setActiveReportPostId(null);
+      await Promise.all([loadSelfTrust(), loadModerationInsights(), loadAdminMetrics()]);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit report";
       setReportError(message);
@@ -266,7 +456,7 @@ export default function Home() {
   return (
     <main className="stack-lg">
       <section className="card stack-md">
-        <p className="badge">Sprint 1 · Basic UI delivered</p>
+        <p className="badge">Sprint 2 · Role-aware insights delivered</p>
         <h1>HumanOnly MVP</h1>
         <p className="text-muted">
           Human expression only. AI-managed operations. Human-governed decisions. Every
@@ -350,7 +540,195 @@ export default function Home() {
         </article>
       </section>
 
-      {session?.user?.role === "admin" ? (
+      {session?.user ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Trust profile</h2>
+            <button type="button" className="secondary" onClick={() => void loadSelfTrust()} disabled={isLoadingSelfTrust}>
+              {isLoadingSelfTrust ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {selfTrustError ? <p className="notice danger">{selfTrustError}</p> : null}
+
+          {selfTrust ? (
+            <div className="stack-sm">
+              <div className="row align-center">
+                <p>
+                  Score <strong>{selfTrust.score}</strong>
+                </p>
+                <span className="status-pill">{formatTierLabel(selfTrust.tier)}</span>
+                <p className="text-small text-muted">Computed {formatTimestamp(selfTrust.computedAt)}</p>
+              </div>
+              <ul className="list text-small">
+                {selfTrust.rationale.map((event) => (
+                  <li key={`${event.code}-${event.reason}`}>
+                    <strong>{formatTierDelta(event.delta)}</strong> · {event.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-muted">No trust profile available yet.</p>
+          )}
+        </section>
+      ) : null}
+
+      {canViewModerationInsights ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Moderation insights</h2>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void loadModerationInsights()}
+              disabled={isLoadingModerationInsights}
+            >
+              {isLoadingModerationInsights ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {moderationInsightsError ? <p className="notice danger">{moderationInsightsError}</p> : null}
+
+          {moderationInsights ? (
+            <div className="stack-md">
+              <div className="kpi-grid">
+                <article className="post-card stack-sm">
+                  <h3>Queue health</h3>
+                  <p className="text-small text-muted">Open reports: {moderationInsights.queueHealth.openReports}</p>
+                  <p className="text-small text-muted">Triaged reports: {moderationInsights.queueHealth.triagedReports}</p>
+                  <p className="text-small text-muted">Open appeals: {moderationInsights.queueHealth.openAppeals}</p>
+                  <p className="text-small text-muted">Under review appeals: {moderationInsights.queueHealth.underReviewAppeals}</p>
+                  <p className="text-small text-muted">
+                    Oldest open report age: {moderationInsights.queueHealth.oldestOpenReportAgeHours ?? "-"}h
+                  </p>
+                  <p className="text-small text-muted">
+                    Oldest open appeal age: {moderationInsights.queueHealth.oldestOpenAppealAgeHours ?? "-"}h
+                  </p>
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Trend windows</h3>
+                  <div className="stack-sm">
+                    {moderationInsights.trends.map((trend) => (
+                      <div key={trend.windowDays} className="notice stack-sm">
+                        <p>
+                          <strong>{trend.windowDays}d window</strong>
+                        </p>
+                        <p className="text-small text-muted">
+                          Reports {trend.reportsCreated} · Resolved {trend.reportsResolved} · Throughput {trend.queueThroughputPercent}%
+                        </p>
+                        <p className="text-small text-muted">
+                          Appeals {trend.appealsCreated} · Resolved {trend.appealsResolved} · Median resolution{" "}
+                          {trend.medianAppealResolutionHours ?? "-"}h
+                        </p>
+                        <p className="text-small text-muted">
+                          Active users {trend.activeUsers} · Avg trust {trend.activeAverageTrustScore}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </div>
+
+              <div className="grid grid-2">
+                <article className="post-card stack-sm">
+                  <h3>Report queue snapshot</h3>
+                  {moderationInsights.reports.length === 0 ? (
+                    <p className="text-small text-muted">No open or triaged reports.</p>
+                  ) : (
+                    <div className="stack-sm">
+                      {moderationInsights.reports.map((report) => (
+                        <div key={report.id} className="notice stack-sm">
+                          <div className="row spread align-center">
+                            <p className="text-small">
+                              <strong>{report.id}</strong>
+                            </p>
+                            <span className="status-pill">{formatTierLabel(report.status)}</span>
+                          </div>
+                          <p className="text-small text-muted">{report.reason}</p>
+                          <p className="text-small text-muted">Post: {report.post?.preview ?? "Unknown post"}</p>
+                          <p className="text-small text-muted">
+                            Reporter: @{report.reporter?.handle ?? "unknown"} · trust {report.reporterTrust?.score ?? "-"}
+                          </p>
+                          <p className="text-small text-muted">
+                            Author: @{report.author?.handle ?? "unknown"} · trust {report.authorTrust?.score ?? "-"}
+                          </p>
+                          <p className="text-small text-muted">Created {formatTimestamp(report.createdAt)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Appeal queue snapshot</h3>
+                  {moderationInsights.appeals.length === 0 ? (
+                    <p className="text-small text-muted">No active appeals.</p>
+                  ) : (
+                    <div className="stack-sm">
+                      {moderationInsights.appeals.map((appeal) => (
+                        <div key={appeal.id} className="notice stack-sm">
+                          <div className="row spread align-center">
+                            <p className="text-small">
+                              <strong>{appeal.id}</strong>
+                            </p>
+                            <span className="status-pill">{formatTierLabel(appeal.status)}</span>
+                          </div>
+                          <p className="text-small text-muted">{appeal.reason}</p>
+                          <p className="text-small text-muted">
+                            Appellant: @{appeal.appellant?.handle ?? "unknown"} · trust {appeal.appellantTrust?.score ?? "-"}
+                          </p>
+                          <p className="text-small text-muted">Linked report status: {appeal.linkedReportStatus ?? "unknown"}</p>
+                          <p className="text-small text-muted">Updated {formatTimestamp(appeal.updatedAt)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Trust watchlist</h3>
+                  {moderationInsights.trustWatchlist.length === 0 ? (
+                    <p className="text-small text-muted">No trust watchlist entries.</p>
+                  ) : (
+                    <ul className="list text-small">
+                      {moderationInsights.trustWatchlist.map((entry) => (
+                        <li key={entry.user.id}>
+                          @{entry.user.handle} · {entry.user.role} · score {entry.trust.score} ({formatTierLabel(entry.trust.tier)})
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </article>
+
+                <article className="post-card stack-sm">
+                  <h3>Recent moderation actions</h3>
+                  <p className="text-small text-muted">
+                    Audit chain: {moderationInsights.recentActionLog.chain.valid ? "valid" : moderationInsights.recentActionLog.chain.reason}
+                  </p>
+                  {moderationInsights.recentActionLog.entries.length === 0 ? (
+                    <p className="text-small text-muted">No action-log entries yet.</p>
+                  ) : (
+                    <ul className="list text-small">
+                      {moderationInsights.recentActionLog.entries.map((entry) => (
+                        <li key={entry.sequence}>
+                          #{entry.sequence} · {entry.action} · @{entry.actorHandle ?? "system"} · {formatTimestamp(entry.createdAt)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <p className="text-small text-muted">Generated {formatTimestamp(moderationInsights.generatedAt)}</p>
+                </article>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted">No moderation insight snapshot available yet.</p>
+          )}
+        </section>
+      ) : null}
+
+      {isAdmin ? (
         <section className="card stack-md">
           <div className="row spread align-center">
             <h2>Admin metrics</h2>

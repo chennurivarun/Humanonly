@@ -13,7 +13,8 @@ const MODERATION_AUDIT_ACTIONS: ReadonlySet<AuditAction> = new Set([
   "appeal.created",
   "appeals.queue.requested",
   "appeal.reviewed",
-  "moderation.action_log.requested"
+  "moderation.action_log.requested",
+  "moderation.insights.requested"
 ]);
 
 type ActionLogStore = {

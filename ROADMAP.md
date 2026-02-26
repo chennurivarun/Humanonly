@@ -20,8 +20,9 @@
 - [x] Trust scoring v1 baseline (API + rationale model)
 - [x] Appeals + action logs
 - [x] Admin dashboard metrics
+- [x] Role-aware trust + moderation insights surfaces (member trust profile, moderator queue intelligence, trend windows)
 
 ## Sprint 3
-- Pilot launch
-- Reliability hardening
-- Community contributor expansion
+- [ ] Pilot launch readiness runbook
+- [ ] Reliability hardening (durability, observability, incident controls)
+- [ ] Community contributor expansion

@@ -68,6 +68,12 @@ p {
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
 .stack-sm {
   display: grid;
   gap: 0.6rem;
@@ -114,6 +120,17 @@ p {
   font-size: 0.8rem;
   font-weight: 600;
   background: #ffffff;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: #ffffff;
+  padding: 0.12rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .button,

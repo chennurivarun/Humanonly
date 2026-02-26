@@ -29,7 +29,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
-- ⏳ Next: richer role-aware trust/queue observability surfaces and trend windows
+- ✅ Role-aware trust + moderation insights UI for members/moderators/admins with 7d/30d trend windows
+- ⏳ Next: Sprint 3 pilot hardening (reliability + governance operations)
 
 ## Local Development
 ```bash
@@ -65,6 +66,7 @@ See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and 
 - `GET|POST /api/appeals` — create appeals + moderator appeal queue
 - `POST /api/appeals/:appealId/decision` — moderator/admin adjudication with explicit human confirmation
 - `GET /api/moderation/action-log` — immutable moderation timeline from chained audit records
+- `GET /api/moderation/insights` — role-aware moderation/trust queue intelligence + trend windows (moderator/admin)
 - `GET|POST /api/auth/[...nextauth]` — Auth.js handlers
 
 ## Contributing
