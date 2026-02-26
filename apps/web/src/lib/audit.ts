@@ -1,13 +1,18 @@
 export type AuditAction =
+  | "auth.signed_in"
+  | "auth.signed_out"
+  | "auth.session.denied"
   | "post.created"
   | "feed.requested"
   | "report.created"
   | "reports.queue.requested";
 
+export type AuditTargetType = "identity" | "authorization" | "post" | "feed" | "report" | "moderation_queue";
+
 export type AuditRecord = {
   actorId: string;
   action: AuditAction;
-  targetType: "post" | "feed" | "report" | "moderation_queue";
+  targetType: AuditTargetType;
   targetId?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;

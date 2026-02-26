@@ -1,3 +1,16 @@
+export type HumanRole = "member" | "moderator" | "admin";
+
+export type IdentityProfile = {
+  id: string;
+  handle: string;
+  displayName: string;
+  role: HumanRole;
+  governanceAcceptedAt: string;
+  humanVerifiedAt: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Post = {
   id: string;
   authorId: string;
@@ -16,8 +29,37 @@ export type Report = {
 
 const posts: Post[] = [];
 const reports: Report[] = [];
+const users: IdentityProfile[] = [];
+
+function findUserByHandle(handle: string): IdentityProfile | undefined {
+  return users.find((user) => user.handle === handle);
+}
+
+export function upsertIdentity(identity: Omit<IdentityProfile, "createdAt" | "updatedAt"> & Partial<Pick<IdentityProfile, "createdAt" | "updatedAt">>): IdentityProfile {
+  const now = new Date().toISOString();
+  const existing = findUserByHandle(identity.handle);
+
+  if (existing) {
+    existing.displayName = identity.displayName;
+    existing.role = identity.role;
+    existing.humanVerifiedAt = identity.humanVerifiedAt;
+    existing.governanceAcceptedAt = identity.governanceAcceptedAt;
+    existing.updatedAt = now;
+    return existing;
+  }
+
+  const created: IdentityProfile = {
+    ...identity,
+    createdAt: identity.createdAt ?? now,
+    updatedAt: identity.updatedAt ?? now
+  };
+
+  users.unshift(created);
+  return created;
+}
 
 export const db = {
   posts,
-  reports
+  reports,
+  users
 };

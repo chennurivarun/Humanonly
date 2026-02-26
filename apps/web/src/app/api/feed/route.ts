@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { writeAuditStub } from "@/lib/audit";
 import { db } from "@/lib/store";
 
@@ -11,11 +12,19 @@ export async function GET(request: NextRequest) {
   const rows = db.posts.slice(Math.max(start, 0), Math.max(start, 0) + limit);
   const nextCursor = rows.length === limit ? rows[rows.length - 1]?.id ?? null : null;
 
+  const session = await auth();
+  const actorId = session?.user?.id ?? "anonymous";
+
   await writeAuditStub({
-    actorId: "system",
+    actorId,
     action: "feed.requested",
     targetType: "feed",
-    metadata: { cursor, limit, resultCount: rows.length },
+    metadata: {
+      cursor,
+      limit,
+      resultCount: rows.length,
+      authenticated: !!session?.user
+    },
     createdAt: new Date().toISOString()
   });
 
