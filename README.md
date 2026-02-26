@@ -28,7 +28,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
-- ⏳ Next: admin dashboard metrics and trust/queue observability views
+- ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
+- ⏳ Next: richer role-aware trust/queue observability surfaces and trend windows
 
 ## Local Development
 ```bash

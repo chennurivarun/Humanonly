@@ -15,6 +15,7 @@ export type AuditAction =
   | "appeals.queue.requested"
   | "appeal.reviewed"
   | "moderation.action_log.requested"
+  | "admin.metrics.requested"
   | "trust.user.requested"
   | "trust.self.requested";
 
@@ -27,7 +28,8 @@ export type AuditTargetType =
   | "moderation_queue"
   | "appeal"
   | "audit_log"
-  | "trust_score";
+  | "trust_score"
+  | "metrics";
 
 export type AuditRecord = {
   actorId: string;

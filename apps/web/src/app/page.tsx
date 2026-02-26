@@ -30,6 +30,36 @@ type ApiErrorPayload = {
   error?: string;
 };
 
+type AdminMetrics = {
+  generatedAt: string;
+  reports: {
+    total: number;
+    open: number;
+    triaged: number;
+    resolved: number;
+    queueThroughputPercent: number;
+  };
+  appeals: {
+    total: number;
+    open: number;
+    underReview: number;
+    granted: number;
+    upheld: number;
+    medianResolutionHours: number | null;
+  };
+  trust: {
+    averageScore: number;
+    restricted: number;
+    watch: number;
+    steady: number;
+    trusted: number;
+  };
+  overrides: {
+    total: number;
+    overrideRatePercent: number;
+  };
+};
+
 function formatTimestamp(value: string): string {
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) {
@@ -81,6 +111,10 @@ export default function Home() {
   const [reportFeedback, setReportFeedback] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
 
+  const [adminMetrics, setAdminMetrics] = useState<AdminMetrics | null>(null);
+  const [adminMetricsError, setAdminMetricsError] = useState<string | null>(null);
+  const [isLoadingAdminMetrics, setIsLoadingAdminMetrics] = useState(false);
+
   const loadFeed = useCallback(async (mode: "replace" | "append", cursor?: string | null) => {
     if (mode === "replace") {
       setIsLoadingFeed(true);
@@ -122,9 +156,43 @@ export default function Home() {
     }
   }, []);
 
+  const loadAdminMetrics = useCallback(async () => {
+    if (session?.user?.role !== "admin") {
+      setAdminMetrics(null);
+      setAdminMetricsError(null);
+      return;
+    }
+
+    setIsLoadingAdminMetrics(true);
+    setAdminMetricsError(null);
+
+    try {
+      const response = await fetch("/api/admin/metrics", {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: AdminMetrics };
+      setAdminMetrics(payload.data ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load admin metrics";
+      setAdminMetricsError(message);
+    } finally {
+      setIsLoadingAdminMetrics(false);
+    }
+  }, [session?.user?.role]);
+
   useEffect(() => {
     void loadFeed("replace");
   }, [loadFeed]);
+
+  useEffect(() => {
+    void loadAdminMetrics();
+  }, [loadAdminMetrics]);
 
   async function handleCreatePost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -281,6 +349,62 @@ export default function Home() {
           </ul>
         </article>
       </section>
+
+      {session?.user?.role === "admin" ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Admin metrics</h2>
+            <button type="button" className="secondary" onClick={() => void loadAdminMetrics()} disabled={isLoadingAdminMetrics}>
+              {isLoadingAdminMetrics ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          {adminMetricsError ? <p className="notice danger">{adminMetricsError}</p> : null}
+
+          {adminMetrics ? (
+            <div className="grid grid-2">
+              <article className="post-card stack-sm">
+                <h3>Reports</h3>
+                <p className="text-small text-muted">Total: {adminMetrics.reports.total}</p>
+                <p className="text-small text-muted">Open: {adminMetrics.reports.open}</p>
+                <p className="text-small text-muted">Triaged: {adminMetrics.reports.triaged}</p>
+                <p className="text-small text-muted">Resolved: {adminMetrics.reports.resolved}</p>
+                <p className="text-small text-muted">Queue throughput: {adminMetrics.reports.queueThroughputPercent}%</p>
+              </article>
+
+              <article className="post-card stack-sm">
+                <h3>Appeals</h3>
+                <p className="text-small text-muted">Total: {adminMetrics.appeals.total}</p>
+                <p className="text-small text-muted">Open: {adminMetrics.appeals.open}</p>
+                <p className="text-small text-muted">Under review: {adminMetrics.appeals.underReview}</p>
+                <p className="text-small text-muted">Granted: {adminMetrics.appeals.granted}</p>
+                <p className="text-small text-muted">Upheld: {adminMetrics.appeals.upheld}</p>
+                <p className="text-small text-muted">
+                  Median resolution: {adminMetrics.appeals.medianResolutionHours ?? "-"}h
+                </p>
+              </article>
+
+              <article className="post-card stack-sm">
+                <h3>Trust distribution</h3>
+                <p className="text-small text-muted">Average score: {adminMetrics.trust.averageScore}</p>
+                <p className="text-small text-muted">Restricted: {adminMetrics.trust.restricted}</p>
+                <p className="text-small text-muted">Watch: {adminMetrics.trust.watch}</p>
+                <p className="text-small text-muted">Steady: {adminMetrics.trust.steady}</p>
+                <p className="text-small text-muted">Trusted: {adminMetrics.trust.trusted}</p>
+              </article>
+
+              <article className="post-card stack-sm">
+                <h3>Overrides</h3>
+                <p className="text-small text-muted">Total override-adjacent actions: {adminMetrics.overrides.total}</p>
+                <p className="text-small text-muted">Override rate: {adminMetrics.overrides.overrideRatePercent}%</p>
+                <p className="text-small text-muted">Generated: {formatTimestamp(adminMetrics.generatedAt)}</p>
+              </article>
+            </div>
+          ) : (
+            <p className="text-muted">No metrics available yet.</p>
+          )}
+        </section>
+      ) : null}
 
       <section className="card stack-md">
         <div className="row spread align-center">

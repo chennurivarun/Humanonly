@@ -20,8 +20,8 @@
 - ✅ Added appeals/action-log tests and expanded smoke flow through appeal adjudication.
 
 ## Next actions
-1. Build admin dashboard metrics for trust movement, queue throughput, appeal resolution time, and override rates.
-2. Surface moderation/action-log/trust insights in role-aware UI components.
+1. Surface moderation/action-log/trust insights in broader role-aware UI components (moderator + member views).
+2. Add trend windows (7d/30d) for trust movement, queue throughput, and appeal resolution analytics.
 3. Plan Sprint 3 pilot launch hardening (observability, reliability, and governance ops).
 
 ## Sprint 2 progress
@@ -30,3 +30,4 @@
 - ✅ Added trust scoring tests for baseline and penalty/reward behavior (`apps/web/src/lib/trust.test.ts`).
 - ✅ Added appeals APIs and adjudication flow (`/api/appeals`, `/api/appeals/:appealId/decision`).
 - ✅ Added immutable moderation action-log API (`/api/moderation/action-log`).
+- ✅ Added admin metrics API + dashboard panel (`/api/admin/metrics`) for reports, appeals, trust distribution, and override rates.

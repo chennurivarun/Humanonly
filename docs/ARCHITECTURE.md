@@ -26,6 +26,7 @@ Human content only; AI supports operations under strict governance.
 - Admin-only moderation override endpoint requires explicit human confirmation and emits immutable audit records.
 - Appeals require human-authored rationale and human-confirmed adjudication by moderator/admin reviewers.
 - Moderation action logs are assembled from immutable audit hash-chain records for forensic auditability.
+- Admin metrics endpoint (`GET /api/admin/metrics`) summarizes queue throughput, appeal resolution latency, trust distribution, and override rates.
 - Runtime state (identities, posts, reports, appeals) persists to a governed durable snapshot.
 
 ## Non-Negotiables
