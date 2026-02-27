@@ -35,3 +35,4 @@
 - [x] Durable incident persistence delivered (replaced transient in-memory lifecycle list with file-backed snapshot at `.data/incidents.json`, configurable via `HUMANONLY_INCIDENTS_FILE`)
 - [x] Incident packet export delivered (`GET /api/admin/incident/:incidentId/packet`) with timeline, immutable audit references, and governance rationale payload for review/postmortems
 - [x] End-to-end CI with real PostgreSQL service container delivered (`.github/workflows/ci.yml`, `apps/web/src/lib/storage/postgres.e2e.test.ts`)
+- [x] Pilot runbook alert routing matrix + on-call contact checklist delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)

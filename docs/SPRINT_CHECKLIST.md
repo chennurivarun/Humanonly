@@ -27,7 +27,8 @@
 3. ✅ Persist incident records durably (replace current in-memory lifecycle store).
 4. ✅ Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
 5. ✅ End-to-end CI job with real Postgres service container.
-6. Add severity-to-action alert routing matrix + on-call contact checklist to the pilot runbook.
+6. ✅ Added severity-to-action alert routing matrix + on-call contact checklist to the pilot runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
+7. Define automated on-call escalation drill cadence with acknowledgement SLO tracking and evidence capture template.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.

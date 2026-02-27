@@ -64,6 +64,36 @@ Out of scope:
   2. Mitigate in same shift.
   3. Include in end-of-day reliability review.
 
+### Severity-to-Action Alert Routing Matrix
+
+| Severity | Trigger examples | Primary owner | Notification route | Ack SLA | Escalation path |
+| --- | --- | --- | --- | --- | --- |
+| Sev-1 | Audit chain break, unauthorized enforcement action, data corruption risk | Incident Commander + Platform Operator | Immediate call + Telegram incident channel + incident record in app | 10 min | IC → Governance Lead (mandatory) → Founder/Exec sponsor if unresolved in 30 min |
+| Sev-2 | Moderation queue blocked >15 min, appeals decision flow unavailable, sustained API 5xx spike | Platform Operator | Telegram incident channel + direct ping to on-call moderator/admin | 30 min | Platform Operator → Incident Commander → Governance Lead if impact extends >60 min |
+| Sev-3 | Dashboard/reporting degradation, non-blocking reliability warning | Shift operator on duty | Shift handoff log + pilot ops channel | Same shift | Shift operator → Platform Operator (if unresolved by handoff) |
+
+Routing rules:
+1. Every Sev-1/Sev-2 alert must include incident ID, suspected blast radius, and current mitigation state.
+2. Any alert that includes potential policy harm automatically adds Governance Lead to the page list.
+3. If acknowledgement SLA is missed, escalate one level automatically and log the timestamped breach in the incident timeline.
+
+### On-Call Contact Checklist
+
+Maintain this checklist at shift start and after any roster change:
+- [ ] Confirm primary + secondary Incident Commander contacts are current.
+- [ ] Confirm primary + secondary Platform Operator contacts are current.
+- [ ] Confirm Governance Lead escalation contact is reachable (backup contact listed).
+- [ ] Confirm moderator on-call coverage window (start/end IST) is posted in shift notes.
+- [ ] Confirm incident channel, fallback direct-call method, and timezone for each contact.
+- [ ] Run one dry notification ping (non-urgent) and record acknowledgement latency.
+
+Minimum contact card fields (store in private operator notes, not public docs):
+- Name / role
+- Preferred contact methods (priority order)
+- Local timezone + active coverage window
+- Backup contact
+- Last verification timestamp
+
 ---
 
 ## 3) Governance Escalation Protocol

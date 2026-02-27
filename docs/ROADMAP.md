@@ -23,4 +23,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Durable incident persistence delivered: incident lifecycle is now file-backed (`.data/incidents.json`, env override `HUMANONLY_INCIDENTS_FILE`) with reload-safe tests
 - ✅ Incident packet export delivered: `GET /api/admin/incident/:incidentId/packet` now returns timeline, immutable audit refs, and governance rationale for review/postmortems
 - ✅ End-to-end Postgres CI delivered: GitHub Actions now runs typecheck/test/build with a real PostgreSQL service container and gated e2e adapter test
-- 🔜 Next highest-priority unfinished milestone: severity-to-action alert routing matrix + on-call contact checklist in the pilot runbook
+- ✅ Pilot runbook alerting follow-up delivered: severity-to-action routing matrix + on-call contact checklist added (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
+- 🔜 Next highest-priority unfinished milestone: automate on-call escalation drills (scheduled dry-run cadence + acknowledgement SLO tracking)
