@@ -94,6 +94,41 @@ Minimum contact card fields (store in private operator notes, not public docs):
 - Backup contact
 - Last verification timestamp
 
+### Automated Escalation Drill Cadence + Evidence
+
+Cadence policy:
+- Run one **Sev-1 acknowledgement drill weekly** (recommended Tuesday, 11:00 IST).
+- Run one **Sev-2 acknowledgement drill weekly** (recommended Friday, 16:00 IST).
+- Run one **cross-role failover drill monthly** (IC unavailable simulation, backup takes over).
+- Avoid customer-facing peak windows when scheduling drills.
+
+Acknowledgement SLO targets during drills:
+- Sev-1 page acknowledged by assigned primary/backup within **10 minutes**.
+- Sev-2 page acknowledged by assigned primary/backup within **30 minutes**.
+- Failover simulation transfer (primary to backup) completed within **15 minutes**.
+
+Tracking requirements:
+1. Log each drill as an incident record (`severity=drill`, include scenario + expected route).
+2. Capture first alert timestamp, first ack timestamp, and escalation timestamp (if any).
+3. Record whether SLO was met/missed and the breach reason.
+4. Attach evidence links (incident packet export, chat/call proof, mitigation notes).
+5. Assign remediation owner + due date for every missed SLO.
+
+Evidence capture template (append to shift notes / postmortem):
+- Drill ID:
+- Date/time (IST):
+- Scenario type: Sev-1 | Sev-2 | Failover
+- Primary on-call:
+- Backup on-call:
+- First alert sent at:
+- First acknowledgement at:
+- Escalated at (if applicable):
+- Ack latency (minutes):
+- SLO target (minutes):
+- SLO result: PASS | FAIL
+- Evidence references (incident ID/packet/chat links):
+- Follow-up actions (owner + due date):
+
 ---
 
 ## 3) Governance Escalation Protocol

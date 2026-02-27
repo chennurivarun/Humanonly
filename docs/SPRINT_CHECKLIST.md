@@ -19,6 +19,7 @@
 - ✅ Expanded admin monochrome incident controls with one-click packet export (`apps/web/src/app/page.tsx`).
 - ✅ Added coverage for packet construction behavior (`apps/web/src/lib/incident/packet.test.ts`).
 - ✅ Delivered real Postgres CI validation: service-container workflow + gated e2e adapter test (`.github/workflows/ci.yml`, `apps/web/src/lib/storage/postgres.e2e.test.ts`).
+- ✅ Added automated on-call escalation drill cadence with acknowledgement SLO tracking + evidence template (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
@@ -28,7 +29,7 @@
 4. ✅ Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
 5. ✅ End-to-end CI job with real Postgres service container.
 6. ✅ Added severity-to-action alert routing matrix + on-call contact checklist to the pilot runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
-7. Define automated on-call escalation drill cadence with acknowledgement SLO tracking and evidence capture template.
+7. ✅ Defined automated on-call escalation drill cadence with acknowledgement SLO tracking and evidence capture template (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
