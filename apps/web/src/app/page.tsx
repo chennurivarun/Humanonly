@@ -645,7 +645,7 @@ export default function Home() {
   return (
     <main className="stack-lg">
       <section className="card stack-md">
-        <p className="badge">Sprint 3 · Reliability hardening delivered</p>
+        <p className="badge">Sprint 4 · Identity assurance hardening delivered</p>
         <h1>HumanOnly MVP</h1>
         <p className="text-muted">
           Human expression only. AI-managed operations. Human-governed decisions. Every
@@ -665,6 +665,17 @@ export default function Home() {
             <p className="text-muted">
               Role: <strong>{session.user.role}</strong> · Human verified: {session.user.humanVerified ? "yes" : "no"}
             </p>
+            <p className="text-muted text-small">
+              Identity assurance: <strong>{formatTierLabel(session.user.identityAssuranceLevel ?? "attested")}</strong>
+              {session.user.identityAssuranceEvaluatedAt
+                ? ` · evaluated ${formatTimestamp(session.user.identityAssuranceEvaluatedAt)}`
+                : ""}
+            </p>
+            {session.user.identityAssuranceSignals && session.user.identityAssuranceSignals.length > 0 ? (
+              <p className="text-muted text-small">
+                Signals: {session.user.identityAssuranceSignals.map((signal) => formatTierLabel(signal)).join(" · ")}
+              </p>
+            ) : null}
             <div className="row">
               <button onClick={() => signOut({ callbackUrl: "/" })} className="secondary" type="button">
                 Sign out

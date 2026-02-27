@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import type { IdentityAssuranceProfile } from "@/lib/auth/assurance";
 import type { HumanRole } from "@/lib/store";
 
 export type OnboardingCredentialsInput = {
@@ -82,7 +83,10 @@ export function resolveRole(handle: string): HumanRole {
   return "member";
 }
 
-export function buildIdentityProfile(input: OnboardingCredentialsInput) {
+export function buildIdentityProfile(
+  input: OnboardingCredentialsInput,
+  assuranceProfile?: IdentityAssuranceProfile
+) {
   const now = new Date().toISOString();
 
   return {
@@ -93,6 +97,9 @@ export function buildIdentityProfile(input: OnboardingCredentialsInput) {
     governanceAcceptedAt: now,
     humanVerifiedAt: now,
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
+    identityAssuranceLevel: assuranceProfile?.level ?? "attested",
+    identityAssuranceSignals: assuranceProfile?.signals ?? ["attestation"],
+    identityAssuranceEvaluatedAt: assuranceProfile?.evaluatedAt ?? now
   };
 }

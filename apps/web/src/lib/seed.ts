@@ -4,10 +4,21 @@ import path from "node:path";
 const SUPPORTED_SEED_VERSION = 1;
 const REPORT_STATUSES = new Set(["open", "triaged", "resolved"] as const);
 const APPEAL_STATUSES = new Set(["open", "under_review", "upheld", "granted"] as const);
+const IDENTITY_ASSURANCE_LEVELS = new Set(["attested", "enhanced", "manual_override"] as const);
+const IDENTITY_ASSURANCE_SIGNALS = new Set(
+  ["attestation", "governance_commitment", "interactive_challenge", "manual_override", "seed_bootstrap"] as const
+);
 
 type ReportStatus = "open" | "triaged" | "resolved";
 type AppealStatus = "open" | "under_review" | "upheld" | "granted";
 type HumanRole = "member" | "moderator" | "admin";
+type IdentityAssuranceLevel = "attested" | "enhanced" | "manual_override";
+type IdentityAssuranceSignal =
+  | "attestation"
+  | "governance_commitment"
+  | "interactive_challenge"
+  | "manual_override"
+  | "seed_bootstrap";
 
 export type SeedIdentity = {
   id: string;
@@ -16,6 +27,9 @@ export type SeedIdentity = {
   role: HumanRole;
   governanceAcceptedAt: string;
   humanVerifiedAt: string;
+  identityAssuranceLevel?: IdentityAssuranceLevel;
+  identityAssuranceSignals?: IdentityAssuranceSignal[];
+  identityAssuranceEvaluatedAt?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -136,6 +150,40 @@ function expectRole(value: unknown, fieldName: string): HumanRole {
   throw new SeedValidationError("INVALID_JSON", `${fieldName} must be member, moderator, or admin`);
 }
 
+function expectIdentityAssuranceLevel(value: unknown, fieldName: string): IdentityAssuranceLevel {
+  if (typeof value === "string" && IDENTITY_ASSURANCE_LEVELS.has(value as IdentityAssuranceLevel)) {
+    return value as IdentityAssuranceLevel;
+  }
+
+  throw new SeedValidationError(
+    "INVALID_JSON",
+    `${fieldName} must be attested, enhanced, or manual_override`
+  );
+}
+
+function expectIdentityAssuranceSignals(
+  value: unknown,
+  fieldName: string
+): IdentityAssuranceSignal[] {
+  if (!Array.isArray(value)) {
+    throw new SeedValidationError("INVALID_JSON", `${fieldName} must be an array when provided`);
+  }
+
+  return value.map((entry, index) => {
+    if (
+      typeof entry !== "string" ||
+      !IDENTITY_ASSURANCE_SIGNALS.has(entry as IdentityAssuranceSignal)
+    ) {
+      throw new SeedValidationError(
+        "INVALID_JSON",
+        `${fieldName}[${index}] must be a supported identity assurance signal`
+      );
+    }
+
+    return entry as IdentityAssuranceSignal;
+  });
+}
+
 function expectReportStatus(value: unknown): ReportStatus {
   if (value === "open" || value === "triaged" || value === "resolved") {
     return value;
@@ -176,6 +224,9 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
       role: "admin",
       governanceAcceptedAt: stamp(-90),
       humanVerifiedAt: stamp(-90),
+      identityAssuranceLevel: "enhanced",
+      identityAssuranceSignals: ["seed_bootstrap", "attestation", "governance_commitment"],
+      identityAssuranceEvaluatedAt: stamp(-90),
       createdAt: stamp(-90),
       updatedAt: stamp(-90)
     },
@@ -186,6 +237,9 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
       role: "moderator",
       governanceAcceptedAt: stamp(-80),
       humanVerifiedAt: stamp(-80),
+      identityAssuranceLevel: "enhanced",
+      identityAssuranceSignals: ["seed_bootstrap", "attestation", "governance_commitment"],
+      identityAssuranceEvaluatedAt: stamp(-80),
       createdAt: stamp(-80),
       updatedAt: stamp(-80)
     },
@@ -196,6 +250,9 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
       role: "member",
       governanceAcceptedAt: stamp(-75),
       humanVerifiedAt: stamp(-75),
+      identityAssuranceLevel: "enhanced",
+      identityAssuranceSignals: ["seed_bootstrap", "attestation", "governance_commitment"],
+      identityAssuranceEvaluatedAt: stamp(-75),
       createdAt: stamp(-75),
       updatedAt: stamp(-75)
     },
@@ -206,6 +263,9 @@ export function createDefaultSeedSnapshot(referenceIso = new Date().toISOString(
       role: "member",
       governanceAcceptedAt: stamp(-70),
       humanVerifiedAt: stamp(-70),
+      identityAssuranceLevel: "enhanced",
+      identityAssuranceSignals: ["seed_bootstrap", "attestation", "governance_commitment"],
+      identityAssuranceEvaluatedAt: stamp(-70),
       createdAt: stamp(-70),
       updatedAt: stamp(-70)
     }
@@ -354,7 +414,7 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
 
     const user = rawUser as Record<string, unknown>;
 
-    return {
+    const parsed: SeedIdentity = {
       id: expectNonEmptyString(user.id, `users[${index}].id`),
       handle: expectNonEmptyString(user.handle, `users[${index}].handle`).toLowerCase(),
       displayName: expectNonEmptyString(user.displayName, `users[${index}].displayName`),
@@ -364,6 +424,43 @@ export function parseSeedSnapshot(payload: unknown): SeedSnapshot {
       createdAt: expectIso(user.createdAt, `users[${index}].createdAt`),
       updatedAt: expectIso(user.updatedAt, `users[${index}].updatedAt`)
     };
+
+    if (user.identityAssuranceLevel !== undefined) {
+      parsed.identityAssuranceLevel = expectIdentityAssuranceLevel(
+        user.identityAssuranceLevel,
+        `users[${index}].identityAssuranceLevel`
+      );
+    }
+
+    if (user.identityAssuranceSignals !== undefined) {
+      parsed.identityAssuranceSignals = expectIdentityAssuranceSignals(
+        user.identityAssuranceSignals,
+        `users[${index}].identityAssuranceSignals`
+      );
+    }
+
+    if (user.identityAssuranceEvaluatedAt !== undefined) {
+      parsed.identityAssuranceEvaluatedAt = expectIso(
+        user.identityAssuranceEvaluatedAt,
+        `users[${index}].identityAssuranceEvaluatedAt`
+      );
+    }
+
+    if (parsed.identityAssuranceSignals && !parsed.identityAssuranceLevel) {
+      throw new SeedValidationError(
+        "INVALID_JSON",
+        `users[${index}] identityAssuranceSignals requires identityAssuranceLevel`
+      );
+    }
+
+    if (parsed.identityAssuranceLevel && !parsed.identityAssuranceEvaluatedAt) {
+      throw new SeedValidationError(
+        "INVALID_JSON",
+        `users[${index}] identityAssuranceLevel requires identityAssuranceEvaluatedAt`
+      );
+    }
+
+    return parsed;
   });
 
   const posts = body.posts.map((rawPost, index): SeedPost => {

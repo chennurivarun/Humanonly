@@ -8,7 +8,7 @@ Human content only; AI supports operations under strict governance.
 - Backend: Next.js API routes (fast prototype path)
 - Data durability (current): SQLite via `StorageAdapter` abstraction (`apps/web/src/lib/storage/`); JSON snapshot compat path available via `HUMANONLY_STORAGE_BACKEND=json-snapshot`
 - Data durability (target): PostgreSQL adapter (drop-in via `StorageAdapter` interface) for multi-instance scaling
-- Auth: Auth.js (credentials scaffold with human attestation)
+- Auth: Auth.js (credentials scaffold with enhanced assurance: attestation + governance commitment + interactive challenge)
 - Queue: Redis/BullMQ (phase 2)
 
 ## Core Services
@@ -19,7 +19,8 @@ Human content only; AI supports operations under strict governance.
 5. Audit Service (immutable action timeline)
 
 ## Current Governance Enforcement
-- Human attestation is required at onboarding.
+- Human attestation, governance commitment, and an interactive signed challenge are required at onboarding.
+- Identity assurance metadata (level + signals + evaluated timestamp) persists with each identity profile.
 - Role-aware API guards gate moderation endpoints.
 - Authorization denials emit immutable audit records.
 - Feed/report/post actions emit immutable audit records.

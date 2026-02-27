@@ -40,11 +40,17 @@
 - Added 20 new tests in sqlite.test.ts and adapter.test.ts; updated reliability tests for both backends.
 - All 88 tests pass; typecheck clean; production build successful.
 
+## Completed in this run (Sprint 4 — Identity Assurance Hardening)
+- Added enhanced identity assurance module with signed challenge tokens, expiry/min-solve controls, and governance commitment parsing (`apps/web/src/lib/auth/assurance.ts`).
+- Added onboarding challenge issuance endpoint (`apps/web/src/app/api/onboarding/challenge/route.ts`) and refreshed monochrome onboarding UX requiring challenge completion (`apps/web/src/app/onboarding/page.tsx`).
+- Updated Auth.js credentials onboarding to enforce assurance checks before issuing sessions (`apps/web/src/auth.ts`).
+- Persisted assurance metadata across store + adapters + seed snapshots (`apps/web/src/lib/store.ts`, `apps/web/src/lib/storage/sqlite.ts`, `apps/web/src/lib/seed.ts`).
+- Added assurance lifecycle, onboarding, seed, and SQLite migration tests (100 passing total).
+
 ## Remaining priorities
-1. Execute Sprint 3 tabletop incident drill using docs/SPRINT_3_PILOT_RUNBOOK.md.
-2. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
-3. Plan PostgreSQL migration path for multi-instance scale (adapt SqliteStorageAdapter pattern to a PostgresStorageAdapter).
-4. Persistent incident log (currently in-memory; should be durable before production scale).
+1. Plan PostgreSQL migration path for multi-instance scale (adapt `SqliteStorageAdapter` pattern to a `PostgresStorageAdapter`).
+2. Persistent incident log (currently in-memory; should be durable before production scale).
+3. Incident packet export endpoint (timeline + audit refs + governance decision trail).
 
 ## Risks
 - SQLite is single-node oriented; multi-instance deployments will require a PostgreSQL adapter (migration path is now clean via StorageAdapter).

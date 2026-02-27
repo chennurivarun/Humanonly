@@ -30,5 +30,5 @@
 ## Sprint 4
 - [x] Relational durability migration: SQLite backend with explicit indexes, `StorageAdapter` abstraction, JSON-snapshot compat path (`apps/web/src/lib/storage/`)
 - [x] Execute Sprint 3 tabletop incident drill + capture follow-ups (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`)
-- [ ] Strengthen identity assurance beyond MVP attestation
+- [x] Strengthen identity assurance beyond MVP attestation (governance commitment + interactive challenge + assurance metadata persistence)
 - [ ] PostgreSQL migration path (scale-out option from SQLite)

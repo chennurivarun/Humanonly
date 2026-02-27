@@ -2,6 +2,7 @@ import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   OnboardingError,
+  buildIdentityProfile,
   normalizeHandle,
   parseOnboardingCredentials,
   resolveRole
@@ -55,6 +56,42 @@ describe("parseOnboardingCredentials", () => {
         }),
       (error) => error instanceof OnboardingError && error.code === "ATTESTATION_REQUIRED"
     );
+  });
+});
+
+describe("buildIdentityProfile", () => {
+  it("applies attested defaults when assurance profile is not provided", () => {
+    const profile = buildIdentityProfile({
+      handle: "human_author",
+      displayName: "Human Author",
+      humanAttestation: "yes"
+    });
+
+    assert.equal(profile.identityAssuranceLevel, "attested");
+    assert.deepEqual(profile.identityAssuranceSignals, ["attestation"]);
+  });
+
+  it("persists enhanced assurance metadata when provided", () => {
+    const profile = buildIdentityProfile(
+      {
+        handle: "human_author",
+        displayName: "Human Author",
+        humanAttestation: "yes"
+      },
+      {
+        level: "enhanced",
+        signals: ["attestation", "governance_commitment", "interactive_challenge"],
+        evaluatedAt: "2026-02-27T00:00:00.000Z"
+      }
+    );
+
+    assert.equal(profile.identityAssuranceLevel, "enhanced");
+    assert.deepEqual(profile.identityAssuranceSignals, [
+      "attestation",
+      "governance_commitment",
+      "interactive_challenge"
+    ]);
+    assert.equal(profile.identityAssuranceEvaluatedAt, "2026-02-27T00:00:00.000Z");
   });
 });
 

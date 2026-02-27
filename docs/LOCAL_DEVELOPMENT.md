@@ -25,6 +25,8 @@ HUMANONLY_SEED_FILE=.seed/local-seed.json
 HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
+# Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
+HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
 
 - `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default) or `json-snapshot` (legacy compat).
@@ -32,6 +34,7 @@ HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
+- `HUMANONLY_IDENTITY_ASSURANCE_SECRET` — optional signing secret for onboarding challenge tokens (defaults to `NEXTAUTH_SECRET`).
 
 **New-environment default:** SQLite is created at `HUMANONLY_DB_FILE` on first run. If the DB is empty and `HUMANONLY_SEED_FILE` is configured, seed data is loaded into SQLite automatically.
 
@@ -59,9 +62,9 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## UI + API walkthrough (Sprint 3)
+## UI + API walkthrough (Sprint 4)
 
-1. Sign in from `/onboarding` using one of the seeded handles.
+1. Sign in from `/onboarding` using one of the seeded handles, complete human attestation, accept governance commitment, and solve the interactive identity challenge.
 2. Create a post from the home-page composer.
 3. Browse the feed and use **Report post** on any item.
 4. As reporter or reported author, submit an appeal via `POST /api/appeals` with report id + rationale.
@@ -85,6 +88,8 @@ Use onboarding (`/onboarding`) with:
 - matching handle
 - any display name
 - human attestation = `yes`
+- governance commitment checkbox enabled
+- challenge response matching the displayed phrase
 
 ## Expected seeded content
 

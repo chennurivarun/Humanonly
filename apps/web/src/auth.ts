@@ -1,6 +1,11 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { writeAuditStub } from "@/lib/audit";
+import {
+  IdentityAssuranceError,
+  parseIdentityAssuranceEvidence,
+  verifyIdentityAssuranceEvidence
+} from "@/lib/auth/assurance";
 import { buildIdentityProfile, OnboardingError, parseOnboardingCredentials } from "@/lib/auth/onboarding";
 import { upsertIdentity } from "@/lib/store";
 
@@ -23,12 +28,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         handle: { label: "Handle", type: "text" },
         displayName: { label: "Display name", type: "text" },
-        humanAttestation: { label: "I confirm I am human", type: "text" }
+        humanAttestation: { label: "I confirm I am human", type: "text" },
+        governanceCommitment: { label: "Governance commitment", type: "text" },
+        challengeToken: { label: "Identity challenge token", type: "text" },
+        challengeResponse: { label: "Identity challenge response", type: "text" }
       },
       async authorize(credentials) {
         try {
           const parsed = parseOnboardingCredentials(credentials ?? {});
-          const identity = upsertIdentity(buildIdentityProfile(parsed));
+          const assuranceEvidence = parseIdentityAssuranceEvidence(credentials ?? {});
+          const assuranceProfile = verifyIdentityAssuranceEvidence(assuranceEvidence);
+
+          const identity = upsertIdentity(buildIdentityProfile(parsed, assuranceProfile));
 
           await writeAuditStub({
             actorId: identity.id,
@@ -38,7 +49,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             metadata: {
               handle: identity.handle,
               role: identity.role,
-              humanVerifiedAt: identity.humanVerifiedAt
+              humanVerifiedAt: identity.humanVerifiedAt,
+              identityAssuranceLevel: identity.identityAssuranceLevel,
+              identityAssuranceSignals: identity.identityAssuranceSignals,
+              identityAssuranceEvaluatedAt: identity.identityAssuranceEvaluatedAt
             },
             createdAt: new Date().toISOString()
           });
@@ -49,10 +63,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             handle: identity.handle,
             role: identity.role,
             humanVerified: true,
-            governanceAcceptedAt: identity.governanceAcceptedAt
+            governanceAcceptedAt: identity.governanceAcceptedAt,
+            identityAssuranceLevel: identity.identityAssuranceLevel,
+            identityAssuranceSignals: identity.identityAssuranceSignals,
+            identityAssuranceEvaluatedAt: identity.identityAssuranceEvaluatedAt
           };
         } catch (error) {
-          if (error instanceof OnboardingError) {
+          if (error instanceof OnboardingError || error instanceof IdentityAssuranceError) {
             return null;
           }
 
@@ -70,6 +87,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = user.role;
         token.humanVerified = user.humanVerified;
         token.governanceAcceptedAt = user.governanceAcceptedAt;
+        token.identityAssuranceLevel = user.identityAssuranceLevel;
+        token.identityAssuranceSignals = user.identityAssuranceSignals;
+        token.identityAssuranceEvaluatedAt = user.identityAssuranceEvaluatedAt;
       }
 
       return token;
@@ -83,6 +103,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.humanVerified = token.humanVerified === true;
         session.user.governanceAcceptedAt =
           typeof token.governanceAcceptedAt === "string" ? token.governanceAcceptedAt : "";
+
+        session.user.identityAssuranceLevel =
+          token.identityAssuranceLevel === "attested" ||
+          token.identityAssuranceLevel === "enhanced" ||
+          token.identityAssuranceLevel === "manual_override"
+            ? token.identityAssuranceLevel
+            : undefined;
+
+        session.user.identityAssuranceSignals = Array.isArray(token.identityAssuranceSignals)
+          ? token.identityAssuranceSignals
+          : undefined;
+
+        session.user.identityAssuranceEvaluatedAt =
+          typeof token.identityAssuranceEvaluatedAt === "string"
+            ? token.identityAssuranceEvaluatedAt
+            : undefined;
       }
 
       return session;

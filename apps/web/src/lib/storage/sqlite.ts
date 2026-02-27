@@ -3,7 +3,13 @@ import { mkdirSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import type { StorageAdapter, StorageHealthDetail } from "./adapter";
 import type { GovernedStore } from "@/lib/governed-store";
-import type { IdentityProfile, Post, Report, Appeal } from "@/lib/store";
+import type {
+  IdentityProfile,
+  Post,
+  Report,
+  Appeal
+} from "@/lib/store";
+import type { IdentityAssuranceSignal } from "@/lib/auth/assurance";
 
 const DEFAULT_DB_FILE = ".data/store.db";
 
@@ -22,6 +28,9 @@ CREATE TABLE IF NOT EXISTS users (
   role                   TEXT NOT NULL,
   governance_accepted_at TEXT NOT NULL,
   human_verified_at      TEXT NOT NULL,
+  assurance_level        TEXT,
+  assurance_signals_json TEXT,
+  assurance_evaluated_at TEXT,
   created_at             TEXT NOT NULL,
   updated_at             TEXT NOT NULL
 );
@@ -70,6 +79,14 @@ CREATE INDEX IF NOT EXISTS idx_appeals_report_id    ON appeals(report_id);
 CREATE INDEX IF NOT EXISTS idx_appeals_appellant_id ON appeals(appellant_id);
 `;
 
+const ALLOWED_ASSURANCE_SIGNALS = new Set<IdentityAssuranceSignal>([
+  "attestation",
+  "governance_commitment",
+  "interactive_challenge",
+  "manual_override",
+  "seed_bootstrap"
+]);
+
 // ── Row → domain type mappings ────────────────────────────────────────────────
 
 type UserRow = {
@@ -79,6 +96,9 @@ type UserRow = {
   role: string;
   governance_accepted_at: string;
   human_verified_at: string;
+  assurance_level: string | null;
+  assurance_signals_json: string | null;
+  assurance_evaluated_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -113,8 +133,34 @@ type AppealRow = {
   decision_rationale: string | null;
 };
 
+type TableInfoRow = {
+  name: string;
+};
+
+function parseAssuranceSignals(value: string | null): IdentityAssuranceSignal[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (!Array.isArray(parsed)) {
+      return undefined;
+    }
+
+    const filtered = parsed.filter(
+      (entry): entry is IdentityAssuranceSignal =>
+        typeof entry === "string" && ALLOWED_ASSURANCE_SIGNALS.has(entry as IdentityAssuranceSignal)
+    );
+
+    return filtered.length > 0 ? filtered : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function rowToUser(row: UserRow): IdentityProfile {
-  return {
+  const identity: IdentityProfile = {
     id: row.id,
     handle: row.handle,
     displayName: row.display_name,
@@ -124,6 +170,21 @@ function rowToUser(row: UserRow): IdentityProfile {
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
+
+  if (row.assurance_level === "attested" || row.assurance_level === "enhanced" || row.assurance_level === "manual_override") {
+    identity.identityAssuranceLevel = row.assurance_level;
+  }
+
+  const signals = parseAssuranceSignals(row.assurance_signals_json);
+  if (signals) {
+    identity.identityAssuranceSignals = signals;
+  }
+
+  if (row.assurance_evaluated_at) {
+    identity.identityAssuranceEvaluatedAt = row.assurance_evaluated_at;
+  }
+
+  return identity;
 }
 
 function rowToPost(row: PostRow): Post {
@@ -173,6 +234,23 @@ function rowToAppeal(row: AppealRow): Appeal {
   return appeal;
 }
 
+function ensureUsersTableColumns(db: InstanceType<typeof Database>): void {
+  const rows = db.prepare("PRAGMA table_info(users)").all() as TableInfoRow[];
+  const columns = new Set(rows.map((row) => row.name));
+
+  if (!columns.has("assurance_level")) {
+    db.exec("ALTER TABLE users ADD COLUMN assurance_level TEXT");
+  }
+
+  if (!columns.has("assurance_signals_json")) {
+    db.exec("ALTER TABLE users ADD COLUMN assurance_signals_json TEXT");
+  }
+
+  if (!columns.has("assurance_evaluated_at")) {
+    db.exec("ALTER TABLE users ADD COLUMN assurance_evaluated_at TEXT");
+  }
+}
+
 // ── SqliteStorageAdapter ──────────────────────────────────────────────────────
 
 export class SqliteStorageAdapter implements StorageAdapter {
@@ -199,6 +277,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
   initialize(): void {
     const db = this.openDb();
     db.exec(SCHEMA_SQL);
+    ensureUsersTableColumns(db);
   }
 
   loadAll(): GovernedStore {
@@ -222,9 +301,13 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
     const upsertUsers = db.prepare(`
       INSERT OR REPLACE INTO users
-        (id, handle, display_name, role, governance_accepted_at, human_verified_at, created_at, updated_at)
+        (id, handle, display_name, role, governance_accepted_at, human_verified_at,
+         assurance_level, assurance_signals_json, assurance_evaluated_at,
+         created_at, updated_at)
       VALUES
-        (@id, @handle, @displayName, @role, @governanceAcceptedAt, @humanVerifiedAt, @createdAt, @updatedAt)
+        (@id, @handle, @displayName, @role, @governanceAcceptedAt, @humanVerifiedAt,
+         @identityAssuranceLevel, @identityAssuranceSignalsJson, @identityAssuranceEvaluatedAt,
+         @createdAt, @updatedAt)
     `);
 
     const upsertPosts = db.prepare(`
@@ -284,7 +367,21 @@ export class SqliteStorageAdapter implements StorageAdapter {
 
       // Upsert all in-memory records
       for (const user of store.users) {
-        upsertUsers.run(user);
+        upsertUsers.run({
+          id: user.id,
+          handle: user.handle,
+          displayName: user.displayName,
+          role: user.role,
+          governanceAcceptedAt: user.governanceAcceptedAt,
+          humanVerifiedAt: user.humanVerifiedAt,
+          identityAssuranceLevel: user.identityAssuranceLevel ?? null,
+          identityAssuranceSignalsJson: user.identityAssuranceSignals
+            ? JSON.stringify(user.identityAssuranceSignals)
+            : null,
+          identityAssuranceEvaluatedAt: user.identityAssuranceEvaluatedAt ?? null,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
+        });
       }
 
       for (const post of store.posts) {

@@ -4,6 +4,7 @@ import {
 } from "@/lib/governed-store";
 import { resolveSeedPath, SeedValidationError } from "@/lib/seed";
 import { createStorageAdapter, type StorageAdapter } from "@/lib/storage";
+import type { IdentityAssuranceLevel, IdentityAssuranceSignal } from "@/lib/auth/assurance";
 
 export type HumanRole = "member" | "moderator" | "admin";
 
@@ -16,6 +17,9 @@ export type IdentityProfile = {
   humanVerifiedAt: string;
   createdAt: string;
   updatedAt: string;
+  identityAssuranceLevel?: IdentityAssuranceLevel;
+  identityAssuranceSignals?: IdentityAssuranceSignal[];
+  identityAssuranceEvaluatedAt?: string;
 };
 
 export type Post = {
@@ -91,6 +95,9 @@ export function upsertIdentity(
     existing.role = identity.role;
     existing.humanVerifiedAt = identity.humanVerifiedAt;
     existing.governanceAcceptedAt = identity.governanceAcceptedAt;
+    existing.identityAssuranceLevel = identity.identityAssuranceLevel;
+    existing.identityAssuranceSignals = identity.identityAssuranceSignals;
+    existing.identityAssuranceEvaluatedAt = identity.identityAssuranceEvaluatedAt;
     existing.updatedAt = now;
     persistStore();
     return existing;

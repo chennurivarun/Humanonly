@@ -19,7 +19,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 ## Progress Snapshot
 - ✅ Runnable Next.js app scaffold in `apps/web`
 - ✅ MVP APIs: `posts`, `feed`, `reports` + moderation queue
-- ✅ Auth.js scaffold with human attestation onboarding + role-aware session guards
+- ✅ Auth.js scaffold with enhanced onboarding assurance (attestation + governance commitment + interactive challenge) + role-aware session guards
 - ✅ Admin-only human override control with explicit human confirmation
 - ✅ Seed script + deterministic local bootstrap docs
 - ✅ Basic monochrome UI for create post/feed/report
@@ -34,6 +34,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Sprint 3 reliability hardening delivered (storage health checks, audit chain integrity, queue latency alerts, admin incident controls)
 - ✅ Sprint 3 community contributor expansion delivered (`docs/CONTRIBUTOR_EXPANSION.md`, `CONTRIBUTING.md`)
 - ✅ Relational durability backend delivered: SQLite storage with explicit indexes, StorageAdapter abstraction, and JSON-snapshot compat migration path
+- ✅ Sprint 4 identity assurance hardening delivered (signed onboarding challenges, governance commitment capture, assurance metadata persisted to storage)
 
 ## Local Development
 ```bash
@@ -56,6 +57,8 @@ HUMANONLY_SEED_FILE=.seed/local-seed.json
 HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
+# Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
+HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
 
 Any onboarded handle matching the allow-lists gets the mapped role.
@@ -76,6 +79,7 @@ See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and 
 - `GET /api/moderation/insights` — role-aware moderation/trust queue intelligence + trend windows (moderator/admin)
 - `GET /api/admin/reliability` — reliability status (durability + audit-chain integrity + queue latency alerts)
 - `GET|POST /api/admin/incident` — admin incident declare/list/resolve controls (human-confirmed + audited)
+- `GET /api/onboarding/challenge` — signed onboarding challenge payload for enhanced identity assurance
 - `GET|POST /api/auth/[...nextauth]` — Auth.js handlers
 
 ## Contributing

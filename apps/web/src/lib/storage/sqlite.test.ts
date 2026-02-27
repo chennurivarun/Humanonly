@@ -3,6 +3,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
+import Database from "better-sqlite3";
 import { SqliteStorageAdapter } from "./sqlite";
 import type { GovernedStore } from "@/lib/governed-store";
 import type { IdentityProfile, Post, Report, Appeal } from "@/lib/store";
@@ -22,6 +23,9 @@ function makeUser(overrides: Partial<IdentityProfile> = {}): IdentityProfile {
     role: "member",
     governanceAcceptedAt: "2026-02-01T00:00:00.000Z",
     humanVerifiedAt: "2026-02-01T00:00:00.000Z",
+    identityAssuranceLevel: "enhanced",
+    identityAssuranceSignals: ["attestation", "governance_commitment", "interactive_challenge"],
+    identityAssuranceEvaluatedAt: "2026-02-01T00:00:05.000Z",
     createdAt: "2026-02-01T00:00:00.000Z",
     updatedAt: "2026-02-01T00:00:00.000Z",
     ...overrides
@@ -90,6 +94,76 @@ describe("SqliteStorageAdapter.initialize", () => {
     adapter.initialize();
     adapter.initialize();
   });
+
+  it("migrates legacy users tables by adding assurance columns", () => {
+    const dbPath = tempDbPath();
+    const legacyDb = new Database(dbPath);
+
+    legacyDb.exec(`
+      CREATE TABLE users (
+        id                     TEXT PRIMARY KEY NOT NULL,
+        handle                 TEXT NOT NULL,
+        display_name           TEXT NOT NULL,
+        role                   TEXT NOT NULL,
+        governance_accepted_at TEXT NOT NULL,
+        human_verified_at      TEXT NOT NULL,
+        created_at             TEXT NOT NULL,
+        updated_at             TEXT NOT NULL
+      );
+      CREATE TABLE posts (
+        id         TEXT PRIMARY KEY NOT NULL,
+        author_id  TEXT NOT NULL,
+        body       TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
+      CREATE TABLE reports (
+        id          TEXT PRIMARY KEY NOT NULL,
+        post_id     TEXT NOT NULL,
+        reporter_id TEXT NOT NULL,
+        reason      TEXT NOT NULL,
+        status      TEXT NOT NULL DEFAULT 'open',
+        created_at  TEXT NOT NULL
+      );
+      CREATE TABLE appeals (
+        id                       TEXT PRIMARY KEY NOT NULL,
+        report_id                TEXT NOT NULL,
+        appellant_id             TEXT NOT NULL,
+        reason                   TEXT NOT NULL,
+        status                   TEXT NOT NULL DEFAULT 'open',
+        appealed_audit_record_id TEXT,
+        created_at               TEXT NOT NULL,
+        updated_at               TEXT NOT NULL,
+        decided_at               TEXT,
+        decided_by_id            TEXT,
+        decision_rationale       TEXT
+      );
+    `);
+
+    legacyDb.close();
+
+    const adapter = new SqliteStorageAdapter(dbPath);
+    adapter.initialize();
+
+    adapter.flush(
+      buildStore({
+        users: [
+          makeUser({
+            identityAssuranceLevel: "enhanced",
+            identityAssuranceSignals: ["attestation", "governance_commitment", "interactive_challenge"],
+            identityAssuranceEvaluatedAt: "2026-02-01T00:00:05.000Z"
+          })
+        ]
+      })
+    );
+
+    const loaded = adapter.loadAll();
+    assert.equal(loaded.users[0]?.identityAssuranceLevel, "enhanced");
+    assert.deepEqual(loaded.users[0]?.identityAssuranceSignals, [
+      "attestation",
+      "governance_commitment",
+      "interactive_challenge"
+    ]);
+  });
 });
 
 // ── flush + loadAll ───────────────────────────────────────────────────────────
@@ -134,8 +208,31 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.role, user.role);
     assert.equal(loaded.governanceAcceptedAt, user.governanceAcceptedAt);
     assert.equal(loaded.humanVerifiedAt, user.humanVerifiedAt);
+    assert.equal(loaded.identityAssuranceLevel, user.identityAssuranceLevel);
+    assert.deepEqual(loaded.identityAssuranceSignals, user.identityAssuranceSignals);
+    assert.equal(loaded.identityAssuranceEvaluatedAt, user.identityAssuranceEvaluatedAt);
     assert.equal(loaded.createdAt, user.createdAt);
     assert.equal(loaded.updatedAt, user.updatedAt);
+  });
+
+  it("omits optional IdentityProfile assurance fields when undefined", () => {
+    const adapter = new SqliteStorageAdapter(tempDbPath());
+    adapter.initialize();
+
+    const user = makeUser({
+      identityAssuranceLevel: undefined,
+      identityAssuranceSignals: undefined,
+      identityAssuranceEvaluatedAt: undefined
+    });
+
+    adapter.flush(buildStore({ users: [user] }));
+
+    const { users } = adapter.loadAll();
+    const loaded = users[0];
+    assert.ok(loaded);
+    assert.equal(loaded.identityAssuranceLevel, undefined);
+    assert.equal(loaded.identityAssuranceSignals, undefined);
+    assert.equal(loaded.identityAssuranceEvaluatedAt, undefined);
   });
 
   it("persists optional Appeal fields", () => {

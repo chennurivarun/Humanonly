@@ -68,6 +68,20 @@ describe("parseSeedSnapshot", () => {
     const parsed = parseSeedSnapshot(legacyPayload);
     assert.deepEqual(parsed.appeals, []);
   });
+
+  it("rejects assurance level without evaluated timestamp", () => {
+    const snapshot = createDefaultSeedSnapshot();
+    const user = snapshot.users[0];
+    assert.ok(user);
+
+    user.identityAssuranceLevel = "enhanced";
+    delete user.identityAssuranceEvaluatedAt;
+
+    assert.throws(
+      () => parseSeedSnapshot(snapshot),
+      (error) => error instanceof SeedValidationError && error.code === "INVALID_JSON"
+    );
+  });
 });
 
 describe("applySeedSnapshot", () => {

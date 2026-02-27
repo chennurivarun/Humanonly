@@ -13,21 +13,19 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary (Sprint 4 — Relational Durability Migration)
-- ✅ Delivered `StorageAdapter` interface (`apps/web/src/lib/storage/adapter.ts`) decoupling domain from storage backend.
-- ✅ Delivered `SqliteStorageAdapter` (`apps/web/src/lib/storage/sqlite.ts`) with explicit indexes, WAL mode, transactional flush, and file-level health check.
-- ✅ Delivered `JsonFileStorageAdapter` (`apps/web/src/lib/storage/json-file.ts`) as legacy compat backend wrapping existing governed-store persistence.
-- ✅ Added `createStorageAdapter()` factory; SQLite is the default backend (configurable via `HUMANONLY_STORAGE_BACKEND`).
-- ✅ Updated `store.ts` to use adapter; startup hydrates from adapter with seed/JSON compat bootstrap fallback.
-- ✅ Updated `reliability/index.ts` to check SQLite DB health (default) or JSON snapshot health (json-snapshot backend); audit log check preserved.
-- ✅ Added 20 focused new tests; all 88 tests pass; typecheck clean; production build successful.
-- ✅ Updated docs: README, ROADMAP, LOCAL_DEVELOPMENT, SPRINT_CHECKLIST, SPRINT_1_BACKLOG.
-- ✅ Executed Sprint 3 tabletop incident drill and captured actionable follow-ups (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`).
+## Latest run summary (Sprint 4 — Identity Assurance Hardening)
+- ✅ Added hardened identity assurance domain module (`apps/web/src/lib/auth/assurance.ts`) with signed onboarding challenge tokens, expiry + minimum solve-time checks, governance commitment parsing, and deterministic assurance profile output.
+- ✅ Added onboarding challenge API (`GET /api/onboarding/challenge`) with no-store semantics for interactive onboarding verification.
+- ✅ Upgraded onboarding UX (`src/app/onboarding/page.tsx`) with governance commitment consent, interactive challenge response input, and refreshable challenge handling.
+- ✅ Updated Auth.js onboarding flow (`src/auth.ts`) to require enhanced assurance evidence before session creation and to persist assurance metadata in session/JWT + sign-in audit metadata.
+- ✅ Extended identity persistence model (`src/lib/store.ts`, `src/lib/storage/sqlite.ts`, `src/lib/seed.ts`) to carry `identityAssuranceLevel`, `identityAssuranceSignals`, and `identityAssuranceEvaluatedAt` with SQLite legacy-column migration and JSON snapshot compatibility.
+- ✅ Added comprehensive automated coverage for assurance lifecycle + onboarding defaults + persistence migrations (`assurance.test.ts`, `onboarding.test.ts`, `sqlite.test.ts`, `seed.test.ts`).
+- ✅ Validation clean: 100/100 tests passing, typecheck clean, production build successful.
 
 ## Next actions
-1. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
-2. Plan PostgreSQL migration path for multi-instance scale (SQLite → Postgres adapter swap).
-3. Persist incident records durably (replace current in-memory lifecycle store).
+1. Plan PostgreSQL migration path for multi-instance scale (SQLite → Postgres adapter swap).
+2. Persist incident records durably (replace current in-memory lifecycle store).
+3. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
