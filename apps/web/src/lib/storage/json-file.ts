@@ -33,15 +33,16 @@ export class JsonFileStorageAdapter implements StorageAdapter {
       filePath ?? resolveFilePath("HUMANONLY_DATA_FILE", DEFAULT_DATA_FILE);
   }
 
-  initialize(): void {
+  initialize(): Promise<void> {
     // No schema to create; the JSON file is written lazily on first flush.
+    return Promise.resolve();
   }
 
-  loadAll(): GovernedStore {
+  loadAll(): Promise<GovernedStore> {
     const store: GovernedStore = { users: [], posts: [], reports: [], appeals: [] };
 
     if (!existsSync(this.filePath)) {
-      return store;
+      return Promise.resolve(store);
     }
 
     try {
@@ -53,26 +54,27 @@ export class JsonFileStorageAdapter implements StorageAdapter {
       throw error;
     }
 
-    return store;
+    return Promise.resolve(store);
   }
 
-  flush(store: GovernedStore): void {
+  flush(store: GovernedStore): Promise<void> {
     persistGovernedStoreToFile(store, this.filePath);
+    return Promise.resolve();
   }
 
-  healthCheck(): StorageHealthDetail {
+  healthCheck(): Promise<StorageHealthDetail> {
     if (!existsSync(this.filePath)) {
-      return {
+      return Promise.resolve({
         backend: "json-snapshot",
         healthy: false,
         detail: `JSON snapshot file not found: ${this.filePath}`,
         info: { filePath: this.filePath, exists: false, sizeBytes: null, lastModifiedAt: null }
-      };
+      });
     }
 
     try {
       const stat = statSync(this.filePath);
-      return {
+      return Promise.resolve({
         backend: "json-snapshot",
         healthy: true,
         detail: `JSON snapshot file reachable`,
@@ -82,14 +84,14 @@ export class JsonFileStorageAdapter implements StorageAdapter {
           sizeBytes: stat.size,
           lastModifiedAt: stat.mtime.toISOString()
         }
-      };
+      });
     } catch (err) {
-      return {
+      return Promise.resolve({
         backend: "json-snapshot",
         healthy: false,
         detail: `JSON snapshot file error: ${(err as Error).message}`,
         info: { filePath: this.filePath, exists: true, sizeBytes: null, lastModifiedAt: null }
-      };
+      });
     }
   }
 }

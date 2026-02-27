@@ -1,6 +1,6 @@
 # Sprint 4 — PostgreSQL Migration Path (Scale-Out Option)
 
-Status: **In progress** (phase 1 complete: migration plan + schema contract)
+Status: **Complete** (runtime adapter implemented, full test coverage, backend selector wired)
 
 ## Why this phase
 
@@ -20,11 +20,18 @@ PostgreSQL is the next relational backend while preserving HumanOnly governance 
 3. Define environment contract for selecting backend safely.
 4. Keep existing app behavior unchanged by default (`sqlite`).
 
-## Out of scope (next implementation slice)
+## Completed (this implementation slice)
 
-- Runtime `PostgresStorageAdapter` implementation
+- Runtime `PostgresStorageAdapter` implementation (`apps/web/src/lib/storage/postgres.ts`)
+- Full mock-based unit tests (`apps/web/src/lib/storage/postgres.test.ts`)
+- Backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres` → `createStorageAdapter()`)
+- Coherent async adapter interface (`StorageAdapter` methods return `Promise<T>`)
+
+## Out of scope (next slice)
+
 - Dual-write or cutover automation scripts
 - Connection pooling + managed Postgres deployment manifests
+- End-to-end CI job with real Postgres service
 
 ## Proposed schema parity
 
@@ -86,5 +93,7 @@ If validation fails after cutover:
 - [x] Schema contract checked in (`apps/web/db/postgres/schema.sql`)
 - [x] Migration runbook documented
 - [x] Backward-safe default (`sqlite`) maintained
-- [ ] Runtime Postgres adapter implemented
-- [ ] End-to-end postgres CI job
+- [x] Runtime Postgres adapter implemented (`PostgresStorageAdapter` with full mock-based test suite)
+- [x] Backend selector wired (`HUMANONLY_STORAGE_BACKEND=postgres`)
+- [x] All adapters use coherent async interface (`Promise<T>` throughout)
+- [ ] End-to-end CI job with real Postgres service (next milestone)

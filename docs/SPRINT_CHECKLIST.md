@@ -13,20 +13,23 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary (Sprint 4 — Identity Assurance Hardening)
-- ✅ Added hardened identity assurance domain module (`apps/web/src/lib/auth/assurance.ts`) with signed onboarding challenge tokens, expiry + minimum solve-time checks, governance commitment parsing, and deterministic assurance profile output.
-- ✅ Added onboarding challenge API (`GET /api/onboarding/challenge`) with no-store semantics for interactive onboarding verification.
-- ✅ Upgraded onboarding UX (`src/app/onboarding/page.tsx`) with governance commitment consent, interactive challenge response input, and refreshable challenge handling.
-- ✅ Updated Auth.js onboarding flow (`src/auth.ts`) to require enhanced assurance evidence before session creation and to persist assurance metadata in session/JWT + sign-in audit metadata.
-- ✅ Extended identity persistence model (`src/lib/store.ts`, `src/lib/storage/sqlite.ts`, `src/lib/seed.ts`) to carry `identityAssuranceLevel`, `identityAssuranceSignals`, and `identityAssuranceEvaluatedAt` with SQLite legacy-column migration and JSON snapshot compatibility.
-- ✅ Added comprehensive automated coverage for assurance lifecycle + onboarding defaults + persistence migrations (`assurance.test.ts`, `onboarding.test.ts`, `sqlite.test.ts`, `seed.test.ts`).
-- ✅ Validation clean: 100/100 tests passing, typecheck clean, production build successful.
+## Latest run summary (Sprint 4 — PostgreSQL Runtime Backend)
+- ✅ Implemented `PostgresStorageAdapter` (`apps/web/src/lib/storage/postgres.ts`): connection-pooled via `pg.Pool`, idempotent DDL, FK-safe transaction flush (appeals→reports→posts→users delete, users→posts→reports→appeals upsert), `ON CONFLICT (id) DO UPDATE` upsert semantics, JSONB identity-assurance fields.
+- ✅ Wired backend selector: `HUMANONLY_STORAGE_BACKEND=postgres` + `HUMANONLY_POSTGRES_URL` → `PostgresStorageAdapter` via `createStorageAdapter()` in `apps/web/src/lib/storage/index.ts`.
+- ✅ Coherent async adapter interface: all `StorageAdapter` methods return `Promise<T>`; `SqliteStorageAdapter` and `JsonFileStorageAdapter` wrap synchronous operations with `Promise.resolve()`.
+- ✅ Fixed `JsonFileStorageAdapter.loadAll()` early-return bug (returned raw object instead of `Promise<GovernedStore>`).
+- ✅ Updated `store.ts`: `initializeStore()` is now properly async with `await` on all adapter calls; `persistStore()` uses fire-and-forget flush (safe for SQLite; documented trade-off for Postgres).
+- ✅ Added comprehensive mock-based unit tests for `PostgresStorageAdapter` (`postgres.test.ts`): initialize idempotency, loadAll column mapping, flush transaction ordering, ROLLBACK on error, healthCheck ping.
+- ✅ Updated `sqlite.test.ts` and `adapter.test.ts` to use async/await throughout.
+- ✅ Governance invariants preserved across all adapters (human expression only, AI-managed ops, human-governed decisions, auditability, admin-only override).
+- ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
 1. ✅ Planned PostgreSQL migration path for multi-instance scale (runbook + schema contract in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` and `apps/web/db/postgres/schema.sql`).
-2. Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
+2. ✅ Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
 3. Persist incident records durably (replace current in-memory lifecycle store).
 4. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
+5. End-to-end CI job with real Postgres service container.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.

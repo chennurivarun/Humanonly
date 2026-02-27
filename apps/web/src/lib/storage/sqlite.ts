@@ -274,13 +274,14 @@ export class SqliteStorageAdapter implements StorageAdapter {
     return this.db;
   }
 
-  initialize(): void {
+  initialize(): Promise<void> {
     const db = this.openDb();
     db.exec(SCHEMA_SQL);
     ensureUsersTableColumns(db);
+    return Promise.resolve();
   }
 
-  loadAll(): GovernedStore {
+  loadAll(): Promise<GovernedStore> {
     const db = this.openDb();
 
     const users = (db.prepare("SELECT * FROM users ORDER BY created_at ASC").all() as UserRow[]).map(rowToUser);
@@ -293,10 +294,10 @@ export class SqliteStorageAdapter implements StorageAdapter {
       db.prepare("SELECT * FROM appeals ORDER BY created_at DESC").all() as AppealRow[]
     ).map(rowToAppeal);
 
-    return { users, posts, reports, appeals };
+    return Promise.resolve({ users, posts, reports, appeals });
   }
 
-  flush(store: GovernedStore): void {
+  flush(store: GovernedStore): Promise<void> {
     const db = this.openDb();
 
     const upsertUsers = db.prepare(`
@@ -410,18 +411,19 @@ export class SqliteStorageAdapter implements StorageAdapter {
     });
 
     txn();
+    return Promise.resolve();
   }
 
-  healthCheck(): StorageHealthDetail {
+  healthCheck(): Promise<StorageHealthDetail> {
     const filePath = this.dbFilePath;
 
     if (!existsSync(filePath)) {
-      return {
+      return Promise.resolve({
         backend: "sqlite",
         healthy: false,
         detail: `SQLite database file not found: ${filePath}`,
         info: { filePath, exists: false, sizeBytes: null, lastModifiedAt: null }
-      };
+      });
     }
 
     try {
@@ -430,7 +432,7 @@ export class SqliteStorageAdapter implements StorageAdapter {
       const db = this.openDb();
       db.prepare("SELECT 1").get();
 
-      return {
+      return Promise.resolve({
         backend: "sqlite",
         healthy: true,
         detail: `SQLite database reachable`,
@@ -440,14 +442,14 @@ export class SqliteStorageAdapter implements StorageAdapter {
           sizeBytes: stat.size,
           lastModifiedAt: stat.mtime.toISOString()
         }
-      };
+      });
     } catch (err) {
-      return {
+      return Promise.resolve({
         backend: "sqlite",
         healthy: false,
         detail: `SQLite database error: ${(err as Error).message}`,
         info: { filePath, exists: true, sizeBytes: null, lastModifiedAt: null }
-      };
+      });
     }
   }
 }

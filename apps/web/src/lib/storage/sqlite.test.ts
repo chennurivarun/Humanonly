@@ -80,22 +80,22 @@ function buildStore(partial: Partial<GovernedStore> = {}): GovernedStore {
 // ── initialize ────────────────────────────────────────────────────────────────
 
 describe("SqliteStorageAdapter.initialize", () => {
-  it("creates the DB file and schema tables", () => {
+  it("creates the DB file and schema tables", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
-    const loaded = adapter.loadAll();
+    const loaded = await adapter.loadAll();
     assert.deepEqual(loaded, { users: [], posts: [], reports: [], appeals: [] });
   });
 
-  it("is idempotent — calling initialize twice does not throw", () => {
+  it("is idempotent — calling initialize twice does not throw", async () => {
     const dbPath = tempDbPath();
     const adapter = new SqliteStorageAdapter(dbPath);
-    adapter.initialize();
-    adapter.initialize();
+    await adapter.initialize();
+    await adapter.initialize();
   });
 
-  it("migrates legacy users tables by adding assurance columns", () => {
+  it("migrates legacy users tables by adding assurance columns", async () => {
     const dbPath = tempDbPath();
     const legacyDb = new Database(dbPath);
 
@@ -142,9 +142,9 @@ describe("SqliteStorageAdapter.initialize", () => {
     legacyDb.close();
 
     const adapter = new SqliteStorageAdapter(dbPath);
-    adapter.initialize();
+    await adapter.initialize();
 
-    adapter.flush(
+    await adapter.flush(
       buildStore({
         users: [
           makeUser({
@@ -156,7 +156,7 @@ describe("SqliteStorageAdapter.initialize", () => {
       })
     );
 
-    const loaded = adapter.loadAll();
+    const loaded = await adapter.loadAll();
     assert.equal(loaded.users[0]?.identityAssuranceLevel, "enhanced");
     assert.deepEqual(loaded.users[0]?.identityAssuranceSignals, [
       "attestation",
@@ -169,14 +169,14 @@ describe("SqliteStorageAdapter.initialize", () => {
 // ── flush + loadAll ───────────────────────────────────────────────────────────
 
 describe("SqliteStorageAdapter.flush + loadAll", () => {
-  it("round-trips all entity types", () => {
+  it("round-trips all entity types", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const store = buildStore();
-    adapter.flush(store);
+    await adapter.flush(store);
 
-    const loaded = adapter.loadAll();
+    const loaded = await adapter.loadAll();
 
     assert.equal(loaded.users.length, 1);
     assert.equal(loaded.users[0]?.handle, "test_user");
@@ -192,14 +192,14 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.appeals[0]?.reason, "Test appeal");
   });
 
-  it("persists all IdentityProfile fields", () => {
+  it("persists all IdentityProfile fields", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const user = makeUser({ role: "admin", displayName: "Chief Admin" });
-    adapter.flush(buildStore({ users: [user] }));
+    await adapter.flush(buildStore({ users: [user] }));
 
-    const { users } = adapter.loadAll();
+    const { users } = await adapter.loadAll();
     const loaded = users[0];
     assert.ok(loaded);
     assert.equal(loaded.id, user.id);
@@ -215,9 +215,9 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.updatedAt, user.updatedAt);
   });
 
-  it("omits optional IdentityProfile assurance fields when undefined", () => {
+  it("omits optional IdentityProfile assurance fields when undefined", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const user = makeUser({
       identityAssuranceLevel: undefined,
@@ -225,9 +225,9 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
       identityAssuranceEvaluatedAt: undefined
     });
 
-    adapter.flush(buildStore({ users: [user] }));
+    await adapter.flush(buildStore({ users: [user] }));
 
-    const { users } = adapter.loadAll();
+    const { users } = await adapter.loadAll();
     const loaded = users[0];
     assert.ok(loaded);
     assert.equal(loaded.identityAssuranceLevel, undefined);
@@ -235,9 +235,9 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.identityAssuranceEvaluatedAt, undefined);
   });
 
-  it("persists optional Appeal fields", () => {
+  it("persists optional Appeal fields", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const appeal = makeAppeal({
       appealedAuditRecordId: "rec_123",
@@ -247,9 +247,9 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
       decisionRationale: "Granted on review"
     });
 
-    adapter.flush(buildStore({ appeals: [appeal] }));
+    await adapter.flush(buildStore({ appeals: [appeal] }));
 
-    const { appeals } = adapter.loadAll();
+    const { appeals } = await adapter.loadAll();
     const loaded = appeals[0];
     assert.ok(loaded);
     assert.equal(loaded.appealedAuditRecordId, "rec_123");
@@ -259,14 +259,14 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.decisionRationale, "Granted on review");
   });
 
-  it("omits undefined optional Appeal fields from loaded record", () => {
+  it("omits undefined optional Appeal fields from loaded record", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const appeal = makeAppeal(); // No optional fields
-    adapter.flush(buildStore({ appeals: [appeal] }));
+    await adapter.flush(buildStore({ appeals: [appeal] }));
 
-    const { appeals } = adapter.loadAll();
+    const { appeals } = await adapter.loadAll();
     const loaded = appeals[0];
     assert.ok(loaded);
     assert.equal(loaded.appealedAuditRecordId, undefined);
@@ -275,46 +275,46 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
     assert.equal(loaded.decisionRationale, undefined);
   });
 
-  it("overwrites previous state on re-flush (upsert semantics)", () => {
+  it("overwrites previous state on re-flush (upsert semantics)", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const report = makeReport({ status: "open" });
-    adapter.flush(buildStore({ reports: [report] }));
+    await adapter.flush(buildStore({ reports: [report] }));
 
     // Mutate and flush again
     const updated = { ...report, status: "resolved" as const };
-    adapter.flush(buildStore({ reports: [updated] }));
+    await adapter.flush(buildStore({ reports: [updated] }));
 
-    const { reports } = adapter.loadAll();
+    const { reports } = await adapter.loadAll();
     assert.equal(reports[0]?.status, "resolved");
   });
 
-  it("removes records deleted from in-memory store", () => {
+  it("removes records deleted from in-memory store", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
     const store = buildStore({
       posts: [makePost({ id: "pst_a" }), makePost({ id: "pst_b" })]
     });
-    adapter.flush(store);
+    await adapter.flush(store);
 
     // Remove one post and flush
     const reduced = { ...store, posts: [makePost({ id: "pst_a" })] };
-    adapter.flush(reduced);
+    await adapter.flush(reduced);
 
-    const { posts } = adapter.loadAll();
+    const { posts } = await adapter.loadAll();
     assert.equal(posts.length, 1);
     assert.equal(posts[0]?.id, "pst_a");
   });
 
-  it("handles empty store flush without errors", () => {
+  it("handles empty store flush without errors", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
-    adapter.flush({ users: [], posts: [], reports: [], appeals: [] });
+    await adapter.flush({ users: [], posts: [], reports: [], appeals: [] });
 
-    const loaded = adapter.loadAll();
+    const loaded = await adapter.loadAll();
     assert.deepEqual(loaded, { users: [], posts: [], reports: [], appeals: [] });
   });
 });
@@ -322,11 +322,11 @@ describe("SqliteStorageAdapter.flush + loadAll", () => {
 // ── healthCheck ───────────────────────────────────────────────────────────────
 
 describe("SqliteStorageAdapter.healthCheck", () => {
-  it("reports healthy after initialize", () => {
+  it("reports healthy after initialize", async () => {
     const adapter = new SqliteStorageAdapter(tempDbPath());
-    adapter.initialize();
+    await adapter.initialize();
 
-    const health = adapter.healthCheck();
+    const health = await adapter.healthCheck();
 
     assert.equal(health.backend, "sqlite");
     assert.equal(health.healthy, true);
@@ -336,10 +336,10 @@ describe("SqliteStorageAdapter.healthCheck", () => {
     assert.ok(typeof health.info?.lastModifiedAt === "string");
   });
 
-  it("reports unhealthy for a missing DB file", () => {
+  it("reports unhealthy for a missing DB file", async () => {
     const adapter = new SqliteStorageAdapter("/nonexistent/path/test.db");
 
-    const health = adapter.healthCheck();
+    const health = await adapter.healthCheck();
 
     assert.equal(health.backend, "sqlite");
     assert.equal(health.healthy, false);
@@ -350,17 +350,17 @@ describe("SqliteStorageAdapter.healthCheck", () => {
 // ── persistence across instances ──────────────────────────────────────────────
 
 describe("SqliteStorageAdapter durability", () => {
-  it("data persists when a new adapter instance opens the same DB file", () => {
+  it("data persists when a new adapter instance opens the same DB file", async () => {
     const dbPath = tempDbPath();
 
     const writer = new SqliteStorageAdapter(dbPath);
-    writer.initialize();
-    writer.flush(buildStore());
+    await writer.initialize();
+    await writer.flush(buildStore());
 
     // Simulate server restart by creating a fresh adapter instance
     const reader = new SqliteStorageAdapter(dbPath);
-    reader.initialize();
-    const loaded = reader.loadAll();
+    await reader.initialize();
+    const loaded = await reader.loadAll();
 
     assert.equal(loaded.users.length, 1);
     assert.equal(loaded.posts.length, 1);
