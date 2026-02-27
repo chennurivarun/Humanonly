@@ -19,4 +19,4 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Sprint 4 relational durability migration delivered: SQLite backend with explicit indexes, `StorageAdapter` abstraction (`apps/web/src/lib/storage/`), JSON-snapshot compat migration path, and updated reliability health checks
 - ✅ Sprint 3 tabletop incident drill executed with follow-ups captured (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`)
 - ✅ Sprint 4 identity assurance hardening delivered: governance commitment + interactive onboarding challenge + persisted assurance metadata (SQLite + JSON snapshot compat)
-- 🔜 Next highest-priority unfinished milestone: PostgreSQL migration path for multi-instance scale
+- 🔜 Next highest-priority unfinished milestone: PostgreSQL runtime adapter implementation for multi-instance scale (`docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` + `apps/web/db/postgres/schema.sql` landed)

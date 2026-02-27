@@ -29,8 +29,9 @@ HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
 
-- `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default) or `json-snapshot` (legacy compat).
+- `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default) or `json-snapshot` (legacy compat). `postgres` is reserved for Sprint 4 runtime adapter implementation.
 - `HUMANONLY_DB_FILE` — path to the SQLite database (default: `.data/store.db`).
+- `HUMANONLY_POSTGRES_URL` — planned Postgres connection URL for scale-out migration (documented in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md`).
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).

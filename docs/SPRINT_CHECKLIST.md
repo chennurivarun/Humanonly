@@ -23,9 +23,10 @@
 - ✅ Validation clean: 100/100 tests passing, typecheck clean, production build successful.
 
 ## Next actions
-1. Plan PostgreSQL migration path for multi-instance scale (SQLite → Postgres adapter swap).
-2. Persist incident records durably (replace current in-memory lifecycle store).
-3. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
+1. ✅ Planned PostgreSQL migration path for multi-instance scale (runbook + schema contract in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` and `apps/web/db/postgres/schema.sql`).
+2. Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
+3. Persist incident records durably (replace current in-memory lifecycle store).
+4. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
