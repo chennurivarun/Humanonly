@@ -6,8 +6,8 @@ Human content only; AI supports operations under strict governance.
 ## Tech Decisions (v1)
 - Frontend: Next.js + TypeScript + Tailwind (planned)
 - Backend: Next.js API routes (fast prototype path)
-- Data durability (current): governed JSON snapshot persistence (`HUMANONLY_DATA_FILE`)
-- Data durability (target): PostgreSQL + Prisma for multi-instance scaling
+- Data durability (current): SQLite via `StorageAdapter` abstraction (`apps/web/src/lib/storage/`); JSON snapshot compat path available via `HUMANONLY_STORAGE_BACKEND=json-snapshot`
+- Data durability (target): PostgreSQL adapter (drop-in via `StorageAdapter` interface) for multi-instance scaling
 - Auth: Auth.js (credentials scaffold with human attestation)
 - Queue: Redis/BullMQ (phase 2)
 
@@ -28,7 +28,7 @@ Human content only; AI supports operations under strict governance.
 - Moderation action logs are assembled from immutable audit hash-chain records for forensic auditability.
 - Admin metrics endpoint (`GET /api/admin/metrics`) summarizes queue throughput, appeal resolution latency, trust distribution, and override rates.
 - Role-aware moderation insights endpoint (`GET /api/moderation/insights`) enriches queue entities with trust context, immutable action previews, and 7d/30d trend windows.
-- Runtime state (identities, posts, reports, appeals) persists to a governed durable snapshot.
+- Runtime state (identities, posts, reports, appeals) persists to a governed durable store via `StorageAdapter` (SQLite default; JSON snapshot legacy path).
 
 ## Non-Negotiables
 - Every enforcement action emits an audit record.

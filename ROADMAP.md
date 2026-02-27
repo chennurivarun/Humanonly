@@ -26,3 +26,9 @@
 - [x] Pilot launch readiness runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - [x] Reliability hardening (durability, observability, incident controls)
 - [x] Community contributor expansion (`docs/CONTRIBUTOR_EXPANSION.md`, updated `CONTRIBUTING.md`)
+
+## Sprint 4
+- [x] Relational durability migration: SQLite backend with explicit indexes, `StorageAdapter` abstraction, JSON-snapshot compat path (`apps/web/src/lib/storage/`)
+- [ ] Execute Sprint 3 tabletop incident drill + capture follow-ups
+- [ ] Strengthen identity assurance beyond MVP attestation
+- [ ] PostgreSQL migration path (scale-out option from SQLite)

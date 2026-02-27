@@ -124,12 +124,24 @@ export function checkStorageFile(label: string, filePath: string): StorageHealth
   }
 }
 
+function checkDataStorageHealth(): StorageHealthCheck {
+  const backend = process.env.HUMANONLY_STORAGE_BACKEND?.trim().toLowerCase();
+
+  if (backend === "json-snapshot") {
+    const filePath = resolveFilePath("HUMANONLY_DATA_FILE", ".data/store.json");
+    return { ...checkStorageFile("JSON governed snapshot", filePath), label: "JSON governed snapshot" };
+  }
+
+  // Default: SQLite relational backend
+  const filePath = resolveFilePath("HUMANONLY_DB_FILE", ".data/store.db");
+  return { ...checkStorageFile("SQLite governed database", filePath), label: "SQLite governed database" };
+}
+
 export function checkStorageHealth(): StorageHealthCheck[] {
   const auditLogPath = resolveFilePath("HUMANONLY_AUDIT_LOG_FILE", ".data/audit-log.jsonl");
-  const dataStorePath = resolveFilePath("HUMANONLY_DATA_FILE", ".data/store.json");
 
   return [
-    checkStorageFile("Governed data snapshot", dataStorePath),
+    checkDataStorageHealth(),
     checkStorageFile("Immutable audit log", auditLogPath)
   ];
 }

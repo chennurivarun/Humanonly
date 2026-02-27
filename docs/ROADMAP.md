@@ -16,3 +16,4 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Sprint 3 reliability hardening delivered: storage health checks, audit hash-chain integrity, queue latency metrics/alerts, admin reliability API, incident declare/resolve controls, and admin UI surfaces
 - ✅ Sprint 3 governance operations runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - ✅ Sprint 3 community contributor expansion delivered (`docs/CONTRIBUTOR_EXPANSION.md`, `CONTRIBUTING.md`)
+- ✅ Sprint 4 relational durability migration delivered: SQLite backend with explicit indexes, `StorageAdapter` abstraction (`apps/web/src/lib/storage/`), JSON-snapshot compat migration path, and updated reliability health checks

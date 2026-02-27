@@ -33,15 +33,22 @@
 - Fixed `ReliabilityThresholds` type and ensured 66/66 tests pass, typecheck clean, and production build successful.
 - Updated roadmap + sprint tracker + docs for Sprint 3 milestone closure.
 
+## Completed in this run (Sprint 4 — Relational Durability Migration)
+- Delivered StorageAdapter interface + SqliteStorageAdapter (WAL mode, explicit indexes) + JsonFileStorageAdapter (legacy compat) + createStorageAdapter() factory (apps/web/src/lib/storage/).
+- Updated store.ts to use adapter; persistStore() delegates to adapter.flush(db); startup hydrates in-memory arrays from adapter with seed/JSON compat bootstrap path.
+- Updated reliability/index.ts to check SQLite DB health (default) or JSON snapshot health; audit log check preserved unchanged.
+- Added 20 new tests in sqlite.test.ts and adapter.test.ts; updated reliability tests for both backends.
+- All 88 tests pass; typecheck clean; production build successful.
+
 ## Remaining priorities
-1. Execute Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md`.
-2. Replace file-backed durability with indexed relational storage for multi-instance scale.
-3. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
-4. Community contributor expansion.
+1. Execute Sprint 3 tabletop incident drill using docs/SPRINT_3_PILOT_RUNBOOK.md.
+2. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
+3. Plan PostgreSQL migration path for multi-instance scale (adapt SqliteStorageAdapter pattern to a PostgresStorageAdapter).
+4. Persistent incident log (currently in-memory; should be durable before production scale).
 
 ## Risks
-- File-based durability remains single-node oriented; concurrent writers will require transactional storage.
+- SQLite is single-node oriented; multi-instance deployments will require a PostgreSQL adapter (migration path is now clean via StorageAdapter).
 - NextAuth beta runtime remains a dependency risk until stable v5 migration.
-- Moderation insights currently derive from in-memory joins + full audit scans; large datasets will require indexed query paths.
-- Trend-window analytics are computed from current snapshot state and timestamped records, not historical point-in-time snapshots.
-- Incident store is in-memory only; incidents are lost on server restart (by design for pilot drills; persistent incident log should be added before production scale).
+- Moderation insights still derive from in-memory joins; large datasets will benefit from direct SQL query paths in the adapter.
+- Trend-window analytics computed from current snapshot state, not historical point-in-time snapshots.
+- Incident store is in-memory only; incidents are lost on server restart (by design for pilot drills).

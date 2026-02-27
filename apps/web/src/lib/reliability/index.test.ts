@@ -227,10 +227,11 @@ describe("buildQueueLatencyMetrics", () => {
 // ── buildReliabilityStatus ────────────────────────────────────────────────────
 
 describe("buildReliabilityStatus", () => {
-  it("returns healthy=false when storage files are absent", async () => {
+  it("returns healthy=false when SQLite DB and audit log are absent (default backend)", async () => {
     const tempDir = mkdtempSync(path.join(tmpdir(), "humanonly-rel-full-"));
+    delete process.env.HUMANONLY_STORAGE_BACKEND;
     process.env.HUMANONLY_AUDIT_LOG_FILE = path.join(tempDir, "absent-audit.jsonl");
-    process.env.HUMANONLY_DATA_FILE = path.join(tempDir, "absent-store.json");
+    process.env.HUMANONLY_DB_FILE = path.join(tempDir, "absent-store.db");
 
     const { resetAuditStateForTests } = await import("@/lib/audit");
     resetAuditStateForTests();
@@ -247,6 +248,35 @@ describe("buildReliabilityStatus", () => {
     assert.ok(result.storage.every((s) => s.exists === false));
     assert.equal(result.auditChain.totalRecords, 0);
     assert.equal(result.auditChain.chainValid, true);
+
+    // Verify the storage label reflects the relational backend
+    const dataCheck = result.storage.find((s) => s.label === "SQLite governed database");
+    assert.ok(dataCheck, "storage check should be labeled 'SQLite governed database'");
+
+    delete process.env.HUMANONLY_DB_FILE;
+  });
+
+  it("returns healthy=false when JSON snapshot and audit log are absent (json-snapshot backend)", async () => {
+    const tempDir = mkdtempSync(path.join(tmpdir(), "humanonly-rel-json-"));
+    process.env.HUMANONLY_STORAGE_BACKEND = "json-snapshot";
+    process.env.HUMANONLY_AUDIT_LOG_FILE = path.join(tempDir, "absent-audit.jsonl");
+    process.env.HUMANONLY_DATA_FILE = path.join(tempDir, "absent-store.json");
+
+    const { resetAuditStateForTests } = await import("@/lib/audit");
+    resetAuditStateForTests();
+
+    const result = buildReliabilityStatus(EMPTY_STORE, {
+      nowIso: "2026-02-27T12:00:00.000Z"
+    });
+
+    assert.equal(result.healthy, false);
+    assert.ok(result.storage.every((s) => s.exists === false));
+
+    const dataCheck = result.storage.find((s) => s.label === "JSON governed snapshot");
+    assert.ok(dataCheck, "storage check should be labeled 'JSON governed snapshot'");
+
+    delete process.env.HUMANONLY_STORAGE_BACKEND;
+    delete process.env.HUMANONLY_DATA_FILE;
   });
 
   it("includes governance assertions in every response", () => {

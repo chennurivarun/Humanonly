@@ -1,10 +1,9 @@
-import { existsSync } from "node:fs";
 import {
   hydrateGovernedStoreFromFile,
-  persistGovernedStoreToFile,
   type GovernedStore
 } from "@/lib/governed-store";
 import { resolveSeedPath, SeedValidationError } from "@/lib/seed";
+import { createStorageAdapter, type StorageAdapter } from "@/lib/storage";
 
 export type HumanRole = "member" | "moderator" | "admin";
 
@@ -61,18 +60,19 @@ export const db: GovernedStore = {
   users
 };
 
-const DEFAULT_DURABLE_STORE_FILE = ".data/store.json";
+// Active storage adapter — selected and initialized at startup.
+// Exported so reliability checks can call healthCheck() without re-reading env.
+export let adapter: StorageAdapter;
 
-function configuredStoreFilePath(): string {
-  return process.env.HUMANONLY_DATA_FILE?.trim() || DEFAULT_DURABLE_STORE_FILE;
+export function persistStore(): void {
+  adapter.flush(db);
 }
 
-export function resolveDurableStoreFilePath(): string {
-  return resolveSeedPath(configuredStoreFilePath());
-}
-
-export function persistStore(nowIso = new Date().toISOString()): string {
-  return persistGovernedStoreToFile(db, configuredStoreFilePath(), nowIso);
+function hydrateDomainArrays(loaded: GovernedStore): void {
+  users.splice(0, users.length, ...loaded.users);
+  posts.splice(0, posts.length, ...loaded.posts);
+  reports.splice(0, reports.length, ...loaded.reports);
+  appeals.splice(0, appeals.length, ...loaded.appeals);
 }
 
 function findUserByHandle(handle: string): IdentityProfile | undefined {
@@ -80,7 +80,8 @@ function findUserByHandle(handle: string): IdentityProfile | undefined {
 }
 
 export function upsertIdentity(
-  identity: Omit<IdentityProfile, "createdAt" | "updatedAt"> & Partial<Pick<IdentityProfile, "createdAt" | "updatedAt">>
+  identity: Omit<IdentityProfile, "createdAt" | "updatedAt"> &
+    Partial<Pick<IdentityProfile, "createdAt" | "updatedAt">>
 ): IdentityProfile {
   const now = new Date().toISOString();
   const existing = findUserByHandle(identity.handle);
@@ -106,55 +107,72 @@ export function upsertIdentity(
   return created;
 }
 
-function loadDurableStoreIfPresent(): boolean {
-  const resolvedStorePath = resolveDurableStoreFilePath();
-  if (!existsSync(resolvedStorePath)) {
-    return false;
-  }
+// ── Bootstrap helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Attempt to bootstrap from a JSON seed/snapshot file.
+ * Returns true when data was loaded.
+ */
+function bootstrapFromJsonFile(filePath: string, label: string): boolean {
+  const tempStore: GovernedStore = { users: [], posts: [], reports: [], appeals: [] };
 
   try {
-    const summary = hydrateGovernedStoreFromFile(db, configuredStoreFilePath());
-    console.info(
-      `[store] loaded durable snapshot (${summary.users} users, ${summary.posts} posts, ${summary.reports} reports, ${summary.appeals} appeals) from ${resolvedStorePath}`
-    );
-    return true;
-  } catch (error) {
-    if (error instanceof SeedValidationError) {
-      throw new Error(`Failed to load HUMANONLY_DATA_FILE: ${error.message}`);
-    }
-
-    throw error;
-  }
-}
-
-function loadSeedDataIfConfigured(): boolean {
-  const seedFile = process.env.HUMANONLY_SEED_FILE?.trim();
-  if (!seedFile) {
-    return false;
-  }
-
-  try {
-    const summary = hydrateGovernedStoreFromFile(db, seedFile);
-    console.info(
-      `[seed] loaded ${summary.users} users, ${summary.posts} posts, ${summary.reports} reports, ${summary.appeals} appeals from ${seedFile}`
-    );
+    const summary = hydrateGovernedStoreFromFile(tempStore, filePath);
+    hydrateDomainArrays(tempStore);
     persistStore();
+    console.info(
+      `[store] bootstrapped from ${label} (${summary.users} users, ${summary.posts} posts, ` +
+        `${summary.reports} reports, ${summary.appeals} appeals)`
+    );
     return true;
   } catch (error) {
     if (error instanceof SeedValidationError) {
-      throw new Error(`Failed to load HUMANONLY_SEED_FILE: ${error.message}`);
+      throw new Error(`Failed to load ${label}: ${error.message}`);
     }
-
     throw error;
   }
 }
 
-function initializeStore() {
-  if (loadDurableStoreIfPresent()) {
+function initializeStore(): void {
+  adapter = createStorageAdapter();
+  adapter.initialize();
+
+  const loaded = adapter.loadAll();
+
+  if (loaded.users.length > 0 || loaded.posts.length > 0) {
+    // Existing data in storage — hydrate in-memory arrays from it.
+    hydrateDomainArrays(loaded);
+    console.info(
+      `[store] loaded from ${process.env.HUMANONLY_STORAGE_BACKEND ?? "sqlite"} ` +
+        `(${loaded.users.length} users, ${loaded.posts.length} posts, ` +
+        `${loaded.reports.length} reports, ${loaded.appeals.length} appeals)`
+    );
     return;
   }
 
-  loadSeedDataIfConfigured();
+  // Storage is empty — try seed or legacy JSON bootstrap paths.
+
+  const seedFile = process.env.HUMANONLY_SEED_FILE?.trim();
+  if (seedFile) {
+    const resolved = resolveSeedPath(seedFile);
+    bootstrapFromJsonFile(resolved, `HUMANONLY_SEED_FILE (${resolved})`);
+    return;
+  }
+
+  // Compat path: if a legacy HUMANONLY_DATA_FILE JSON snapshot exists, migrate
+  // it into the current storage backend on first run.
+  const dataFile = process.env.HUMANONLY_DATA_FILE?.trim();
+  if (dataFile) {
+    const resolved = resolveSeedPath(dataFile);
+    try {
+      const bootstrapped = bootstrapFromJsonFile(resolved, `HUMANONLY_DATA_FILE (${resolved})`);
+      if (bootstrapped) {
+        console.info("[store] migrated legacy JSON snapshot into current storage backend");
+      }
+    } catch {
+      // Non-fatal: file may not exist yet
+    }
+  }
 }
 
 initializeStore();

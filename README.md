@@ -32,7 +32,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Role-aware trust + moderation insights UI for members/moderators/admins with 7d/30d trend windows
 - ✅ Sprint 3 pilot governance runbook delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - ✅ Sprint 3 reliability hardening delivered (storage health checks, audit chain integrity, queue latency alerts, admin incident controls)
-- ⏳ Next: community contributor expansion + durable relational storage migration
+- ✅ Sprint 3 community contributor expansion delivered (`docs/CONTRIBUTOR_EXPANSION.md`, `CONTRIBUTING.md`)
+- ✅ Relational durability backend delivered: SQLite storage with explicit indexes, StorageAdapter abstraction, and JSON-snapshot compat migration path
 
 ## Local Development
 ```bash
@@ -51,11 +52,15 @@ NEXTAUTH_SECRET=replace-with-long-random-secret
 HUMANONLY_ADMIN_HANDLES=chief_admin
 HUMANONLY_MODERATOR_HANDLES=queue_mod,backup_mod
 HUMANONLY_SEED_FILE=.seed/local-seed.json
-HUMANONLY_DATA_FILE=.data/store.json
+# Storage backend: "sqlite" (default) or "json-snapshot" (legacy compat)
+HUMANONLY_STORAGE_BACKEND=sqlite
+HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 ```
 
 Any onboarded handle matching the allow-lists gets the mapped role.
+
+**Storage:** The default backend is SQLite (`HUMANONLY_DB_FILE`). Set `HUMANONLY_STORAGE_BACKEND=json-snapshot` and `HUMANONLY_DATA_FILE=.data/store.json` to use the legacy JSON snapshot backend.
 
 See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and seed options.
 

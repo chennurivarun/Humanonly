@@ -21,15 +21,21 @@ NEXTAUTH_SECRET=replace-with-long-random-secret
 HUMANONLY_ADMIN_HANDLES=chief_admin
 HUMANONLY_MODERATOR_HANDLES=queue_mod
 HUMANONLY_SEED_FILE=.seed/local-seed.json
-HUMANONLY_DATA_FILE=.data/store.json
+# Storage backend selection (default: sqlite)
+HUMANONLY_STORAGE_BACKEND=sqlite
+HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 ```
 
-- `HUMANONLY_SEED_FILE` is optional and used for first-run bootstrap.
-- `HUMANONLY_DATA_FILE` is the durable governed snapshot for identities/posts/reports/appeals.
-- `HUMANONLY_AUDIT_LOG_FILE` is an append-only immutable audit trail with hash chaining.
+- `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default) or `json-snapshot` (legacy compat).
+- `HUMANONLY_DB_FILE` — path to the SQLite database (default: `.data/store.db`).
+- `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
+- `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
+- `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
 
-If `HUMANONLY_DATA_FILE` already exists, it takes precedence over seed bootstrap data.
+**New-environment default:** SQLite is created at `HUMANONLY_DB_FILE` on first run. If the DB is empty and `HUMANONLY_SEED_FILE` is configured, seed data is loaded into SQLite automatically.
+
+**Legacy migration path:** If you have an existing `HUMANONLY_DATA_FILE` JSON snapshot and switch to SQLite, set `HUMANONLY_DATA_FILE` in your env — the store will migrate the JSON data into SQLite on the first run with an empty DB.
 
 ## 3) Generate deterministic local seed data
 
