@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
-import { describe, it, beforeEach } from "node:test";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import {
+  configureIncidentStoreForTests,
   declareIncident,
   resolveIncident,
   getIncidents,
@@ -11,11 +15,22 @@ import {
 
 const NOW = "2026-02-27T12:00:00.000Z";
 
-describe("declareIncident", () => {
-  beforeEach(() => {
-    resetIncidentsForTests();
-  });
+let tempDir = "";
 
+beforeEach(() => {
+  tempDir = mkdtempSync(path.join(tmpdir(), "humanonly-incident-"));
+  configureIncidentStoreForTests(path.join(tempDir, "incidents.json"));
+  resetIncidentsForTests();
+});
+
+afterEach(() => {
+  if (tempDir) {
+    rmSync(tempDir, { recursive: true, force: true });
+    tempDir = "";
+  }
+});
+
+describe("declareIncident", () => {
   it("declares a valid incident and returns it", () => {
     const result = declareIncident({
       severity: "sev2",
@@ -143,15 +158,28 @@ describe("declareIncident", () => {
     assert.equal(list[0]?.title, "Second incident");
     assert.equal(list[1]?.title, "First incident");
   });
+
+  it("reloads incidents from durable snapshot after reset", () => {
+    declareIncident({
+      severity: "sev2",
+      title: "Persist me",
+      description: "Survive runtime reset.",
+      declaredById: "usr_admin",
+      humanConfirmed: true,
+      nowIso: NOW
+    });
+
+    resetIncidentsForTests();
+
+    const rows = getIncidents();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]?.title, "Persist me");
+  });
 });
 
 // ── resolveIncident ───────────────────────────────────────────────────────────
 
 describe("resolveIncident", () => {
-  beforeEach(() => {
-    resetIncidentsForTests();
-  });
-
   it("resolves an open incident with human confirmation", () => {
     const declared = declareIncident({
       severity: "sev2",

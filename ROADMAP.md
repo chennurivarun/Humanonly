@@ -32,3 +32,4 @@
 - [x] Execute Sprint 3 tabletop incident drill + capture follow-ups (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`)
 - [x] Strengthen identity assurance beyond MVP attestation (governance commitment + interactive challenge + assurance metadata persistence)
 - [x] PostgreSQL migration path (scale-out option from SQLite): runtime `PostgresStorageAdapter`, backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`), and full test coverage delivered (`docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md`, `apps/web/src/lib/storage/postgres.ts`, `apps/web/src/lib/storage/postgres.test.ts`)
+- [x] Durable incident persistence delivered (replaced transient in-memory lifecycle list with file-backed snapshot at `.data/incidents.json`, configurable via `HUMANONLY_INCIDENTS_FILE`)

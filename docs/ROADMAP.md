@@ -20,4 +20,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Sprint 3 tabletop incident drill executed with follow-ups captured (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`)
 - ✅ Sprint 4 identity assurance hardening delivered: governance commitment + interactive onboarding challenge + persisted assurance metadata (SQLite + JSON snapshot compat)
 - ✅ Sprint 4 PostgreSQL runtime adapter delivered: `PostgresStorageAdapter` with connection pooling, FK-safe transactional flush, full mock-based test suite, and coherent async `StorageAdapter` interface across all backends
-- 🔜 Next highest-priority unfinished milestone: durable incident persistence (replace in-memory lifecycle store) + end-to-end Postgres CI job with real service container
+- ✅ Durable incident persistence delivered: incident lifecycle is now file-backed (`.data/incidents.json`, env override `HUMANONLY_INCIDENTS_FILE`) with reload-safe tests
+- 🔜 Next highest-priority unfinished milestone: incident packet export (timeline + audit refs + governance rationale) + end-to-end Postgres CI job with real service container

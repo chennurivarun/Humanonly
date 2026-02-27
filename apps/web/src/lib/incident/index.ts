@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import path from "node:path";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -45,19 +47,119 @@ export type IncidentValidationError = {
   reason: string;
 };
 
-// ── In-memory store ───────────────────────────────────────────────────────────
+// ── Durable incident persistence ──────────────────────────────────────────────
 
-// Incidents are operational runtime state; the immutable audit log is the
-// durable record for every declare/resolve action. The in-memory list is
-// suitable for pilot drills where restarts reset transient state.
+type IncidentSnapshot = {
+  version: 1;
+  incidents: Incident[];
+};
+
+const DEFAULT_INCIDENTS_FILE = ".data/incidents.json";
+
+function resolveIncidentsFilePath(): string {
+  const configured = process.env.HUMANONLY_INCIDENTS_FILE?.trim();
+  if (!configured) {
+    return path.resolve(process.cwd(), DEFAULT_INCIDENTS_FILE);
+  }
+  return path.isAbsolute(configured) ? configured : path.resolve(process.cwd(), configured);
+}
+
+let incidentsFilePath = resolveIncidentsFilePath();
+let hasLoadedFromDisk = false;
+
+function normalizeIncident(value: unknown): Incident | null {
+  if (!value || typeof value !== "object") return null;
+
+  const row = value as Partial<Incident>;
+  const validStatus = row.status === "open" || row.status === "resolved";
+  const validSeverity = row.severity === "sev1" || row.severity === "sev2" || row.severity === "sev3";
+
+  if (
+    typeof row.id !== "string" ||
+    !validSeverity ||
+    typeof row.title !== "string" ||
+    typeof row.description !== "string" ||
+    typeof row.declaredById !== "string" ||
+    typeof row.declaredAt !== "string" ||
+    row.humanConfirmed !== true ||
+    !validStatus
+  ) {
+    return null;
+  }
+
+  const severity = row.severity as IncidentSeverity;
+  const status = row.status as IncidentStatus;
+
+  const resolvedAt = typeof row.resolvedAt === "string" ? row.resolvedAt : null;
+  const resolvedById = typeof row.resolvedById === "string" ? row.resolvedById : null;
+  const resolutionNotes = typeof row.resolutionNotes === "string" ? row.resolutionNotes : null;
+  const linkedAuditRecordId = typeof row.linkedAuditRecordId === "string" ? row.linkedAuditRecordId : null;
+
+  return {
+    id: row.id,
+    severity,
+    title: row.title,
+    description: row.description,
+    declaredById: row.declaredById,
+    declaredAt: row.declaredAt,
+    humanConfirmed: true,
+    status,
+    resolvedAt,
+    resolvedById,
+    resolutionNotes,
+    linkedAuditRecordId
+  };
+}
+
+function loadIncidentsFromDisk() {
+  if (hasLoadedFromDisk) return;
+
+  hasLoadedFromDisk = true;
+
+  if (!existsSync(incidentsFilePath)) {
+    incidents.length = 0;
+    return;
+  }
+
+  try {
+    const raw = readFileSync(incidentsFilePath, "utf8");
+    const parsed = JSON.parse(raw) as Partial<IncidentSnapshot>;
+    const rows = Array.isArray(parsed.incidents) ? parsed.incidents : [];
+    incidents.length = 0;
+    incidents.push(...rows.map(normalizeIncident).filter((row): row is Incident => row !== null));
+  } catch {
+    incidents.length = 0;
+  }
+}
+
+function persistIncidentsToDisk() {
+  mkdirSync(path.dirname(incidentsFilePath), { recursive: true });
+
+  const snapshot: IncidentSnapshot = {
+    version: 1,
+    incidents
+  };
+
+  writeFileSync(incidentsFilePath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+}
+
+// ── In-memory runtime list (with durable snapshot backing) ───────────────────
+
 const incidents: Incident[] = [];
 
 export function getIncidents(): readonly Incident[] {
+  loadIncidentsFromDisk();
   return incidents;
 }
 
 export function resetIncidentsForTests() {
   incidents.length = 0;
+  hasLoadedFromDisk = false;
+}
+
+export function configureIncidentStoreForTests(filePath: string) {
+  incidentsFilePath = filePath;
+  resetIncidentsForTests();
 }
 
 // ── Validation helpers ────────────────────────────────────────────────────────
@@ -98,6 +200,8 @@ export type DeclareIncidentResult =
   | { ok: false; errors: IncidentValidationError[] };
 
 export function declareIncident(input: DeclareIncidentInput): DeclareIncidentResult {
+  loadIncidentsFromDisk();
+
   const errors: IncidentValidationError[] = [];
 
   const severityError = validateSeverity(input.severity);
@@ -138,6 +242,7 @@ export function declareIncident(input: DeclareIncidentInput): DeclareIncidentRes
   };
 
   incidents.unshift(incident);
+  persistIncidentsToDisk();
 
   return { ok: true, incident };
 }
@@ -147,6 +252,8 @@ export type ResolveIncidentResult =
   | { ok: false; errors: IncidentValidationError[] };
 
 export function resolveIncident(input: ResolveIncidentInput): ResolveIncidentResult {
+  loadIncidentsFromDisk();
+
   const errors: IncidentValidationError[] = [];
 
   const confirmedError = validateHumanConfirmed(input.humanConfirmed);
@@ -177,6 +284,8 @@ export function resolveIncident(input: ResolveIncidentInput): ResolveIncidentRes
   incident.resolvedAt = nowIso;
   incident.resolvedById = input.resolvedById;
   incident.resolutionNotes = input.resolutionNotes.trim();
+
+  persistIncidentsToDisk();
 
   return { ok: true, incident };
 }

@@ -13,21 +13,17 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary (Sprint 4 — PostgreSQL Runtime Backend)
-- ✅ Implemented `PostgresStorageAdapter` (`apps/web/src/lib/storage/postgres.ts`): connection-pooled via `pg.Pool`, idempotent DDL, FK-safe transaction flush (appeals→reports→posts→users delete, users→posts→reports→appeals upsert), `ON CONFLICT (id) DO UPDATE` upsert semantics, JSONB identity-assurance fields.
-- ✅ Wired backend selector: `HUMANONLY_STORAGE_BACKEND=postgres` + `HUMANONLY_POSTGRES_URL` → `PostgresStorageAdapter` via `createStorageAdapter()` in `apps/web/src/lib/storage/index.ts`.
-- ✅ Coherent async adapter interface: all `StorageAdapter` methods return `Promise<T>`; `SqliteStorageAdapter` and `JsonFileStorageAdapter` wrap synchronous operations with `Promise.resolve()`.
-- ✅ Fixed `JsonFileStorageAdapter.loadAll()` early-return bug (returned raw object instead of `Promise<GovernedStore>`).
-- ✅ Updated `store.ts`: `initializeStore()` is now properly async with `await` on all adapter calls; `persistStore()` uses fire-and-forget flush (safe for SQLite; documented trade-off for Postgres).
-- ✅ Added comprehensive mock-based unit tests for `PostgresStorageAdapter` (`postgres.test.ts`): initialize idempotency, loadAll column mapping, flush transaction ordering, ROLLBACK on error, healthCheck ping.
-- ✅ Updated `sqlite.test.ts` and `adapter.test.ts` to use async/await throughout.
-- ✅ Governance invariants preserved across all adapters (human expression only, AI-managed ops, human-governed decisions, auditability, admin-only override).
+## Latest run summary (Sprint 4 — Durable Incident Persistence)
+- ✅ Replaced transient incident lifecycle list with durable file-backed snapshot persistence in `apps/web/src/lib/incident/index.ts`.
+- ✅ Added configurable incident snapshot path via `HUMANONLY_INCIDENTS_FILE` (default `.data/incidents.json`).
+- ✅ Preserved strict human-confirmed declare/resolve semantics and existing validation constraints.
+- ✅ Added reload-safety coverage in `apps/web/src/lib/incident/index.test.ts` (incident survives runtime reset by reloading from durable snapshot).
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
 1. ✅ Planned PostgreSQL migration path for multi-instance scale (runbook + schema contract in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` and `apps/web/db/postgres/schema.sql`).
 2. ✅ Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
-3. Persist incident records durably (replace current in-memory lifecycle store).
+3. ✅ Persist incident records durably (replace current in-memory lifecycle store).
 4. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
 5. End-to-end CI job with real Postgres service container.
 
