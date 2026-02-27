@@ -22,11 +22,12 @@
 - ✅ Updated `reliability/index.ts` to check SQLite DB health (default) or JSON snapshot health (json-snapshot backend); audit log check preserved.
 - ✅ Added 20 focused new tests; all 88 tests pass; typecheck clean; production build successful.
 - ✅ Updated docs: README, ROADMAP, LOCAL_DEVELOPMENT, SPRINT_CHECKLIST, SPRINT_1_BACKLOG.
+- ✅ Executed Sprint 3 tabletop incident drill and captured actionable follow-ups (`docs/SPRINT_3_TABLETOP_DRILL_REPORT.md`).
 
 ## Next actions
-1. Execute Sprint 3 tabletop incident drill using `docs/SPRINT_3_PILOT_RUNBOOK.md` and capture follow-ups.
-2. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
-3. Plan PostgreSQL migration path for multi-instance scale (SQLite → Postgres adapter swap).
+1. Strengthen identity assurance beyond MVP attestation while preserving human override controls.
+2. Plan PostgreSQL migration path for multi-instance scale (SQLite → Postgres adapter swap).
+3. Persist incident records durably (replace current in-memory lifecycle store).
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
