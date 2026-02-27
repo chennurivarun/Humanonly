@@ -1,6 +1,6 @@
 # Sprint 4 — PostgreSQL Migration Path (Scale-Out Option)
 
-Status: **Complete** (runtime adapter implemented, full test coverage, backend selector wired)
+Status: **Complete** (runtime adapter implemented, full test coverage, backend selector wired, real Postgres CI delivered)
 
 ## Why this phase
 
@@ -31,7 +31,6 @@ PostgreSQL is the next relational backend while preserving HumanOnly governance 
 
 - Dual-write or cutover automation scripts
 - Connection pooling + managed Postgres deployment manifests
-- End-to-end CI job with real Postgres service
 
 ## Proposed schema parity
 
@@ -96,4 +95,4 @@ If validation fails after cutover:
 - [x] Runtime Postgres adapter implemented (`PostgresStorageAdapter` with full mock-based test suite)
 - [x] Backend selector wired (`HUMANONLY_STORAGE_BACKEND=postgres`)
 - [x] All adapters use coherent async interface (`Promise<T>` throughout)
-- [ ] End-to-end CI job with real Postgres service (next milestone)
+- [x] End-to-end CI job with real Postgres service (`.github/workflows/ci.yml` + `apps/web/src/lib/storage/postgres.e2e.test.ts`)

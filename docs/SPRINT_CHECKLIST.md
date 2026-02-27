@@ -13,19 +13,21 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
-## Latest run summary (Sprint 4 — Durable Incident Persistence)
-- ✅ Replaced transient incident lifecycle list with durable file-backed snapshot persistence in `apps/web/src/lib/incident/index.ts`.
-- ✅ Added configurable incident snapshot path via `HUMANONLY_INCIDENTS_FILE` (default `.data/incidents.json`).
-- ✅ Preserved strict human-confirmed declare/resolve semantics and existing validation constraints.
-- ✅ Added reload-safety coverage in `apps/web/src/lib/incident/index.test.ts` (incident survives runtime reset by reloading from durable snapshot).
+## Latest run summary (Sprint 4 — Incident Packet + Postgres CI)
+- ✅ Added governance-ready incident packet export domain + endpoint (`apps/web/src/lib/incident/packet.ts`, `apps/web/src/app/api/admin/incident/[incidentId]/packet/route.ts`).
+- ✅ Packet payload now includes lifecycle timeline, immutable audit references, and governance rationale assertions.
+- ✅ Expanded admin monochrome incident controls with one-click packet export (`apps/web/src/app/page.tsx`).
+- ✅ Added coverage for packet construction behavior (`apps/web/src/lib/incident/packet.test.ts`).
+- ✅ Delivered real Postgres CI validation: service-container workflow + gated e2e adapter test (`.github/workflows/ci.yml`, `apps/web/src/lib/storage/postgres.e2e.test.ts`).
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
 1. ✅ Planned PostgreSQL migration path for multi-instance scale (runbook + schema contract in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` and `apps/web/db/postgres/schema.sql`).
 2. ✅ Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
 3. ✅ Persist incident records durably (replace current in-memory lifecycle store).
-4. Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
-5. End-to-end CI job with real Postgres service container.
+4. ✅ Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
+5. ✅ End-to-end CI job with real Postgres service container.
+6. Add severity-to-action alert routing matrix + on-call contact checklist to the pilot runbook.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.

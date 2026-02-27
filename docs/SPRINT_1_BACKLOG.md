@@ -48,13 +48,13 @@
 - Added assurance lifecycle, onboarding, seed, and SQLite migration tests (100 passing total).
 
 ## Remaining priorities
-1. Plan PostgreSQL migration path for multi-instance scale (adapt `SqliteStorageAdapter` pattern to a `PostgresStorageAdapter`).
-2. Persistent incident log (currently in-memory; should be durable before production scale).
-3. Incident packet export endpoint (timeline + audit refs + governance decision trail).
+1. Add severity-to-action alert routing matrix and on-call contact checklist to `docs/SPRINT_3_PILOT_RUNBOOK.md`.
+2. Define managed Postgres deployment manifests + connection-pooling defaults for multi-instance production rollout.
+3. Add cutover/rollback automation scripts for SQLite -> Postgres migrations.
 
 ## Risks
-- SQLite is single-node oriented; multi-instance deployments will require a PostgreSQL adapter (migration path is now clean via StorageAdapter).
 - NextAuth beta runtime remains a dependency risk until stable v5 migration.
 - Moderation insights still derive from in-memory joins; large datasets will benefit from direct SQL query paths in the adapter.
-- Trend-window analytics computed from current snapshot state, not historical point-in-time snapshots.
-- Incident store is in-memory only; incidents are lost on server restart (by design for pilot drills).
+- Trend-window analytics are computed from current snapshot state, not historical point-in-time snapshots.
+- Postgres CI now validates adapter semantics, but production deployment manifests + managed pooling defaults are still pending.
+- Pilot runbook still needs explicit severity-to-action alert routing + on-call contact matrix for faster real-incident escalation.

@@ -76,7 +76,7 @@ Escalate when any of the following are true:
 
 ### Escalation Steps
 1. Create incident note with: timestamp, actor, affected entities, proposed action.
-2. Attach immutable audit references (action hash chain IDs where available).
+2. Attach immutable audit references (action hash chain IDs where available) — use incident packet export (`GET /api/admin/incident/:incidentId/packet`) when possible.
 3. Request Governance Lead decision with one of:
    - APPROVE action
    - APPROVE WITH CONDITIONS

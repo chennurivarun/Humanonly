@@ -127,6 +127,34 @@ type Incident = {
   linkedAuditRecordId: string | null;
 };
 
+type IncidentPacket = {
+  packetVersion: number;
+  generatedAt: string;
+  incident: Incident;
+  auditReferences: {
+    recordId: string;
+    sequence: number;
+    action: string;
+    actorId: string;
+    createdAt: string;
+    hash: string;
+    previousHash: string | null;
+  }[];
+  timeline: {
+    at: string;
+    eventType: string;
+    actorId: string;
+    summary: string;
+    auditRecordId?: string;
+  }[];
+  governanceRationale: {
+    policy: string[];
+    declarationSummary: string;
+    resolutionSummary: string | null;
+    pendingDecision: string | null;
+  };
+};
+
 type ModerationInsights = {
   generatedAt: string;
   queueHealth: {
@@ -307,6 +335,9 @@ export default function Home() {
   const [isSubmittingIncident, setIsSubmittingIncident] = useState(false);
   const [incidentFeedback, setIncidentFeedback] = useState<string | null>(null);
   const [incidentError, setIncidentError] = useState<string | null>(null);
+  const [isExportingIncidentId, setIsExportingIncidentId] = useState<string | null>(null);
+  const [incidentPacketFeedback, setIncidentPacketFeedback] = useState<string | null>(null);
+  const [incidentPacketError, setIncidentPacketError] = useState<string | null>(null);
 
   const loadFeed = useCallback(async (mode: "replace" | "append", cursor?: string | null) => {
     if (mode === "replace") {
@@ -569,6 +600,48 @@ export default function Home() {
       setIncidentError(message);
     } finally {
       setIsSubmittingIncident(false);
+    }
+  }
+
+  async function handleExportIncidentPacket(incidentId: string) {
+    setIncidentPacketError(null);
+    setIncidentPacketFeedback(null);
+    setIsExportingIncidentId(incidentId);
+
+    try {
+      const response = await fetch(`/api/admin/incident/${encodeURIComponent(incidentId)}/packet`, {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: IncidentPacket };
+      if (!payload.data) {
+        throw new Error("Incident packet payload missing");
+      }
+
+      const fileContent = `${JSON.stringify(payload.data, null, 2)}\n`;
+      const blob = new Blob([fileContent], { type: "application/json" });
+      const objectUrl = URL.createObjectURL(blob);
+
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `incident-${incidentId}-packet.json`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+
+      URL.revokeObjectURL(objectUrl);
+
+      setIncidentPacketFeedback(`Incident packet exported for ${incidentId}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to export incident packet";
+      setIncidentPacketError(message);
+    } finally {
+      setIsExportingIncidentId((current) => (current === incidentId ? null : current));
     }
   }
 
@@ -1149,7 +1222,17 @@ export default function Home() {
                           Resolved {formatTimestamp(incident.resolvedAt)}: {incident.resolutionNotes}
                         </p>
                       ) : null}
-                      <p className="text-small text-muted">ID: {incident.id}</p>
+                      <div className="row spread align-center">
+                        <p className="text-small text-muted">ID: {incident.id}</p>
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => void handleExportIncidentPacket(incident.id)}
+                          disabled={isExportingIncidentId === incident.id}
+                        >
+                          {isExportingIncidentId === incident.id ? "Exporting..." : "Export packet"}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1260,6 +1343,8 @@ export default function Home() {
 
               {incidentFeedback ? <p className="notice">{incidentFeedback}</p> : null}
               {incidentError ? <p className="notice danger">{incidentError}</p> : null}
+              {incidentPacketFeedback ? <p className="notice">{incidentPacketFeedback}</p> : null}
+              {incidentPacketError ? <p className="notice danger">{incidentPacketError}</p> : null}
             </article>
           </div>
         </section>

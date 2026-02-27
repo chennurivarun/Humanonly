@@ -29,9 +29,9 @@ HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
 
-- `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default) or `json-snapshot` (legacy compat). `postgres` is reserved for Sprint 4 runtime adapter implementation.
+- `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default), `json-snapshot` (legacy compat), or `postgres` (scale-out runtime backend).
 - `HUMANONLY_DB_FILE` — path to the SQLite database (default: `.data/store.db`).
-- `HUMANONLY_POSTGRES_URL` — planned Postgres connection URL for scale-out migration (documented in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md`).
+- `HUMANONLY_POSTGRES_URL` — Postgres connection URL used when `HUMANONLY_STORAGE_BACKEND=postgres`.
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
@@ -75,6 +75,7 @@ Open `http://localhost:3000`.
 8. Inspect immutable moderation timeline at `GET /api/moderation/action-log`.
 9. As an admin, inspect reliability posture from `GET /api/admin/reliability` (storage health, audit hash-chain integrity, queue latency alerts).
 10. As an admin, run incident drill controls using `GET|POST /api/admin/incident` with explicit `humanConfirmed: true` for declare/resolve actions.
+11. Export a governance incident packet via `GET /api/admin/incident/:incidentId/packet` and archive it with the postmortem notes.
 
 All actions emit immutable audit records to `HUMANONLY_AUDIT_LOG_FILE` (JSONL hash chain).
 

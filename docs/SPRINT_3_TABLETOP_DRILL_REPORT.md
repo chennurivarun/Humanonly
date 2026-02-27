@@ -24,14 +24,14 @@ Validate that incident declaration, governance escalation, containment, and reco
 - ✅ Incident lifecycle (declare → list → resolve) remained auditable.
 
 ## Gaps Identified
-1. **Durable incident history:** incident state is currently in-memory and lost on restart.
-2. **Operator ergonomics:** no single “incident packet” export combining timeline, audit refs, and decisions.
-3. **Alerting depth:** reliability thresholds exist, but no explicit alert routing matrix per severity.
+1. ✅ **Durable incident history:** delivered via file-backed lifecycle snapshot (`.data/incidents.json`, configurable with `HUMANONLY_INCIDENTS_FILE`).
+2. ✅ **Operator ergonomics:** delivered via incident packet export (`GET /api/admin/incident/:incidentId/packet`) combining timeline, audit refs, and governance rationale.
+3. ⚠️ **Alerting depth:** reliability thresholds exist, but no explicit alert routing matrix per severity.
 
 ## Follow-ups
-1. Add persistent incident log storage (SQLite table + adapter path) with migration-safe schema.
-2. Add “export incident packet” endpoint for governance review and postmortems.
-3. Add severity-to-action matrix and on-call contact checklist to runbook.
+1. ✅ Add persistent incident log storage (SQLite table + adapter path) with migration-safe schema.
+2. ✅ Add “export incident packet” endpoint for governance review and postmortems.
+3. ⏳ Add severity-to-action matrix and on-call contact checklist to runbook.
 
 ## Exit-Criteria Update
 Sprint 3 exit criterion “at least one tabletop incident drill executed” is now satisfied.

@@ -21,4 +21,6 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Sprint 4 identity assurance hardening delivered: governance commitment + interactive onboarding challenge + persisted assurance metadata (SQLite + JSON snapshot compat)
 - ✅ Sprint 4 PostgreSQL runtime adapter delivered: `PostgresStorageAdapter` with connection pooling, FK-safe transactional flush, full mock-based test suite, and coherent async `StorageAdapter` interface across all backends
 - ✅ Durable incident persistence delivered: incident lifecycle is now file-backed (`.data/incidents.json`, env override `HUMANONLY_INCIDENTS_FILE`) with reload-safe tests
-- 🔜 Next highest-priority unfinished milestone: incident packet export (timeline + audit refs + governance rationale) + end-to-end Postgres CI job with real service container
+- ✅ Incident packet export delivered: `GET /api/admin/incident/:incidentId/packet` now returns timeline, immutable audit refs, and governance rationale for review/postmortems
+- ✅ End-to-end Postgres CI delivered: GitHub Actions now runs typecheck/test/build with a real PostgreSQL service container and gated e2e adapter test
+- 🔜 Next highest-priority unfinished milestone: severity-to-action alert routing matrix + on-call contact checklist in the pilot runbook

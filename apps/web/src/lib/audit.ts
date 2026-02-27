@@ -21,6 +21,7 @@ export type AuditAction =
   | "admin.incident.declared"
   | "admin.incident.resolved"
   | "admin.incident.listed"
+  | "admin.incident.packet.exported"
   | "trust.user.requested"
   | "trust.self.requested";
 
