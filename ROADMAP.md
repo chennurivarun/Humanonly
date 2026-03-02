@@ -37,3 +37,8 @@
 - [x] End-to-end CI with real PostgreSQL service container delivered (`.github/workflows/ci.yml`, `apps/web/src/lib/storage/postgres.e2e.test.ts`)
 - [x] Pilot runbook alert routing matrix + on-call contact checklist delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - [x] Automated on-call escalation drill cadence + acknowledgement SLO evidence template delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
+
+## Sprint 5 (Next)
+- [ ] Define next features for phase 5
+- [ ] Implement enhanced moderation tooling
+- [ ] Scale-out performance testing
