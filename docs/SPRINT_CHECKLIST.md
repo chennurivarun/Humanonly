@@ -39,3 +39,13 @@
 - ✅ Added immutable moderation action-log API (`/api/moderation/action-log`).
 - ✅ Added admin metrics API + dashboard panel (`/api/admin/metrics`) for reports, appeals, trust distribution, and override rates.
 - ✅ Added role-aware moderation insights API + UI surfaces with trend analytics (`/api/moderation/insights`, `src/app/page.tsx`).
+
+## Latest run summary (Sprint 5 — phase definition)
+- ✅ Marked Sprint 5 as active in canonical roadmap and closed “define next features” milestone.
+- ✅ Added concrete Sprint 5 scope: moderation cockpit filters, audited handoff actions, and scale-out perf profiling.
+- ✅ Updated roadmap mirror to point to the new highest-priority unfinished milestone.
+
+## Sprint 5 checklist
+- [x] Define next features for phase 5 (scoped in `ROADMAP.md`)
+- [ ] Implement enhanced moderation tooling (priority queue + SLA view + action handoffs)
+- [ ] Run scale-out performance testing and publish bottleneck report
