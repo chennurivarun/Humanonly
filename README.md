@@ -37,6 +37,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Sprint 4 identity assurance hardening delivered (signed onboarding challenges, governance commitment capture, assurance metadata persisted to storage)
 - ✅ Incident packet export delivered for governance review/postmortems (`GET /api/admin/incident/:incidentId/packet`)
 - ✅ CI now validates against a real PostgreSQL service container (typecheck + tests + build)
+- ✅ Sprint 5 moderation cockpit delivered (priority queue + SLA visibility + audited one-click handoffs)
 
 ## Local Development
 ```bash
@@ -79,6 +80,8 @@ See [docs/LOCAL_DEVELOPMENT.md](./docs/LOCAL_DEVELOPMENT.md) for full setup and 
 - `POST /api/appeals/:appealId/decision` — moderator/admin adjudication with explicit human confirmation
 - `GET /api/moderation/action-log` — immutable moderation timeline from chained audit records
 - `GET /api/moderation/insights` — role-aware moderation/trust queue intelligence + trend windows (moderator/admin)
+- `GET /api/moderation/cockpit` — priority moderation queue with SLA view + queue/risk/age filters (moderator/admin)
+- `POST /api/moderation/handoff` — audited moderation handoff actions (triage/escalate/resolve-note) with explicit human confirmation
 - `GET /api/admin/reliability` — reliability status (durability + audit-chain integrity + queue latency alerts)
 - `GET|POST /api/admin/incident` — admin incident declare/list/resolve controls (human-confirmed + audited)
 - `GET /api/admin/incident/:incidentId/packet` — export governance incident packet (timeline + immutable audit refs + rationale)

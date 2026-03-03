@@ -23,13 +23,9 @@
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
-1. ✅ Planned PostgreSQL migration path for multi-instance scale (runbook + schema contract in `docs/SPRINT_4_POSTGRES_MIGRATION_PLAN.md` and `apps/web/db/postgres/schema.sql`).
-2. ✅ Implement runtime Postgres storage adapter + backend selector wiring (`HUMANONLY_STORAGE_BACKEND=postgres`).
-3. ✅ Persist incident records durably (replace current in-memory lifecycle store).
-4. ✅ Add incident packet export (timeline + audit refs + governance rationale) for runbook follow-up closure.
-5. ✅ End-to-end CI job with real Postgres service container.
-6. ✅ Added severity-to-action alert routing matrix + on-call contact checklist to the pilot runbook (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
-7. ✅ Defined automated on-call escalation drill cadence with acknowledgement SLO tracking and evidence capture template (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
+1. Build repeatable scale-test harness for `POST /api/posts`, `GET /api/feed`, and `POST /api/reports` with concurrency tiers and deterministic seed fixtures.
+2. Execute baseline + stress profiles against SQLite and PostgreSQL backends, capture throughput/latency/error budget deltas, and store evidence artifacts under `docs/`.
+3. Publish Sprint 5 bottleneck report with mitigation recommendations and rollout priority.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
@@ -40,12 +36,16 @@
 - ✅ Added admin metrics API + dashboard panel (`/api/admin/metrics`) for reports, appeals, trust distribution, and override rates.
 - ✅ Added role-aware moderation insights API + UI surfaces with trend analytics (`/api/moderation/insights`, `src/app/page.tsx`).
 
-## Latest run summary (Sprint 5 — phase definition)
-- ✅ Marked Sprint 5 as active in canonical roadmap and closed “define next features” milestone.
-- ✅ Added concrete Sprint 5 scope: moderation cockpit filters, audited handoff actions, and scale-out perf profiling.
-- ✅ Updated roadmap mirror to point to the new highest-priority unfinished milestone.
+## Latest run summary (Sprint 5 — enhanced moderation tooling)
+- ✅ Added a moderation cockpit domain with priority scoring, trust-risk tiering, SLA calculations, and filter support (`apps/web/src/lib/moderation/cockpit.ts`).
+- ✅ Added role-gated cockpit API (`GET /api/moderation/cockpit`) with immutable audit logging for filter + SLA observability (`apps/web/src/app/api/moderation/cockpit/route.ts`).
+- ✅ Added audited moderation handoff workflow (`POST /api/moderation/handoff`) with explicit human confirmation and template-governed actions (`apps/web/src/lib/moderation/handoff.ts`, `apps/web/src/app/api/moderation/handoff/route.ts`).
+- ✅ Expanded monochrome moderator UI with moderation cockpit filters, SLA view, and one-click handoff controls (`apps/web/src/app/page.tsx`).
+- ✅ Extended moderation audit coverage to include cockpit reads + handoff events (`apps/web/src/lib/audit.ts`, `apps/web/src/lib/moderation/action-log.ts`).
+- ✅ Added automated test coverage for cockpit ranking/SLA logic and handoff validation/state transitions (`apps/web/src/lib/moderation-cockpit.test.ts`, `apps/web/src/lib/moderation-handoff.test.ts`).
+- ✅ Validation clean: typecheck passing, tests passing, production build passing.
 
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)
-- [ ] Implement enhanced moderation tooling (priority queue + SLA view + action handoffs)
+- [x] Implement enhanced moderation tooling (priority queue + SLA view + action handoffs)
 - [ ] Run scale-out performance testing and publish bottleneck report

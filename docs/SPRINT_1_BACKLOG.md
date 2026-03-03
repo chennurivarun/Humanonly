@@ -47,14 +47,20 @@
 - Persisted assurance metadata across store + adapters + seed snapshots (`apps/web/src/lib/store.ts`, `apps/web/src/lib/storage/sqlite.ts`, `apps/web/src/lib/seed.ts`).
 - Added assurance lifecycle, onboarding, seed, and SQLite migration tests (100 passing total).
 
+## Completed in this run (Sprint 5 — Moderation Cockpit)
+- Added moderation cockpit domain with queue/risk/age filters, SLA calculations, priority ranking, and latest-handoff context (`apps/web/src/lib/moderation/cockpit.ts`).
+- Added `GET /api/moderation/cockpit` (moderator/admin) with immutable audit logging (`apps/web/src/app/api/moderation/cockpit/route.ts`).
+- Added audited handoff workflow (`POST /api/moderation/handoff`) with explicit human confirmation and template-governed actions (`apps/web/src/lib/moderation/handoff.ts`, `apps/web/src/app/api/moderation/handoff/route.ts`).
+- Expanded monochrome moderator surfaces with SLA view, queue filters, and one-click handoff controls (`apps/web/src/app/page.tsx`).
+- Added test coverage for cockpit ranking/SLA behavior and handoff validation/state transitions (`apps/web/src/lib/moderation-cockpit.test.ts`, `apps/web/src/lib/moderation-handoff.test.ts`).
+
 ## Remaining priorities
-1. Add severity-to-action alert routing matrix and on-call contact checklist to `docs/SPRINT_3_PILOT_RUNBOOK.md`.
-2. Define managed Postgres deployment manifests + connection-pooling defaults for multi-instance production rollout.
-3. Add cutover/rollback automation scripts for SQLite -> Postgres migrations.
+1. Run Sprint 5 scale-out performance testing (posts/feed/reports baseline + stress profile) and publish bottleneck report.
+2. Define managed PostgreSQL deployment manifests + connection-pooling defaults for multi-instance production rollout.
+3. Add cutover/rollback automation scripts for SQLite -> PostgreSQL migrations.
 
 ## Risks
 - NextAuth beta runtime remains a dependency risk until stable v5 migration.
-- Moderation insights still derive from in-memory joins; large datasets will benefit from direct SQL query paths in the adapter.
-- Trend-window analytics are computed from current snapshot state, not historical point-in-time snapshots.
-- Postgres CI now validates adapter semantics, but production deployment manifests + managed pooling defaults are still pending.
-- Pilot runbook still needs explicit severity-to-action alert routing + on-call contact matrix for faster real-incident escalation.
+- Cockpit prioritization currently computes trust joins in-process; large datasets should move ranking/SLA views to SQL-backed query paths.
+- Scale-out profile has not yet been executed, so real throughput bottlenecks under pilot-grade concurrency are not yet quantified.
+- Production-grade Postgres deployment manifests + managed pooling defaults are still pending.

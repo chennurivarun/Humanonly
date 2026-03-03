@@ -16,6 +16,8 @@ export type AuditAction =
   | "appeal.reviewed"
   | "moderation.action_log.requested"
   | "moderation.insights.requested"
+  | "moderation.cockpit.requested"
+  | "moderation.handoff.recorded"
   | "admin.metrics.requested"
   | "admin.reliability.requested"
   | "admin.incident.declared"

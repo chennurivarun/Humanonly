@@ -240,6 +240,94 @@ type ModerationInsights = {
   };
 };
 
+type ModerationCockpitSnapshot = {
+  generatedAt: string;
+  filtersApplied: {
+    queue: "all" | "report" | "appeal";
+    statuses: string[];
+    riskTiers: Array<"restricted" | "watch" | "steady" | "trusted">;
+    minAgeHours: number | null;
+    maxAgeHours: number | null;
+    limit: number;
+  };
+  summary: {
+    totalCandidates: number;
+    returnedItems: number;
+    reportQueue: {
+      open: number;
+      triaged: number;
+      breached: number;
+    };
+    appealQueue: {
+      open: number;
+      underReview: number;
+      breached: number;
+    };
+    sla: {
+      breachedTotal: number;
+      dueWithinHour: number;
+      maxBreachHours: number | null;
+    };
+  };
+  queue: {
+    queueType: "report" | "appeal";
+    id: string;
+    createdAt: string;
+    status: string;
+    ageHours: number;
+    priorityScore: number;
+    riskTier: "restricted" | "watch" | "steady" | "trusted";
+    riskScore: number;
+    priorityFactors: string[];
+    summary: string;
+    sla: {
+      targetHours: number;
+      ageHours: number;
+      remainingHours: number;
+      breached: boolean;
+      breachByHours: number | null;
+    };
+    latestHandoff: {
+      sequence: number;
+      createdAt: string;
+      actorId: string;
+      action: "triage" | "escalate" | "resolve_note";
+      templateId: string | null;
+      handoffToRole: "moderator" | "admin" | null;
+      note: string | null;
+      previousStatus: string | null;
+      nextStatus: string | null;
+    } | null;
+    report?: {
+      reporter: {
+        id: string;
+        handle: string;
+        role: "member" | "moderator" | "admin";
+        trust: TrustScore | null;
+      } | null;
+      author: {
+        id: string;
+        handle: string;
+        role: "member" | "moderator" | "admin";
+        trust: TrustScore | null;
+      } | null;
+      reason: string;
+      postPreview: string | null;
+    };
+    appeal?: {
+      appellant: {
+        id: string;
+        handle: string;
+        role: "member" | "moderator" | "admin";
+        trust: TrustScore | null;
+      } | null;
+      reason: string;
+      reportId: string;
+      linkedReportStatus: "open" | "triaged" | "resolved" | null;
+    };
+  }[];
+};
+
 function formatTimestamp(value: string): string {
   const parsed = Date.parse(value);
   if (Number.isNaN(parsed)) {
@@ -312,6 +400,17 @@ export default function Home() {
   const [moderationInsights, setModerationInsights] = useState<ModerationInsights | null>(null);
   const [moderationInsightsError, setModerationInsightsError] = useState<string | null>(null);
   const [isLoadingModerationInsights, setIsLoadingModerationInsights] = useState(false);
+
+  const [moderationCockpit, setModerationCockpit] = useState<ModerationCockpitSnapshot | null>(null);
+  const [moderationCockpitError, setModerationCockpitError] = useState<string | null>(null);
+  const [isLoadingModerationCockpit, setIsLoadingModerationCockpit] = useState(false);
+  const [cockpitQueueFilter, setCockpitQueueFilter] = useState<"all" | "report" | "appeal">("all");
+  const [cockpitRiskFilter, setCockpitRiskFilter] = useState<"all" | "restricted" | "watch" | "steady" | "trusted">("all");
+  const [cockpitMinAgeHours, setCockpitMinAgeHours] = useState<string>("");
+  const [handoffHumanConfirmed, setHandoffHumanConfirmed] = useState(false);
+  const [handoffFeedback, setHandoffFeedback] = useState<string | null>(null);
+  const [handoffError, setHandoffError] = useState<string | null>(null);
+  const [activeHandoffId, setActiveHandoffId] = useState<string | null>(null);
 
   const [adminMetrics, setAdminMetrics] = useState<AdminMetrics | null>(null);
   const [adminMetricsError, setAdminMetricsError] = useState<string | null>(null);
@@ -440,6 +539,49 @@ export default function Home() {
     }
   }, [canViewModerationInsights]);
 
+  const loadModerationCockpit = useCallback(async () => {
+    if (!canViewModerationInsights) {
+      setModerationCockpit(null);
+      setModerationCockpitError(null);
+      return;
+    }
+
+    setIsLoadingModerationCockpit(true);
+    setModerationCockpitError(null);
+
+    const query = new URLSearchParams({
+      queue: cockpitQueueFilter,
+      limit: "12"
+    });
+
+    if (cockpitRiskFilter !== "all") {
+      query.set("risk", cockpitRiskFilter);
+    }
+
+    if (cockpitMinAgeHours.trim()) {
+      query.set("minAgeHours", cockpitMinAgeHours.trim());
+    }
+
+    try {
+      const response = await fetch(`/api/moderation/cockpit?${query.toString()}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      const payload = (await response.json()) as { data?: ModerationCockpitSnapshot };
+      setModerationCockpit(payload.data ?? null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load moderation cockpit";
+      setModerationCockpitError(message);
+    } finally {
+      setIsLoadingModerationCockpit(false);
+    }
+  }, [canViewModerationInsights, cockpitMinAgeHours, cockpitQueueFilter, cockpitRiskFilter]);
+
   const loadAdminMetrics = useCallback(async () => {
     if (!isAdmin) {
       setAdminMetrics(null);
@@ -541,6 +683,10 @@ export default function Home() {
   useEffect(() => {
     void loadModerationInsights();
   }, [loadModerationInsights]);
+
+  useEffect(() => {
+    void loadModerationCockpit();
+  }, [loadModerationCockpit]);
 
   useEffect(() => {
     void loadAdminMetrics();
@@ -645,6 +791,54 @@ export default function Home() {
     }
   }
 
+  async function handleModerationHandoff(input: {
+    targetType: "report" | "appeal";
+    targetId: string;
+    action: "triage" | "escalate" | "resolve_note";
+    templateId: "triage_intake" | "escalate_policy" | "resolve_note_context";
+  }) {
+    if (!handoffHumanConfirmed) {
+      setHandoffError("Human confirmation is required before recording handoff actions.");
+      return;
+    }
+
+    setHandoffError(null);
+    setHandoffFeedback(null);
+    setActiveHandoffId(`${input.targetType}:${input.targetId}:${input.action}`);
+
+    try {
+      const response = await fetch("/api/moderation/handoff", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          action: input.action,
+          targetType: input.targetType,
+          targetId: input.targetId,
+          templateId: input.templateId,
+          handoffToRole: input.action === "escalate" ? "admin" : undefined,
+          humanConfirmed: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
+
+      setHandoffFeedback(
+        `${formatTierLabel(input.action)} handoff recorded for ${input.targetType} ${input.targetId}.`
+      );
+
+      await Promise.all([loadModerationCockpit(), loadModerationInsights(), loadAdminMetrics()]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to record moderation handoff";
+      setHandoffError(message);
+    } finally {
+      setActiveHandoffId(null);
+    }
+  }
+
   async function handleCreatePost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -667,7 +861,13 @@ export default function Home() {
 
       setPostBody("");
       setPostFeedback("Post published to the feed.");
-      await Promise.all([loadFeed("replace"), loadSelfTrust(), loadModerationInsights(), loadAdminMetrics()]);
+      await Promise.all([
+        loadFeed("replace"),
+        loadSelfTrust(),
+        loadModerationInsights(),
+        loadModerationCockpit(),
+        loadAdminMetrics()
+      ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to publish post";
       setPostError(message);
@@ -706,7 +906,7 @@ export default function Home() {
       setReportFeedback("Report submitted for moderator review.");
       setReportReason("");
       setActiveReportPostId(null);
-      await Promise.all([loadSelfTrust(), loadModerationInsights(), loadAdminMetrics()]);
+      await Promise.all([loadSelfTrust(), loadModerationInsights(), loadModerationCockpit(), loadAdminMetrics()]);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to submit report";
       setReportError(message);
@@ -844,6 +1044,198 @@ export default function Home() {
           ) : (
             <p className="text-muted">No trust profile available yet.</p>
           )}
+        </section>
+      ) : null}
+
+      {canViewModerationInsights ? (
+        <section className="card stack-md">
+          <div className="row spread align-center">
+            <h2>Moderation cockpit</h2>
+            <button
+              type="button"
+              className="secondary"
+              onClick={() => void loadModerationCockpit()}
+              disabled={isLoadingModerationCockpit}
+            >
+              {isLoadingModerationCockpit ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
+
+          <p className="text-muted text-small">
+            Priority-ranked moderation queue with SLA visibility and audited one-click handoff actions.
+          </p>
+
+          {moderationCockpitError ? <p className="notice danger">{moderationCockpitError}</p> : null}
+          {handoffFeedback ? <p className="notice">{handoffFeedback}</p> : null}
+          {handoffError ? <p className="notice danger">{handoffError}</p> : null}
+
+          <div className="grid grid-2">
+            <article className="post-card stack-sm">
+              <h3>Queue filters</h3>
+              <label htmlFor="cockpitQueueFilter">Queue</label>
+              <select
+                id="cockpitQueueFilter"
+                value={cockpitQueueFilter}
+                onChange={(event) => setCockpitQueueFilter(event.target.value as "all" | "report" | "appeal")}
+              >
+                <option value="all">All queues</option>
+                <option value="report">Reports</option>
+                <option value="appeal">Appeals</option>
+              </select>
+
+              <label htmlFor="cockpitRiskFilter">Risk tier</label>
+              <select
+                id="cockpitRiskFilter"
+                value={cockpitRiskFilter}
+                onChange={(event) =>
+                  setCockpitRiskFilter(
+                    event.target.value as "all" | "restricted" | "watch" | "steady" | "trusted"
+                  )
+                }
+              >
+                <option value="all">All tiers</option>
+                <option value="restricted">Restricted</option>
+                <option value="watch">Watch</option>
+                <option value="steady">Steady</option>
+                <option value="trusted">Trusted</option>
+              </select>
+
+              <label htmlFor="cockpitMinAgeHours">Minimum age (hours)</label>
+              <input
+                id="cockpitMinAgeHours"
+                type="text"
+                inputMode="numeric"
+                placeholder="e.g. 4"
+                value={cockpitMinAgeHours}
+                onChange={(event) => setCockpitMinAgeHours(event.target.value)}
+              />
+
+              <label className="text-small">
+                <input
+                  type="checkbox"
+                  checked={handoffHumanConfirmed}
+                  onChange={(event) => setHandoffHumanConfirmed(event.target.checked)}
+                />{" "}
+                I confirm all handoff actions are human-reviewed before submission
+              </label>
+            </article>
+
+            <article className="post-card stack-sm">
+              <h3>SLA view</h3>
+              {moderationCockpit ? (
+                <>
+                  <p className="text-small text-muted">
+                    Candidates: {moderationCockpit.summary.totalCandidates} · Showing {moderationCockpit.summary.returnedItems}
+                  </p>
+                  <p className="text-small text-muted">
+                    Report queue — Open {moderationCockpit.summary.reportQueue.open} · Triaged {moderationCockpit.summary.reportQueue.triaged} · Breached {moderationCockpit.summary.reportQueue.breached}
+                  </p>
+                  <p className="text-small text-muted">
+                    Appeal queue — Open {moderationCockpit.summary.appealQueue.open} · Under review {moderationCockpit.summary.appealQueue.underReview} · Breached {moderationCockpit.summary.appealQueue.breached}
+                  </p>
+                  <p className="text-small text-muted">
+                    SLA breached {moderationCockpit.summary.sla.breachedTotal} · Due within 1h {moderationCockpit.summary.sla.dueWithinHour} · Max breach {moderationCockpit.summary.sla.maxBreachHours ?? "-"}h
+                  </p>
+                  <p className="text-small text-muted">Generated {formatTimestamp(moderationCockpit.generatedAt)}</p>
+                </>
+              ) : (
+                <p className="text-small text-muted">No cockpit snapshot loaded yet.</p>
+              )}
+            </article>
+          </div>
+
+          {moderationCockpit ? (
+            <div className="stack-sm">
+              {moderationCockpit.queue.length === 0 ? (
+                <p className="text-small text-muted">No queue items match the current filters.</p>
+              ) : (
+                moderationCockpit.queue.map((item) => {
+                  const triageActionKey = `${item.queueType}:${item.id}:triage`;
+                  const escalateActionKey = `${item.queueType}:${item.id}:escalate`;
+                  const resolveActionKey = `${item.queueType}:${item.id}:resolve_note`;
+
+                  return (
+                    <article key={`${item.queueType}-${item.id}`} className="post-card stack-sm">
+                      <div className="row spread align-center">
+                        <p className="text-small">
+                          <strong>{item.queueType.toUpperCase()}</strong> · {item.id}
+                        </p>
+                        <span className={`status-pill${item.sla.breached ? " danger" : ""}`}>
+                          P{item.priorityScore} · {formatTierLabel(item.riskTier)}
+                        </span>
+                      </div>
+
+                      <p className="text-small text-muted">{item.summary}</p>
+                      <p className="text-small text-muted">
+                        Status {formatTierLabel(item.status)} · Age {item.ageHours}h · SLA target {item.sla.targetHours}h
+                      </p>
+                      <p className="text-small text-muted">
+                        {item.sla.breached
+                          ? `SLA breached by ${item.sla.breachByHours ?? 0}h`
+                          : `SLA due in ${item.sla.remainingHours}h`}
+                      </p>
+                      <p className="text-small text-muted">Priority factors: {item.priorityFactors.join(" · ")}</p>
+                      {item.latestHandoff ? (
+                        <p className="text-small text-muted">
+                          Latest handoff: {formatTierLabel(item.latestHandoff.action)} · {formatTimestamp(item.latestHandoff.createdAt)}
+                        </p>
+                      ) : (
+                        <p className="text-small text-muted">Latest handoff: none recorded</p>
+                      )}
+
+                      <div className="row">
+                        <button
+                          type="button"
+                          className="secondary"
+                          disabled={!handoffHumanConfirmed || activeHandoffId === triageActionKey}
+                          onClick={() =>
+                            void handleModerationHandoff({
+                              targetType: item.queueType,
+                              targetId: item.id,
+                              action: "triage",
+                              templateId: "triage_intake"
+                            })
+                          }
+                        >
+                          {activeHandoffId === triageActionKey ? "Submitting..." : "Triage handoff"}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          disabled={!handoffHumanConfirmed || activeHandoffId === escalateActionKey}
+                          onClick={() =>
+                            void handleModerationHandoff({
+                              targetType: item.queueType,
+                              targetId: item.id,
+                              action: "escalate",
+                              templateId: "escalate_policy"
+                            })
+                          }
+                        >
+                          {activeHandoffId === escalateActionKey ? "Submitting..." : "Escalate to admin"}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          disabled={!handoffHumanConfirmed || activeHandoffId === resolveActionKey}
+                          onClick={() =>
+                            void handleModerationHandoff({
+                              targetType: item.queueType,
+                              targetId: item.id,
+                              action: "resolve_note",
+                              templateId: "resolve_note_context"
+                            })
+                          }
+                        >
+                          {activeHandoffId === resolveActionKey ? "Submitting..." : "Attach resolution note"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          ) : null}
         </section>
       ) : null}
 

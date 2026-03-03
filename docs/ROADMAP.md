@@ -25,4 +25,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ End-to-end Postgres CI delivered: GitHub Actions now runs typecheck/test/build with a real PostgreSQL service container and gated e2e adapter test
 - ✅ Pilot runbook alerting follow-up delivered: severity-to-action routing matrix + on-call contact checklist added (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - ✅ Previous highest-priority milestone completed: automate on-call escalation drills (scheduled dry-run cadence + acknowledgement SLO tracking)
-- 🔜 Next highest-priority unfinished milestone: enhanced moderation tooling (priority queue + SLA views + audited handoff actions)
+- ✅ Next highest-priority milestone completed: enhanced moderation tooling (priority queue + SLA views + audited handoff actions)
+- 🔜 Next highest-priority unfinished milestone: scale-out performance testing (baseline load profile + bottleneck report)

@@ -40,10 +40,10 @@
 
 ## Sprint 5 (Active)
 - [x] Define next features for phase 5
-- [ ] Implement enhanced moderation tooling (priority queue + SLA view + one-click action handoffs)
+- [x] Implement enhanced moderation tooling (priority queue + SLA view + one-click action handoffs)
 - [ ] Scale-out performance testing (baseline load profile + bottleneck report)
 
 ### Sprint 5 feature definition (2026-03-03)
-- Moderation cockpit v1: add a unified queue endpoint/view that can filter by status, trust-risk tier, and age.
-- Workflow acceleration: add moderation handoff actions (triage, escalate, resolve-note templates) with immutable audit coverage.
-- Capacity confidence: run repeatable scale-out perf profile against posts/feed/reports APIs and publish bottleneck notes.
+- ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).
+- ✅ Workflow acceleration delivered: audited moderation handoff actions (triage, escalate, resolve-note templates) with explicit human confirmation (`/api/moderation/handoff`, immutable audit trail).
+- ⏳ Capacity confidence pending: run repeatable scale-out perf profile against posts/feed/reports APIs and publish bottleneck notes.

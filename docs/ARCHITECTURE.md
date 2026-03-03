@@ -29,6 +29,8 @@ Human content only; AI supports operations under strict governance.
 - Moderation action logs are assembled from immutable audit hash-chain records for forensic auditability.
 - Admin metrics endpoint (`GET /api/admin/metrics`) summarizes queue throughput, appeal resolution latency, trust distribution, and override rates.
 - Role-aware moderation insights endpoint (`GET /api/moderation/insights`) enriches queue entities with trust context, immutable action previews, and 7d/30d trend windows.
+- Moderation cockpit endpoint (`GET /api/moderation/cockpit`) provides priority-ranked queue views with SLA breach visibility and risk-aware filters.
+- Moderation handoff endpoint (`POST /api/moderation/handoff`) records triage/escalate/resolve-note workflows with explicit human confirmation and immutable audit evidence.
 - Runtime state (identities, posts, reports, appeals) persists to a governed durable store via `StorageAdapter` (SQLite default; JSON snapshot legacy path; PostgreSQL runtime adapter available).
 - Admin incident packet export (`GET /api/admin/incident/:incidentId/packet`) provides timeline + immutable audit references + governance rationale for escalation/postmortems.
 
