@@ -51,4 +51,28 @@ describe("audit persistence", () => {
     const tamperedVerification = verifyAuditLogChain(tampered);
     assert.equal(tamperedVerification.valid, false);
   });
+
+  it("flushes queued fire-and-forget writes when waitForAuditDrain is awaited", async () => {
+    const tempDir = mkdtempSync(path.join(tmpdir(), "humanonly-audit-drain-"));
+    process.env.HUMANONLY_AUDIT_LOG_FILE = path.join(tempDir, "audit.jsonl");
+
+    const { readAuditLog, resetAuditStateForTests, waitForAuditDrain, writeAuditStub } = await import("./audit");
+
+    resetAuditStateForTests();
+
+    void writeAuditStub({
+      actorId: "usr_3",
+      action: "post.created",
+      targetType: "post",
+      targetId: "pst_async",
+      metadata: { mode: "async" },
+      createdAt: "2026-02-01T00:02:00.000Z"
+    });
+
+    await waitForAuditDrain();
+
+    const records = readAuditLog();
+    assert.equal(records.length, 1);
+    assert.equal(records[0]?.targetId, "pst_async");
+  });
 });

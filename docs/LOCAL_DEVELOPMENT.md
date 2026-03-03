@@ -65,6 +65,20 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## 5) Run performance benchmarks (Sprint 6)
+
+```bash
+# Single mode harness (sync or async)
+npm run perf:harness -w apps/web -- --audit-mode=sync
+
+# Comparative benchmark + report artifact
+npm run perf:audit-mode -w apps/web -- \
+  --markdown-output=docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md \
+  --json-output=.tmp/perf-compare/audit-mode.json
+```
+
+This executes baseline/sustained/pressure load profiles with deterministic fixtures and writes a reproducible compare report for governance review.
+
 ## UI + API walkthrough (Sprint 4)
 
 1. Sign in from `/onboarding` using one of the seeded handles, complete human attestation, accept governance commitment, and solve the interactive identity challenge.

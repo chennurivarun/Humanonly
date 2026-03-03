@@ -47,7 +47,9 @@
 - [x] Plan Sprint 6 write-path optimization follow-through scope
 - [x] Add phase-level write-path instrumentation (validation/domain/persist/audit) to post/report writes
 - [x] Add async-safe audit write mode toggle (`HUMANONLY_AUDIT_WRITE_MODE=async`) for pressure scenarios
-- [ ] Run comparative perf profile for `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and document deltas
+- [x] Run comparative perf profile for `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and document deltas (`docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
+- [ ] Execute same harness on PostgreSQL backend and publish SQLite-vs-Postgres deltas
+- [ ] Decide default production audit mode policy with rollout/rollback guardrails
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).

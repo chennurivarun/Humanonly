@@ -27,6 +27,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports/appeals
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
 - ✅ Write-path phase instrumentation + configurable audit write mode (`HUMANONLY_AUDIT_WRITE_MODE`)
+- ✅ Sync-vs-async audit benchmark automation + published Sprint 6 deltas (`npm run perf:audit-mode`, `docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates

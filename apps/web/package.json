@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/lib/*.test.ts",
     "seed": "tsx scripts/seed.ts",
-    "perf:harness": "tsx --tsconfig tsconfig.json scripts/perf-harness.ts"
+    "perf:harness": "tsx --tsconfig tsconfig.json scripts/perf-harness.ts",
+    "perf:audit-mode": "tsx --tsconfig tsconfig.json scripts/perf-audit-mode-compare.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",

@@ -293,6 +293,10 @@ export function verifyAuditLogChain(records: ImmutableAuditRecord[]): { valid: t
   return { valid: true };
 }
 
+export function waitForAuditDrain(): Promise<void> {
+  return writeQueue;
+}
+
 export function resetAuditStateForTests() {
   cachedAuditState = null;
   writeQueue = Promise.resolve();
