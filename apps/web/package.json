@@ -8,7 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/lib/*.test.ts",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "perf:harness": "tsx --tsconfig tsconfig.json scripts/perf-harness.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",

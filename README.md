@@ -26,6 +26,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Smoke tests for core onboarding/content/moderation flows
 - ✅ Durable governed storage snapshot (`HUMANONLY_DATA_FILE`) for identities/posts/reports/appeals
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
+- ✅ Write-path phase instrumentation + configurable audit write mode (`HUMANONLY_AUDIT_WRITE_MODE`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
@@ -60,6 +61,7 @@ HUMANONLY_SEED_FILE=.seed/local-seed.json
 HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
+HUMANONLY_AUDIT_WRITE_MODE=sync
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```

@@ -7,3 +7,4 @@ coverage
 *.tsbuildinfo
 apps/web/.seed/
 apps/web/.data/
+.tmp/

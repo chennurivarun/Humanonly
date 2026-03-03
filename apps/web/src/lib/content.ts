@@ -91,7 +91,6 @@ export function createPostRecord(
   input: { authorId: string; body: string },
   options: {
     nowIso?: string;
-    persist?: () => void;
   } = {}
 ): Post {
   const post: Post = {
@@ -102,7 +101,6 @@ export function createPostRecord(
   };
 
   store.posts.unshift(post);
-  options.persist?.();
   return post;
 }
 
@@ -111,7 +109,6 @@ export function createReportRecord(
   input: { postId: string; reporterId: string; reason: string },
   options: {
     nowIso?: string;
-    persist?: () => void;
   } = {}
 ): Report {
   const referencedPost = store.posts.find((post) => post.id === input.postId);
@@ -129,7 +126,6 @@ export function createReportRecord(
   };
 
   store.reports.unshift(report);
-  options.persist?.();
   return report;
 }
 

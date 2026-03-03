@@ -38,12 +38,18 @@
 - [x] Pilot runbook alert routing matrix + on-call contact checklist delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - [x] Automated on-call escalation drill cadence + acknowledgement SLO evidence template delivered (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 
-## Sprint 5 (Active)
+## Sprint 5
 - [x] Define next features for phase 5
 - [x] Implement enhanced moderation tooling (priority queue + SLA view + one-click action handoffs)
-- [ ] Scale-out performance testing (baseline load profile + bottleneck report)
+- [x] Scale-out performance testing (baseline load profile + bottleneck report)
+
+## Sprint 6 (Active)
+- [x] Plan Sprint 6 write-path optimization follow-through scope
+- [x] Add phase-level write-path instrumentation (validation/domain/persist/audit) to post/report writes
+- [x] Add async-safe audit write mode toggle (`HUMANONLY_AUDIT_WRITE_MODE=async`) for pressure scenarios
+- [ ] Run comparative perf profile for `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and document deltas
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).
 - ✅ Workflow acceleration delivered: audited moderation handoff actions (triage, escalate, resolve-note templates) with explicit human confirmation (`/api/moderation/handoff`, immutable audit trail).
-- ⏳ Capacity confidence pending: run repeatable scale-out perf profile against posts/feed/reports APIs and publish bottleneck notes.
+- ✅ Capacity confidence milestone delivered: repeatable scale-out perf profile executed for posts/feed/reports APIs with published bottleneck report (`docs/SPRINT_5_SCALE_OUT_PERFORMANCE_REPORT.md`).

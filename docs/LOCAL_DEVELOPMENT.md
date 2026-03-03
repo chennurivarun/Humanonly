@@ -25,6 +25,7 @@ HUMANONLY_SEED_FILE=.seed/local-seed.json
 HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
+HUMANONLY_AUDIT_WRITE_MODE=sync
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
@@ -35,6 +36,7 @@ HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
+- `HUMANONLY_AUDIT_WRITE_MODE` — `sync` (default, request waits for audit fs append) or `async` (fire-and-log mode for pressure/perf testing).
 - `HUMANONLY_IDENTITY_ASSURANCE_SECRET` — optional signing secret for onboarding challenge tokens (defaults to `NEXTAUTH_SECRET`).
 
 **New-environment default:** SQLite is created at `HUMANONLY_DB_FILE` on first run. If the DB is empty and `HUMANONLY_SEED_FILE` is configured, seed data is loaded into SQLite automatically.

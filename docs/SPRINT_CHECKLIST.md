@@ -23,9 +23,9 @@
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
-1. Build repeatable scale-test harness for `POST /api/posts`, `GET /api/feed`, and `POST /api/reports` with concurrency tiers and deterministic seed fixtures.
-2. Execute baseline + stress profiles against SQLite and PostgreSQL backends, capture throughput/latency/error budget deltas, and store evidence artifacts under `docs/`.
-3. Publish Sprint 5 bottleneck report with mitigation recommendations and rollout priority.
+1. Execute the same harness against PostgreSQL (`HUMANONLY_STORAGE_BACKEND=postgres`) and compare with SQLite deltas.
+2. Run sustained + pressure benchmark comparing `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and publish deltas.
+3. Decide default production audit mode based on throughput-vs-durability tradeoff and document rollout guardrails.
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
@@ -45,7 +45,19 @@
 - ✅ Added automated test coverage for cockpit ranking/SLA logic and handoff validation/state transitions (`apps/web/src/lib/moderation-cockpit.test.ts`, `apps/web/src/lib/moderation-handoff.test.ts`).
 - ✅ Validation clean: typecheck passing, tests passing, production build passing.
 
+## Latest run summary (Sprint 5 — scale-out performance)
+- ✅ Added repeatable performance harness for `POST /api/posts`, `GET /api/feed`, and `POST /api/reports` with deterministic seed reset + tiered concurrency (`apps/web/scripts/perf-harness.ts`).
+- ✅ Added runnable workspace/app scripts for harness execution (`package.json`, `apps/web/package.json`).
+- ✅ Executed baseline/sustained/pressure profiles with zero failures and published metrics + bottleneck analysis (`docs/SPRINT_5_SCALE_OUT_PERFORMANCE_REPORT.md`).
+- ✅ Updated roadmap + sprint tracking to mark Sprint 5 scale-out milestone complete.
+
+## Latest run summary (Sprint 6 — write-path optimization kickoff)
+- ✅ Added phase-level write-path timings (validation/domain/persist/audit + total) for post/report write APIs (`apps/web/src/lib/write-path.ts`, `apps/web/src/app/api/posts/route.ts`, `apps/web/src/app/api/reports/route.ts`).
+- ✅ Refactored content write domain helpers to isolate domain mutation from persistence, enabling explicit persist-phase measurement (`apps/web/src/lib/content.ts`).
+- ✅ Added async-safe audit write mode toggle (`HUMANONLY_AUDIT_WRITE_MODE=async`) to decouple request latency from audit fs writes during pressure tests.
+- ✅ Updated roadmap + sprint checklist to mark Sprint 6 kickoff complete and track remaining sync-vs-async benchmark work.
+
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)
 - [x] Implement enhanced moderation tooling (priority queue + SLA view + action handoffs)
-- [ ] Run scale-out performance testing and publish bottleneck report
+- [x] Run scale-out performance testing and publish bottleneck report

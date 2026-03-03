@@ -26,4 +26,6 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Pilot runbook alerting follow-up delivered: severity-to-action routing matrix + on-call contact checklist added (`docs/SPRINT_3_PILOT_RUNBOOK.md`)
 - ✅ Previous highest-priority milestone completed: automate on-call escalation drills (scheduled dry-run cadence + acknowledgement SLO tracking)
 - ✅ Next highest-priority milestone completed: enhanced moderation tooling (priority queue + SLA views + audited handoff actions)
-- 🔜 Next highest-priority unfinished milestone: scale-out performance testing (baseline load profile + bottleneck report)
+- ✅ Next highest-priority milestone completed: scale-out performance testing with published bottleneck report (`docs/SPRINT_5_SCALE_OUT_PERFORMANCE_REPORT.md`)
+- ✅ Sprint 6 planning + storage/audit write-path optimization kickoff completed (phase timings + async audit mode toggle for write paths)
+- 🔜 Next highest-priority unfinished milestone: benchmark sync vs async audit write mode under sustained pressure and publish deltas

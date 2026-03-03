@@ -7,6 +7,7 @@ import {
   parseCreateReportPayload
 } from "@/lib/content";
 import { db, persistStore } from "@/lib/store";
+import { auditWriteMode, createWritePathTimer } from "@/lib/write-path";
 
 export async function GET() {
   const sessionResult = await requireHumanSession("moderator");
@@ -36,11 +37,12 @@ export async function POST(request: NextRequest) {
     return sessionResult.response;
   }
 
+  const timer = createWritePathTimer();
   const payload = await request.json().catch(() => null);
 
   let command;
   try {
-    command = parseCreateReportPayload(payload);
+    command = timer.measure("validation", () => parseCreateReportPayload(payload));
   } catch (error) {
     if (error instanceof ContentValidationError) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: 400 });
@@ -51,16 +53,12 @@ export async function POST(request: NextRequest) {
 
   let report;
   try {
-    report = createReportRecord(
-      db,
-      {
+    report = timer.measure("domain", () =>
+      createReportRecord(db, {
         postId: command.postId,
         reporterId: sessionResult.session.user.id,
         reason: command.reason
-      },
-      {
-        persist: persistStore
-      }
+      })
     );
   } catch (error) {
     if (error instanceof ContentValidationError && error.code === "POST_NOT_FOUND") {
@@ -70,18 +68,32 @@ export async function POST(request: NextRequest) {
     throw error;
   }
 
-  await writeAuditStub({
-    actorId: sessionResult.session.user.id,
-    action: "report.created",
-    targetType: "report",
-    targetId: report.id,
-    metadata: {
-      postId: report.postId,
-      reasonLength: report.reason.length,
-      reporterHandle: sessionResult.session.user.handle
-    },
-    createdAt: new Date().toISOString()
-  });
+  timer.measure("persist", () => persistStore());
+
+  const mode = auditWriteMode();
+  const writeAudit = () =>
+    writeAuditStub({
+      actorId: sessionResult.session.user.id,
+      action: "report.created",
+      targetType: "report",
+      targetId: report.id,
+      metadata: {
+        postId: report.postId,
+        reasonLength: report.reason.length,
+        reporterHandle: sessionResult.session.user.handle,
+        writePath: timer.snapshot(),
+        auditMode: mode
+      },
+      createdAt: new Date().toISOString()
+    });
+
+  if (mode === "async") {
+    void timer.measureAsync("audit", writeAudit).catch((error) => {
+      console.error("Failed to persist audit event", error);
+    });
+  } else {
+    await timer.measureAsync("audit", writeAudit);
+  }
 
   return NextResponse.json({ data: report }, { status: 201 });
 }
