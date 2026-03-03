@@ -29,4 +29,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Next highest-priority milestone completed: scale-out performance testing with published bottleneck report (`docs/SPRINT_5_SCALE_OUT_PERFORMANCE_REPORT.md`)
 - ✅ Sprint 6 planning + storage/audit write-path optimization kickoff completed (phase timings + async audit mode toggle for write paths)
 - ✅ Next highest-priority milestone completed: sync-vs-async audit write benchmark published with reproducible harness and deltas (`docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
-- 🔜 Next highest-priority unfinished milestone: run the same harness on PostgreSQL and publish SQLite-vs-Postgres deltas before locking default production audit mode
+- ✅ Added SQLite-vs-Postgres benchmark automation script and report template (`npm run perf:storage-backend`, `apps/web/scripts/perf-storage-backend-compare.ts`, `docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`)
+- 🔜 Next highest-priority unfinished milestone: execute the benchmark with a live PostgreSQL instance and publish validated SQLite-vs-Postgres deltas before locking default production audit mode

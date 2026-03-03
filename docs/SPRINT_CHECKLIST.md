@@ -27,6 +27,11 @@
 2. Decide default production audit mode based on throughput-vs-durability tradeoff and document rollout/rollback guardrails.
 3. Finalize multi-instance connection pooling defaults + cutover automation sequencing for production rollout.
 
+## Latest run summary (Sprint 6 — storage backend benchmark automation)
+- ✅ Added one-command backend comparison automation (`npm run perf:storage-backend`) that runs the existing harness against SQLite and PostgreSQL and publishes a single markdown delta report (`apps/web/scripts/perf-storage-backend-compare.ts`).
+- ✅ Added Sprint 6 benchmark report scaffold with execution/artifact details (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`).
+- ⏳ Live PostgreSQL execution still pending a configured `HUMANONLY_POSTGRES_URL` on the current host.
+
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
 - ✅ Added trust APIs: `GET /api/trust/me` (self) and `GET /api/trust/:userId` (moderator/admin).
@@ -68,6 +73,8 @@
 - [x] Add phase-level write-path instrumentation (validation/domain/persist/audit) to post/report writes
 - [x] Add async-safe audit write mode toggle
 - [x] Run sustained + pressure benchmark comparing `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and publish deltas
+- [x] Add SQLite-vs-Postgres harness comparison automation + report scaffold
+- [ ] Execute SQLite-vs-Postgres benchmark with live PostgreSQL and publish validated deltas
 
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)
