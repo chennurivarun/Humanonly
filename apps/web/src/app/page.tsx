@@ -718,7 +718,7 @@ export default function Home() {
   return (
     <main className="stack-lg">
       <section className="card stack-md">
-        <p className="badge">Sprint 4 · Identity assurance hardening delivered</p>
+        <p className="badge">Sprint 5 · Moderation tooling + scale testing in progress</p>
         <h1>HumanOnly MVP</h1>
         <p className="text-muted">
           Human expression only. AI-managed operations. Human-governed decisions. Every
