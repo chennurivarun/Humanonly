@@ -30,4 +30,6 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Sprint 6 planning + storage/audit write-path optimization kickoff completed (phase timings + async audit mode toggle for write paths)
 - ✅ Next highest-priority milestone completed: sync-vs-async audit write benchmark published with reproducible harness and deltas (`docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
 - ✅ Added SQLite-vs-Postgres benchmark automation script and report template (`npm run perf:storage-backend`, `apps/web/scripts/perf-storage-backend-compare.ts`, `docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`)
-- 🔜 Next highest-priority unfinished milestone: execute the benchmark with a live PostgreSQL instance and publish validated SQLite-vs-Postgres deltas before locking default production audit mode
+- ✅ Executed live SQLite-vs-Postgres benchmark run and published validated deltas (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`, embedded live PostgreSQL runtime)
+- ✅ Locked production audit-mode policy with governance guardrails (default `sync`; production `async` requires explicit `HUMANONLY_AUDIT_ASYNC_APPROVED=1`)
+- 🔜 Next highest-priority unfinished milestone: optimize PostgreSQL write persistence path (snapshot flush strategy) before scale-out rollout

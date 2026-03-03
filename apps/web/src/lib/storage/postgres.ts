@@ -231,6 +231,20 @@ function rowToAppeal(row: AppealRow): Appeal {
   return appeal;
 }
 
+function cloneStoreSnapshot(store: GovernedStore): GovernedStore {
+  return {
+    users: store.users.map((user) => ({
+      ...user,
+      identityAssuranceSignals: user.identityAssuranceSignals
+        ? [...user.identityAssuranceSignals]
+        : undefined
+    })),
+    posts: store.posts.map((post) => ({ ...post })),
+    reports: store.reports.map((report) => ({ ...report })),
+    appeals: store.appeals.map((appeal) => ({ ...appeal }))
+  };
+}
+
 // ── PostgresStorageAdapter ────────────────────────────────────────────────────
 
 /**
@@ -253,6 +267,7 @@ function rowToAppeal(row: AppealRow): Appeal {
  */
 export class PostgresStorageAdapter implements StorageAdapter {
   private readonly pool: Pool;
+  private flushQueue: Promise<void> = Promise.resolve();
 
   /**
    * @param pool Optional pg.Pool to use. If omitted, a pool is created from
@@ -260,6 +275,11 @@ export class PostgresStorageAdapter implements StorageAdapter {
    */
   constructor(pool?: Pool) {
     this.pool = pool ?? new Pool({ connectionString: resolvePostgresUrl() });
+  }
+
+  private enqueueFlush(task: () => Promise<void>): Promise<void> {
+    this.flushQueue = this.flushQueue.then(task, task);
+    return this.flushQueue;
   }
 
   /**
@@ -305,39 +325,42 @@ export class PostgresStorageAdapter implements StorageAdapter {
    * empty arrays: `!= ALL('{}')` is vacuously true → deletes all rows.
    */
   async flush(store: GovernedStore): Promise<void> {
-    const keepUserIds = store.users.map((u) => u.id);
-    const keepPostIds = store.posts.map((p) => p.id);
-    const keepReportIds = store.reports.map((r) => r.id);
-    const keepAppealIds = store.appeals.map((a) => a.id);
+    const snapshot = cloneStoreSnapshot(store);
 
-    const client = await this.pool.connect();
-    try {
-      await client.query("BEGIN");
+    return this.enqueueFlush(async () => {
+      const keepUserIds = snapshot.users.map((u) => u.id);
+      const keepPostIds = snapshot.posts.map((p) => p.id);
+      const keepReportIds = snapshot.reports.map((r) => r.id);
+      const keepAppealIds = snapshot.appeals.map((a) => a.id);
 
-      // ── Delete removed records (children first) ───────────────────────────
+      const client = await this.pool.connect();
+      try {
+        await client.query("BEGIN");
 
-      await client.query(
-        "DELETE FROM appeals WHERE id != ALL($1::text[])",
-        [keepAppealIds]
-      );
-      await client.query(
-        "DELETE FROM reports WHERE id != ALL($1::text[])",
-        [keepReportIds]
-      );
-      await client.query(
-        "DELETE FROM posts WHERE id != ALL($1::text[])",
-        [keepPostIds]
-      );
-      await client.query(
-        "DELETE FROM users WHERE id != ALL($1::text[])",
-        [keepUserIds]
-      );
+        // ── Delete removed records (children first) ───────────────────────────
 
-      // ── Upsert current records (parents first) ────────────────────────────
-
-      for (const user of store.users) {
         await client.query(
-          `INSERT INTO users
+          "DELETE FROM appeals WHERE id != ALL($1::text[])",
+          [keepAppealIds]
+        );
+        await client.query(
+          "DELETE FROM reports WHERE id != ALL($1::text[])",
+          [keepReportIds]
+        );
+        await client.query(
+          "DELETE FROM posts WHERE id != ALL($1::text[])",
+          [keepPostIds]
+        );
+        await client.query(
+          "DELETE FROM users WHERE id != ALL($1::text[])",
+          [keepUserIds]
+        );
+
+        // ── Upsert current records (parents first) ────────────────────────────
+
+        for (const user of snapshot.users) {
+          await client.query(
+            `INSERT INTO users
              (id, handle, display_name, role, governance_accepted_at, human_verified_at,
               created_at, updated_at, identity_assurance_level,
               identity_assurance_signals, identity_assurance_evaluated_at)
@@ -353,39 +376,39 @@ export class PostgresStorageAdapter implements StorageAdapter {
              identity_assurance_level        = EXCLUDED.identity_assurance_level,
              identity_assurance_signals      = EXCLUDED.identity_assurance_signals,
              identity_assurance_evaluated_at = EXCLUDED.identity_assurance_evaluated_at`,
-          [
-            user.id,
-            user.handle,
-            user.displayName,
-            user.role,
-            user.governanceAcceptedAt,
-            user.humanVerifiedAt,
-            user.createdAt,
-            user.updatedAt,
-            user.identityAssuranceLevel ?? null,
-            user.identityAssuranceSignals
-              ? JSON.stringify(user.identityAssuranceSignals)
-              : null,
-            user.identityAssuranceEvaluatedAt ?? null
-          ]
-        );
-      }
+            [
+              user.id,
+              user.handle,
+              user.displayName,
+              user.role,
+              user.governanceAcceptedAt,
+              user.humanVerifiedAt,
+              user.createdAt,
+              user.updatedAt,
+              user.identityAssuranceLevel ?? null,
+              user.identityAssuranceSignals
+                ? JSON.stringify(user.identityAssuranceSignals)
+                : null,
+              user.identityAssuranceEvaluatedAt ?? null
+            ]
+          );
+        }
 
-      for (const post of store.posts) {
-        await client.query(
-          `INSERT INTO posts (id, author_id, body, created_at)
+        for (const post of snapshot.posts) {
+          await client.query(
+            `INSERT INTO posts (id, author_id, body, created_at)
            VALUES ($1, $2, $3, $4)
            ON CONFLICT (id) DO UPDATE SET
              author_id  = EXCLUDED.author_id,
              body       = EXCLUDED.body,
              created_at = EXCLUDED.created_at`,
-          [post.id, post.authorId, post.body, post.createdAt]
-        );
-      }
+            [post.id, post.authorId, post.body, post.createdAt]
+          );
+        }
 
-      for (const report of store.reports) {
-        await client.query(
-          `INSERT INTO reports (id, post_id, reporter_id, reason, status, created_at)
+        for (const report of snapshot.reports) {
+          await client.query(
+            `INSERT INTO reports (id, post_id, reporter_id, reason, status, created_at)
            VALUES ($1, $2, $3, $4, $5, $6)
            ON CONFLICT (id) DO UPDATE SET
              post_id     = EXCLUDED.post_id,
@@ -393,20 +416,20 @@ export class PostgresStorageAdapter implements StorageAdapter {
              reason      = EXCLUDED.reason,
              status      = EXCLUDED.status,
              created_at  = EXCLUDED.created_at`,
-          [
-            report.id,
-            report.postId,
-            report.reporterId,
-            report.reason,
-            report.status,
-            report.createdAt
-          ]
-        );
-      }
+            [
+              report.id,
+              report.postId,
+              report.reporterId,
+              report.reason,
+              report.status,
+              report.createdAt
+            ]
+          );
+        }
 
-      for (const appeal of store.appeals) {
-        await client.query(
-          `INSERT INTO appeals
+        for (const appeal of snapshot.appeals) {
+          await client.query(
+            `INSERT INTO appeals
              (id, report_id, appellant_id, reason, status, appealed_audit_record_id,
               created_at, updated_at, decided_at, decided_by_id, decision_rationale)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -421,29 +444,30 @@ export class PostgresStorageAdapter implements StorageAdapter {
              decided_at               = EXCLUDED.decided_at,
              decided_by_id            = EXCLUDED.decided_by_id,
              decision_rationale       = EXCLUDED.decision_rationale`,
-          [
-            appeal.id,
-            appeal.reportId,
-            appeal.appellantId,
-            appeal.reason,
-            appeal.status,
-            appeal.appealedAuditRecordId ?? null,
-            appeal.createdAt,
-            appeal.updatedAt,
-            appeal.decidedAt ?? null,
-            appeal.decidedById ?? null,
-            appeal.decisionRationale ?? null
-          ]
-        );
-      }
+            [
+              appeal.id,
+              appeal.reportId,
+              appeal.appellantId,
+              appeal.reason,
+              appeal.status,
+              appeal.appealedAuditRecordId ?? null,
+              appeal.createdAt,
+              appeal.updatedAt,
+              appeal.decidedAt ?? null,
+              appeal.decidedById ?? null,
+              appeal.decisionRationale ?? null
+            ]
+          );
+        }
 
-      await client.query("COMMIT");
-    } catch (err) {
-      await client.query("ROLLBACK");
-      throw err;
-    } finally {
-      client.release();
-    }
+        await client.query("COMMIT");
+      } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+      } finally {
+        client.release();
+      }
+    });
   }
 
   async healthCheck(): Promise<StorageHealthDetail> {

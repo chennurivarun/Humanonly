@@ -127,9 +127,10 @@ async function runPerformanceHarness(options: CliOptions): Promise<HarnessSummar
     parseCreatePostPayload,
     parseCreateReportPayload
   } = await import("@/lib/content");
-  const { db, persistStore } = await import("@/lib/store");
+  const { db, persistStore, storeReady, waitForStorePersistence } = await import("@/lib/store");
   const { resetAuditStateForTests, waitForAuditDrain, writeAuditStub } = await import("@/lib/audit");
 
+  await storeReady;
   resetAuditStateForTests();
 
   if (!options.silent) {
@@ -157,6 +158,7 @@ async function runPerformanceHarness(options: CliOptions): Promise<HarnessSummar
       asyncAuditErrors,
       db,
       persistStore,
+      waitForStorePersistence,
       createPostRecord,
       createReportRecord,
       listFeedPage,
@@ -331,6 +333,7 @@ function getEndpoints(
   asyncAuditErrors: string[],
   storeDb: typeof import("@/lib/store").db,
   persistStoreFn: typeof import("@/lib/store").persistStore,
+  waitForStorePersistence: typeof import("@/lib/store").waitForStorePersistence,
   createPostRecord: typeof import("@/lib/content").createPostRecord,
   createReportRecord: typeof import("@/lib/content").createReportRecord,
   listFeedPage: typeof import("@/lib/content").listFeedPage,
@@ -361,6 +364,7 @@ function getEndpoints(
           body: command.body
         });
         persistStoreFn();
+        await waitForStorePersistence();
 
         context.postIds.unshift(post.id);
 
@@ -424,6 +428,7 @@ function getEndpoints(
           reason: command.reason
         });
         persistStoreFn();
+        await waitForStorePersistence();
 
         await writeAuditByMode({
           actorId: reporter.id,

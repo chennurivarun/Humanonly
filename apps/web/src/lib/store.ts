@@ -67,18 +67,24 @@ export const db: GovernedStore = {
 // Active storage adapter — selected and initialized at startup.
 // Exported so reliability checks can call healthCheck() without re-reading env.
 export let adapter: StorageAdapter;
+let lastPersistPromise: Promise<void> = Promise.resolve();
 
 /**
  * Persist the current in-memory store to durable storage.
  *
- * For SQLite and JSON-file adapters the flush is synchronous under the hood
- * so no data is at risk. For Postgres the flush is asynchronous; the Promise
- * is intentionally fire-and-forgotten here so callers remain synchronous.
- * The only exposure is a process crash between response and flush completion,
- * which is acceptable for the current single-writer topology.
+ * Callers can continue to fire-and-forget this method for low-latency request
+ * paths. For benchmark/reliability workflows that need durability confirmation,
+ * call `waitForStorePersistence()` after invoking persistStore().
  */
 export function persistStore(): void {
-  void adapter.flush(db);
+  lastPersistPromise = adapter.flush(db);
+  void lastPersistPromise.catch((error) => {
+    console.error("[store] persist failed", error);
+  });
+}
+
+export function waitForStorePersistence(): Promise<void> {
+  return lastPersistPromise;
 }
 
 function hydrateDomainArrays(loaded: GovernedStore): void {
@@ -191,7 +197,9 @@ async function initializeStore(): Promise<void> {
   }
 }
 
-void initializeStore().catch((err) => {
+export const storeReady = initializeStore();
+
+storeReady.catch((err) => {
   console.error("[store] fatal: failed to initialize storage", err);
   process.exit(1);
 });

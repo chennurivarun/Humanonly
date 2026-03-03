@@ -7,7 +7,7 @@ import {
   parseCreateReportPayload
 } from "@/lib/content";
 import { db, persistStore } from "@/lib/store";
-import { auditWriteMode, createWritePathTimer } from "@/lib/write-path";
+import { createWritePathTimer, resolveAuditWriteModePolicy } from "@/lib/write-path";
 
 export async function GET() {
   const sessionResult = await requireHumanSession("moderator");
@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
 
   timer.measure("persist", () => persistStore());
 
-  const mode = auditWriteMode();
+  const modePolicy = resolveAuditWriteModePolicy();
+  const mode = modePolicy.effectiveMode;
   const writeAudit = () =>
     writeAuditStub({
       actorId: sessionResult.session.user.id,
@@ -82,7 +83,13 @@ export async function POST(request: NextRequest) {
         reasonLength: report.reason.length,
         reporterHandle: sessionResult.session.user.handle,
         writePath: timer.snapshot(),
-        auditMode: mode
+        auditMode: mode,
+        auditModePolicy: {
+          requestedMode: modePolicy.requestedMode,
+          effectiveMode: modePolicy.effectiveMode,
+          productionGuardrailApplied: modePolicy.productionGuardrailApplied,
+          approvalReference: modePolicy.approvalReference
+        }
       },
       createdAt: new Date().toISOString()
     });

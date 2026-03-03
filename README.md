@@ -28,6 +28,8 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Immutable audit persistence with chained hashes (`HUMANONLY_AUDIT_LOG_FILE`)
 - ✅ Write-path phase instrumentation + configurable audit write mode (`HUMANONLY_AUDIT_WRITE_MODE`)
 - ✅ Sync-vs-async audit benchmark automation + published Sprint 6 deltas (`npm run perf:audit-mode`, `docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
+- ✅ Live SQLite-vs-Postgres benchmark run published with reproducible artifacts (`npm run perf:storage-backend`, `docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`)
+- ✅ Production audit-mode policy guardrail enforced in code (default `sync`; production `async` requires `HUMANONLY_AUDIT_ASYNC_APPROVED=1`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered
 - ✅ Admin dashboard metrics API + UI panel for reports, appeals, trust distribution, and override rates
@@ -63,6 +65,9 @@ HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 HUMANONLY_AUDIT_WRITE_MODE=sync
+# Production guardrail for async audit mode
+HUMANONLY_AUDIT_ASYNC_APPROVED=0
+HUMANONLY_AUDIT_ASYNC_APPROVAL_REF=
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```

@@ -23,14 +23,16 @@
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
-1. Execute the same harness against PostgreSQL (`HUMANONLY_STORAGE_BACKEND=postgres`) and compare with SQLite deltas.
-2. Decide default production audit mode based on throughput-vs-durability tradeoff and document rollout/rollback guardrails.
+1. Optimize PostgreSQL persistence strategy (full-snapshot flush currently bottlenecks write throughput under sustained/pressure load).
+2. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) before scale-out rollout.
 3. Finalize multi-instance connection pooling defaults + cutover automation sequencing for production rollout.
 
-## Latest run summary (Sprint 6 — storage backend benchmark automation)
-- ✅ Added one-command backend comparison automation (`npm run perf:storage-backend`) that runs the existing harness against SQLite and PostgreSQL and publishes a single markdown delta report (`apps/web/scripts/perf-storage-backend-compare.ts`).
-- ✅ Added Sprint 6 benchmark report scaffold with execution/artifact details (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`).
-- ⏳ Live PostgreSQL execution still pending a configured `HUMANONLY_POSTGRES_URL` on the current host.
+## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
+- ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
+- ✅ Added shared benchmark reporting domain utilities + regression tests for compare math/report rendering (`apps/web/src/lib/storage-backend-benchmark.ts`, `apps/web/src/lib/storage-backend-benchmark.test.ts`).
+- ✅ Executed live SQLite-vs-Postgres benchmark and published validated deltas/artifacts (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`).
+- ✅ Locked production audit-mode governance policy in code: default remains `sync`; production `async` now requires explicit human approval flag `HUMANONLY_AUDIT_ASYNC_APPROVED=1` (+ optional approval reference) (`apps/web/src/lib/write-path.ts`, `apps/web/src/lib/write-path.test.ts`).
+- ✅ Hardened Postgres persistence semantics by serializing adapter flushes with snapshot-at-invocation safety to prevent deadlocks under concurrent writes (`apps/web/src/lib/storage/postgres.ts`, `apps/web/src/lib/storage/postgres.test.ts`).
 
 ## Sprint 2 progress
 - ✅ Added trust scoring v1 baseline domain model (`apps/web/src/lib/trust.ts`) with transparent rationale events.
@@ -74,7 +76,8 @@
 - [x] Add async-safe audit write mode toggle
 - [x] Run sustained + pressure benchmark comparing `HUMANONLY_AUDIT_WRITE_MODE=sync` vs `async` and publish deltas
 - [x] Add SQLite-vs-Postgres harness comparison automation + report scaffold
-- [ ] Execute SQLite-vs-Postgres benchmark with live PostgreSQL and publish validated deltas
+- [x] Execute SQLite-vs-Postgres benchmark with live PostgreSQL and publish validated deltas
+- [x] Decide default production audit mode policy with rollout/rollback guardrails
 
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)

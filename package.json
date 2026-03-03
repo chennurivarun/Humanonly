@@ -12,8 +12,8 @@
     "typecheck": "npm run typecheck -w apps/web",
     "test": "npm run test -w apps/web",
     "seed": "npm run seed -w apps/web",
-    "perf:harness": "npm run perf:harness -w apps/web",
-    "perf:audit-mode": "npm run perf:audit-mode -w apps/web",
-    "perf:storage-backend": "npm run perf:storage-backend -w apps/web"
+    "perf:harness": "npm run perf:harness -w apps/web --",
+    "perf:audit-mode": "npm run perf:audit-mode -w apps/web --",
+    "perf:storage-backend": "npm run perf:storage-backend -w apps/web --"
   }
 }

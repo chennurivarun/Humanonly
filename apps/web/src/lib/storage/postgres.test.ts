@@ -480,6 +480,35 @@ describe("PostgresStorageAdapter.flush", () => {
     }
   });
 
+  it("captures a snapshot at flush invocation time", async () => {
+    const pool = makePool();
+    const adapter = new PostgresStorageAdapter(castPool(pool));
+    const store = buildStore();
+
+    const flushPromise = adapter.flush(store);
+
+    store.users[0]!.handle = "mutated-after-flush";
+    store.posts[0]!.body = "mutated-after-flush";
+
+    await flushPromise;
+
+    const userInsert = pool.log.find(
+      (entry) =>
+        entry.text.toUpperCase().startsWith("INSERT") &&
+        entry.text.toLowerCase().includes("into users")
+    );
+    const postInsert = pool.log.find(
+      (entry) =>
+        entry.text.toUpperCase().startsWith("INSERT") &&
+        entry.text.toLowerCase().includes("into posts")
+    );
+
+    assert.ok(userInsert, "inserted user row");
+    assert.ok(postInsert, "inserted post row");
+    assert.equal((userInsert.values as unknown[])[1], "alice");
+    assert.equal((postInsert.values as unknown[])[2], "Hello world");
+  });
+
   it("passes keepIds array to DELETE via parameterized query", async () => {
     const pool = makePool();
     const adapter = new PostgresStorageAdapter(castPool(pool));

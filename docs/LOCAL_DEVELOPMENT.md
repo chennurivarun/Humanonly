@@ -26,6 +26,9 @@ HUMANONLY_STORAGE_BACKEND=sqlite
 HUMANONLY_DB_FILE=.data/store.db
 HUMANONLY_AUDIT_LOG_FILE=.data/audit-log.jsonl
 HUMANONLY_AUDIT_WRITE_MODE=sync
+# Production guardrail: required only if enabling async audit mode in production
+HUMANONLY_AUDIT_ASYNC_APPROVED=0
+HUMANONLY_AUDIT_ASYNC_APPROVAL_REF=
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 ```
@@ -37,6 +40,8 @@ HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
 - `HUMANONLY_AUDIT_WRITE_MODE` — `sync` (default, request waits for audit fs append) or `async` (fire-and-log mode for pressure/perf testing).
+- `HUMANONLY_AUDIT_ASYNC_APPROVED` — production guardrail flag. If `NODE_ENV=production` and async mode is requested, this must be `1` or the runtime forces `sync`.
+- `HUMANONLY_AUDIT_ASYNC_APPROVAL_REF` — optional human approval/change-ticket reference for async mode governance traceability.
 - `HUMANONLY_IDENTITY_ASSURANCE_SECRET` — optional signing secret for onboarding challenge tokens (defaults to `NEXTAUTH_SECRET`).
 
 **New-environment default:** SQLite is created at `HUMANONLY_DB_FILE` on first run. If the DB is empty and `HUMANONLY_SEED_FILE` is configured, seed data is loaded into SQLite automatically.
@@ -75,9 +80,13 @@ npm run perf:harness -w apps/web -- --audit-mode=sync
 npm run perf:audit-mode -w apps/web -- \
   --markdown-output=docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md \
   --json-output=.tmp/perf-compare/audit-mode.json
+
+# SQLite vs PostgreSQL comparison (auto-starts embedded Postgres if URL not set)
+npm run perf:storage-backend -- \
+  --markdown-output=docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md
 ```
 
-This executes baseline/sustained/pressure load profiles with deterministic fixtures and writes a reproducible compare report for governance review.
+This executes baseline/sustained/pressure load profiles with deterministic fixtures and writes reproducible compare reports for governance review.
 
 ## UI + API walkthrough (Sprint 4)
 
