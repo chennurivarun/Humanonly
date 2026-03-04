@@ -43,7 +43,7 @@
 - [x] Implement enhanced moderation tooling (priority queue + SLA view + one-click action handoffs)
 - [x] Scale-out performance testing (baseline load profile + bottleneck report)
 
-## Sprint 6 (Active)
+## Sprint 6
 - [x] Plan Sprint 6 write-path optimization follow-through scope
 - [x] Add phase-level write-path instrumentation (validation/domain/persist/audit) to post/report writes
 - [x] Add async-safe audit write mode toggle (`HUMANONLY_AUDIT_WRITE_MODE=async`) for pressure scenarios
@@ -56,6 +56,12 @@
 - [x] Validate incremental persistence behavior under managed-production profile (pool policy + network RTT simulation) and publish benchmark evidence (`npm run perf:postgres-managed`, `docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`).
 - [x] Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
 - [x] Integrate governed SQLite→Postgres cutover + incremental validation scripts into production release automation cadence (scheduled plan/apply/verify evidence collection via `.github/workflows/release-governance-cadence.yml`).
+
+## Sprint 7 (Active)
+- [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs) against current trunk before pre-go-live work.
+- [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off.
+- [ ] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields.
+- [ ] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture.
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).

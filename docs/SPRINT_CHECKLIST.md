@@ -13,6 +13,11 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 kickoff — MVP baseline revalidation + pre-go-live sequencing)
+- ✅ Re-validated that the MVP baseline remains in-place on trunk: runnable Next.js app scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs on enforcement-sensitive flows.
+- ✅ Transitioned tracker state from Sprint 6 active to Sprint 7 active and captured pre-go-live priorities in roadmap/checklist docs (`ROADMAP.md`, `docs/ROADMAP.md`, `docs/SPRINT_CHECKLIST.md`).
+- ✅ Updated immediate next actions to focus on managed-endpoint cadence evidence + release sign-off packaging.
+
 ## Latest run summary (Sprint 6 — Postgres production pooling + governed cutover automation)
 - ✅ Finalized production-ready Postgres pool policy (size/timeouts/max-uses/TLS mode) with explicit production guardrail: `ssl=disable` requires human approval flag, otherwise runtime forces `ssl=require` (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/src/lib/postgres-pool.test.ts`).
 - ✅ Updated `PostgresStorageAdapter` to consume resolved pool policy and added explicit `close()` lifecycle for script-safe operations (`apps/web/src/lib/storage/postgres.ts`).
@@ -51,8 +56,8 @@
 - ✅ Updated roadmap trackers to close the final Sprint 6 unfinished milestone (`ROADMAP.md`, `docs/ROADMAP.md`).
 
 ## Next actions
-1. Point cadence workflow to designated managed production-like Postgres target for pre-go-live rehearsal (via environment/repository secret strategy).
-2. Archive cadence run artifact URLs in the change-management ticket template for release sign-off traceability.
+1. Execute the release-governance cadence workflow against the designated managed production-like Postgres target and retain artifact URLs.
+2. Publish/attach a release-ticket evidence bundle template containing cadence artifact links, approval refs, and owner sign-offs.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -96,6 +101,12 @@
 - ✅ Added cross-mode compare automation that runs sync+async harness passes and publishes delta tables as JSON/Markdown artifacts (`apps/web/scripts/perf-audit-mode-compare.ts`, `package.json`, `apps/web/package.json`).
 - ✅ Added regression coverage for queued async audit flushing (`apps/web/src/lib/audit.test.ts`).
 - ✅ Executed sync-vs-async benchmark under baseline/sustained/pressure load and published reproducible results with governance guardrails (`docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`).
+
+## Sprint 7 checklist
+- [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs)
+- [ ] Execute release-governance cadence against designated managed Postgres target
+- [ ] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
+- [ ] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence
 
 ## Sprint 6 checklist
 - [x] Plan Sprint 6 write-path optimization follow-through scope
