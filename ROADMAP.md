@@ -51,6 +51,7 @@
 - [x] Add SQLite-vs-Postgres benchmark automation script + report template (`npm run perf:storage-backend`, `apps/web/scripts/perf-storage-backend-compare.ts`)
 - [x] Execute same harness on PostgreSQL backend and publish SQLite-vs-Postgres deltas (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`, embedded live Postgres run)
 - [x] Decide default production audit mode policy with rollout/rollback guardrails (default `sync`; production `async` now requires explicit `HUMANONLY_AUDIT_ASYNC_APPROVED=1` + optional approval reference)
+- [x] Optimize PostgreSQL persistence path by replacing repeated full-snapshot rewrites with incremental diff-based flushes after baseline sync (`apps/web/src/lib/storage/postgres.ts`)
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).

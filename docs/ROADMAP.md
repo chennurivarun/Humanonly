@@ -32,4 +32,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Added SQLite-vs-Postgres benchmark automation script and report template (`npm run perf:storage-backend`, `apps/web/scripts/perf-storage-backend-compare.ts`, `docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`)
 - ✅ Executed live SQLite-vs-Postgres benchmark run and published validated deltas (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`, embedded live PostgreSQL runtime)
 - ✅ Locked production audit-mode policy with governance guardrails (default `sync`; production `async` requires explicit `HUMANONLY_AUDIT_ASYNC_APPROVED=1`)
-- 🔜 Next highest-priority unfinished milestone: optimize PostgreSQL write persistence path (snapshot flush strategy) before scale-out rollout
+- ✅ PostgreSQL write persistence path optimized: adapter now applies incremental diffs after baseline flush, reducing per-write amplification versus full-snapshot rewrites (`apps/web/src/lib/storage/postgres.ts`).
+- 🔜 Next highest-priority unfinished milestone: validate incremental persistence on managed Postgres infra and finalize production pooling/cutover defaults.

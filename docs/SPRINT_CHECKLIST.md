@@ -13,6 +13,11 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 6 — PostgreSQL incremental persistence optimization)
+- ✅ Optimized `PostgresStorageAdapter.flush()` to use incremental diffs after initial baseline flush (only changed/new rows upserted, removed IDs deleted), avoiding full-snapshot write churn on every request (`apps/web/src/lib/storage/postgres.ts`).
+- ✅ Preserved FK-safe ordering and transactional guarantees while reducing write amplification in sustained load scenarios.
+- ✅ Added focused regression tests for incremental behavior and no-op flushes (`apps/web/src/lib/storage/postgres.test.ts`).
+
 ## Latest run summary (Sprint 4 — Incident Packet + Postgres CI)
 - ✅ Added governance-ready incident packet export domain + endpoint (`apps/web/src/lib/incident/packet.ts`, `apps/web/src/app/api/admin/incident/[incidentId]/packet/route.ts`).
 - ✅ Packet payload now includes lifecycle timeline, immutable audit references, and governance rationale assertions.
@@ -23,9 +28,9 @@
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
-1. Optimize PostgreSQL persistence strategy (full-snapshot flush currently bottlenecks write throughput under sustained/pressure load).
-2. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) before scale-out rollout.
-3. Finalize multi-instance connection pooling defaults + cutover automation sequencing for production rollout.
+1. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) with incremental flush enabled.
+2. Finalize multi-instance connection pooling defaults + cutover automation sequencing for production rollout.
+3. Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).

@@ -245,6 +245,26 @@ function cloneStoreSnapshot(store: GovernedStore): GovernedStore {
   };
 }
 
+type SnapshotIndex = {
+  users: Map<string, string>;
+  posts: Map<string, string>;
+  reports: Map<string, string>;
+  appeals: Map<string, string>;
+};
+
+function fingerprint(value: unknown): string {
+  return JSON.stringify(value);
+}
+
+function indexSnapshot(snapshot: GovernedStore): SnapshotIndex {
+  return {
+    users: new Map(snapshot.users.map((user) => [user.id, fingerprint(user)])),
+    posts: new Map(snapshot.posts.map((post) => [post.id, fingerprint(post)])),
+    reports: new Map(snapshot.reports.map((report) => [report.id, fingerprint(report)])),
+    appeals: new Map(snapshot.appeals.map((appeal) => [appeal.id, fingerprint(appeal)]))
+  };
+}
+
 // ── PostgresStorageAdapter ────────────────────────────────────────────────────
 
 /**
@@ -268,6 +288,7 @@ function cloneStoreSnapshot(store: GovernedStore): GovernedStore {
 export class PostgresStorageAdapter implements StorageAdapter {
   private readonly pool: Pool;
   private flushQueue: Promise<void> = Promise.resolve();
+  private lastPersistedSnapshot?: SnapshotIndex;
 
   /**
    * @param pool Optional pg.Pool to use. If omitted, a pool is created from
@@ -328,6 +349,44 @@ export class PostgresStorageAdapter implements StorageAdapter {
     const snapshot = cloneStoreSnapshot(store);
 
     return this.enqueueFlush(async () => {
+      const currentIndex = indexSnapshot(snapshot);
+      const previousIndex = this.lastPersistedSnapshot;
+      const hasBaseline = !!previousIndex;
+
+      const removedIds = {
+        users: hasBaseline
+          ? [...(previousIndex?.users.keys() ?? [])].filter((id) => !currentIndex.users.has(id))
+          : [],
+        posts: hasBaseline
+          ? [...(previousIndex?.posts.keys() ?? [])].filter((id) => !currentIndex.posts.has(id))
+          : [],
+        reports: hasBaseline
+          ? [...(previousIndex?.reports.keys() ?? [])].filter((id) => !currentIndex.reports.has(id))
+          : [],
+        appeals: hasBaseline
+          ? [...(previousIndex?.appeals.keys() ?? [])].filter((id) => !currentIndex.appeals.has(id))
+          : []
+      };
+
+      const changed = {
+        users: hasBaseline
+          ? snapshot.users.filter((user) => previousIndex?.users.get(user.id) !== currentIndex.users.get(user.id))
+          : snapshot.users,
+        posts: hasBaseline
+          ? snapshot.posts.filter((post) => previousIndex?.posts.get(post.id) !== currentIndex.posts.get(post.id))
+          : snapshot.posts,
+        reports: hasBaseline
+          ? snapshot.reports.filter(
+              (report) => previousIndex?.reports.get(report.id) !== currentIndex.reports.get(report.id)
+            )
+          : snapshot.reports,
+        appeals: hasBaseline
+          ? snapshot.appeals.filter(
+              (appeal) => previousIndex?.appeals.get(appeal.id) !== currentIndex.appeals.get(appeal.id)
+            )
+          : snapshot.appeals
+      };
+
       const keepUserIds = snapshot.users.map((u) => u.id);
       const keepPostIds = snapshot.posts.map((p) => p.id);
       const keepReportIds = snapshot.reports.map((r) => r.id);
@@ -338,27 +397,29 @@ export class PostgresStorageAdapter implements StorageAdapter {
         await client.query("BEGIN");
 
         // ── Delete removed records (children first) ───────────────────────────
-
-        await client.query(
-          "DELETE FROM appeals WHERE id != ALL($1::text[])",
-          [keepAppealIds]
-        );
-        await client.query(
-          "DELETE FROM reports WHERE id != ALL($1::text[])",
-          [keepReportIds]
-        );
-        await client.query(
-          "DELETE FROM posts WHERE id != ALL($1::text[])",
-          [keepPostIds]
-        );
-        await client.query(
-          "DELETE FROM users WHERE id != ALL($1::text[])",
-          [keepUserIds]
-        );
+        if (!hasBaseline) {
+          await client.query("DELETE FROM appeals WHERE id != ALL($1::text[])", [keepAppealIds]);
+          await client.query("DELETE FROM reports WHERE id != ALL($1::text[])", [keepReportIds]);
+          await client.query("DELETE FROM posts WHERE id != ALL($1::text[])", [keepPostIds]);
+          await client.query("DELETE FROM users WHERE id != ALL($1::text[])", [keepUserIds]);
+        } else {
+          if (removedIds.appeals.length > 0) {
+            await client.query("DELETE FROM appeals WHERE id = ANY($1::text[])", [removedIds.appeals]);
+          }
+          if (removedIds.reports.length > 0) {
+            await client.query("DELETE FROM reports WHERE id = ANY($1::text[])", [removedIds.reports]);
+          }
+          if (removedIds.posts.length > 0) {
+            await client.query("DELETE FROM posts WHERE id = ANY($1::text[])", [removedIds.posts]);
+          }
+          if (removedIds.users.length > 0) {
+            await client.query("DELETE FROM users WHERE id = ANY($1::text[])", [removedIds.users]);
+          }
+        }
 
         // ── Upsert current records (parents first) ────────────────────────────
 
-        for (const user of snapshot.users) {
+        for (const user of changed.users) {
           await client.query(
             `INSERT INTO users
              (id, handle, display_name, role, governance_accepted_at, human_verified_at,
@@ -394,7 +455,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
           );
         }
 
-        for (const post of snapshot.posts) {
+        for (const post of changed.posts) {
           await client.query(
             `INSERT INTO posts (id, author_id, body, created_at)
            VALUES ($1, $2, $3, $4)
@@ -406,7 +467,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
           );
         }
 
-        for (const report of snapshot.reports) {
+        for (const report of changed.reports) {
           await client.query(
             `INSERT INTO reports (id, post_id, reporter_id, reason, status, created_at)
            VALUES ($1, $2, $3, $4, $5, $6)
@@ -427,7 +488,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
           );
         }
 
-        for (const appeal of snapshot.appeals) {
+        for (const appeal of changed.appeals) {
           await client.query(
             `INSERT INTO appeals
              (id, report_id, appellant_id, reason, status, appealed_audit_record_id,
@@ -461,6 +522,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
         }
 
         await client.query("COMMIT");
+        this.lastPersistedSnapshot = currentIndex;
       } catch (err) {
         await client.query("ROLLBACK");
         throw err;

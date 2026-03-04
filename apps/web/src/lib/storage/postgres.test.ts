@@ -606,6 +606,54 @@ describe("PostgresStorageAdapter.flush", () => {
     const texts = pool.log.map((e) => e.text);
     assert.ok(texts.includes("COMMIT"));
   });
+
+  it("uses incremental upserts on subsequent flushes", async () => {
+    const pool = makePool();
+    const adapter = new PostgresStorageAdapter(castPool(pool));
+
+    const initial = buildStore();
+    await adapter.flush(initial);
+    const firstFlushQueryCount = pool.log.length;
+
+    const nextStore = buildStore({
+      posts: [makePost({ body: "Updated body" })]
+    });
+
+    await adapter.flush(nextStore);
+
+    const secondFlush = pool.log.slice(firstFlushQueryCount);
+    const secondInsertTables = secondFlush
+      .filter((entry) => entry.text.toUpperCase().startsWith("INSERT"))
+      .map((entry) => {
+        const match = entry.text.match(/INTO\s+(\w+)/i);
+        return match?.[1] ?? "";
+      });
+
+    assert.deepEqual(secondInsertTables, ["posts"]);
+    assert.ok(secondFlush.some((entry) => entry.text === "BEGIN"));
+    assert.ok(secondFlush.some((entry) => entry.text === "COMMIT"));
+  });
+
+  it("avoids delete/upsert work when snapshot is unchanged", async () => {
+    const pool = makePool();
+    const adapter = new PostgresStorageAdapter(castPool(pool));
+    const store = buildStore();
+
+    await adapter.flush(store);
+    const firstFlushQueryCount = pool.log.length;
+
+    await adapter.flush(store);
+
+    const secondFlush = pool.log.slice(firstFlushQueryCount);
+    const mutatingQueries = secondFlush.filter((entry) => {
+      const upper = entry.text.toUpperCase();
+      return upper.startsWith("DELETE") || upper.startsWith("INSERT");
+    });
+
+    assert.equal(mutatingQueries.length, 0);
+    assert.ok(secondFlush.some((entry) => entry.text === "BEGIN"));
+    assert.ok(secondFlush.some((entry) => entry.text === "COMMIT"));
+  });
 });
 
 // ── healthCheck ───────────────────────────────────────────────────────────────
