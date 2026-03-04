@@ -39,4 +39,4 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Next highest-priority milestone completed: integrated governed cutover + incremental validation scripts into a scheduled production release automation cadence (`.github/workflows/release-governance-cadence.yml`) with deterministic evidence artifact upload.
 - ✅ Sprint 7 kickoff completed: re-verified MVP baseline readiness (runnable Next.js app scaffold, posts/feed/reports APIs, audit stubs) before pre-go-live rehearsal work.
 - ✅ Sprint 7 release-ticket evidence bundle template + generator delivered (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/src/lib/release-governance-evidence.ts`, `apps/web/scripts/release-evidence-bundle.ts`).
-- ⏳ Next highest-priority milestone: execute release-governance cadence against designated managed Postgres endpoint and archive evidence links for release sign-off.
+- ⏳ Next highest-priority milestone: finalize managed-endpoint cadence execution by wiring `HUMANONLY_MANAGED_POSTGRES_URL` secret and re-running release governance without URL override (latest managed-profile run: `#22682903331`, evidence archived in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`).

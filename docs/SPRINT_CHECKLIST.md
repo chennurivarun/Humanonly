@@ -13,6 +13,12 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — cadence execution evidence archive)
+- ✅ Executed release-governance cadence workflow in managed profile with explicit human approval reference (`CHANGE-2026-03-04-RELEASE-CADENCE`) and captured run metadata (`https://github.com/chennurivarun/Humanonly/actions/runs/22682903331`).
+- ✅ Archived cadence artifact URL + approval reference into the release evidence bundle (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, artifact `https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499`).
+- ✅ Refreshed managed-profile incremental validation report from cadence artifacts (`docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`).
+- ⚠️ Remaining gate: designate `HUMANONLY_MANAGED_POSTGRES_URL` secret and re-run cadence without URL override to close managed-endpoint sign-off.
+
 ## Latest run summary (Sprint 7 — release-ticket evidence bundle template + generator)
 - ✅ Added a typed release evidence domain with explicit governance-gate evaluation and deterministic markdown rendering for release sign-off packets (`apps/web/src/lib/release-governance-evidence.ts`).
 - ✅ Added regression coverage for gate evaluation, artifact rendering, and owner fallback handling (`apps/web/src/lib/release-governance-evidence.test.ts`).
@@ -63,8 +69,8 @@
 - ✅ Updated roadmap trackers to close the final Sprint 6 unfinished milestone (`ROADMAP.md`, `docs/ROADMAP.md`).
 
 ## Next actions
-1. Execute the release-governance cadence workflow against the designated managed production-like Postgres target and retain artifact URLs.
-2. Archive cadence artifact URLs + approval refs in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` and complete owner sign-offs.
+1. Configure repository secret `HUMANONLY_MANAGED_POSTGRES_URL` and re-run cadence without `postgres_url` override.
+2. Capture refreshed managed-endpoint artifact URL in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` and complete owner sign-offs.
 3. Complete pre-go-live rehearsal using the Sprint 3 runbook with incident/escalation timing evidence.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
@@ -113,8 +119,8 @@
 ## Sprint 7 checklist
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs)
 - [x] Publish release-ticket evidence bundle template + generation tooling
-- [ ] Execute release-governance cadence against designated managed Postgres target
-- [ ] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
+- [ ] Execute release-governance cadence against designated managed Postgres target (managed-profile run `#22682903331` complete via explicit URL override; awaiting designated secret-backed endpoint run)
+- [x] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
 - [ ] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence
 
 ## Sprint 6 checklist

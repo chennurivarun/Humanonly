@@ -59,7 +59,7 @@
 
 ## Sprint 7 (Active)
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs) against current trunk before pre-go-live work.
-- [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off.
+- [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off (latest run: `#22682903331` with managed-profile override; finalize after `HUMANONLY_MANAGED_POSTGRES_URL` secret is designated).
 - [x] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`).
 - [ ] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture.
 
