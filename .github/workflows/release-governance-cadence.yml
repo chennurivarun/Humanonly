@@ -1,0 +1,92 @@
+name: Release Governance Cadence
+
+on:
+  workflow_dispatch:
+    inputs:
+      human_approval_ref:
+        description: "Change ticket / approval reference used in governance evidence"
+        required: false
+        type: string
+      simulated_latency_ms:
+        description: "Simulated managed-network RTT latency (ms)"
+        required: false
+        default: "12"
+        type: string
+  schedule:
+    - cron: "30 3 * * 3"
+
+jobs:
+  release-governance-cadence:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: humanonly
+          POSTGRES_PASSWORD: humanonly
+          POSTGRES_DB: humanonly_release
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U humanonly -d humanonly_release"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      HUMANONLY_POSTGRES_URL: postgresql://humanonly:humanonly@localhost:5432/humanonly_release
+      HUMANONLY_APPROVAL_REF: ${{ github.event.inputs.human_approval_ref || format('AUTO-CADENCE-{0}', github.run_id) }}
+      HUMANONLY_SIMULATED_LATENCY_MS: ${{ github.event.inputs.simulated_latency_ms || '12' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Seed baseline SQLite snapshot
+        run: npm run seed
+
+      - name: Generate governed cutover plan evidence
+        run: |
+          npm run db:cutover:postgres -- --action=plan \
+            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --output=.tmp/release-cadence/cutover-plan.json
+
+      - name: Apply governed cutover in ephemeral release DB
+        run: |
+          npm run db:cutover:postgres -- --action=apply --execute \
+            --human-approval-ref="$HUMANONLY_APPROVAL_REF" \
+            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --output=.tmp/release-cadence/cutover-apply.json
+
+      - name: Verify governed cutover parity
+        run: |
+          npm run db:cutover:postgres -- --action=verify \
+            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --output=.tmp/release-cadence/cutover-verify.json
+
+      - name: Run managed-profile incremental validation
+        run: |
+          npm run perf:postgres-managed -- --execute \
+            --human-approval-ref="$HUMANONLY_APPROVAL_REF" \
+            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --simulated-latency-ms="$HUMANONLY_SIMULATED_LATENCY_MS" \
+            --json-output=.tmp/release-cadence/perf-postgres-managed.json \
+            --markdown-output=docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
+
+      - name: Upload governance evidence artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-governance-cadence-${{ github.run_id }}
+          path: |
+            .tmp/release-cadence/*.json
+            docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md

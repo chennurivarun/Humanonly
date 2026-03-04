@@ -45,9 +45,14 @@
 - ✅ Executed validation run under production-like pool policy + simulated RTT and published benchmark evidence (`docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`).
 - ✅ Observed sustained incremental gains versus forced full reconcile on identical mutation workload (avg latency -99.2%, p95 -98.9%, mutating SQL -99.5%).
 
+## Latest run summary (Sprint 6 — release governance automation cadence)
+- ✅ Added scheduled/manual release governance workflow that seeds baseline data, runs governed cutover `plan/apply/verify`, runs managed-profile incremental validation, and uploads deterministic JSON evidence artifacts (`.github/workflows/release-governance-cadence.yml`).
+- ✅ Wired workflow dispatch inputs for explicit approval references and managed-latency simulation while preserving weekly scheduled cadence.
+- ✅ Updated roadmap trackers to close the final Sprint 6 unfinished milestone (`ROADMAP.md`, `docs/ROADMAP.md`).
+
 ## Next actions
-1. Wire `db:cutover:postgres` + `perf:postgres-managed` into production release automation cadence (scheduled plan/apply/verify + validation evidence capture).
-2. Execute `perf:postgres-managed` against the designated managed production-like endpoint before go-live and archive the JSON evidence report under the change ticket.
+1. Point cadence workflow to designated managed production-like Postgres target for pre-go-live rehearsal (via environment/repository secret strategy).
+2. Archive cadence run artifact URLs in the change-management ticket template for release sign-off traceability.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).

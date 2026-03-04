@@ -55,7 +55,7 @@
 - [x] Finalize multi-instance Postgres pooling defaults + governed SQLite→Postgres cutover automation (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/scripts/postgres-cutover.ts`, `infra/postgres/deployment.md`)
 - [x] Validate incremental persistence behavior under managed-production profile (pool policy + network RTT simulation) and publish benchmark evidence (`npm run perf:postgres-managed`, `docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`).
 - [x] Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
-- [ ] Integrate governed SQLite→Postgres cutover + incremental validation scripts into production release automation cadence (scheduled plan/apply/verify evidence collection).
+- [x] Integrate governed SQLite→Postgres cutover + incremental validation scripts into production release automation cadence (scheduled plan/apply/verify evidence collection via `.github/workflows/release-governance-cadence.yml`).
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).
