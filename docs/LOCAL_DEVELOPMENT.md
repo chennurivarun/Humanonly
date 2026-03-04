@@ -31,11 +31,29 @@ HUMANONLY_AUDIT_ASYNC_APPROVED=0
 HUMANONLY_AUDIT_ASYNC_APPROVAL_REF=
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
+# Postgres pooling defaults (used only when HUMANONLY_STORAGE_BACKEND=postgres)
+HUMANONLY_POSTGRES_POOL_SIZE=20
+HUMANONLY_POSTGRES_IDLE_TIMEOUT_MS=10000
+HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_MAX_USES=0
+# TLS policy: require|prefer|disable (production disable requires HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=1)
+HUMANONLY_POSTGRES_SSL_MODE=require
+HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=0
 ```
 
 - `HUMANONLY_STORAGE_BACKEND` — `sqlite` (default), `json-snapshot` (legacy compat), or `postgres` (scale-out runtime backend).
 - `HUMANONLY_DB_FILE` — path to the SQLite database (default: `.data/store.db`).
 - `HUMANONLY_POSTGRES_URL` — Postgres connection URL used when `HUMANONLY_STORAGE_BACKEND=postgres`.
+- `HUMANONLY_POSTGRES_POOL_SIZE` — max pooled connections per app instance (default `20`).
+- `HUMANONLY_POSTGRES_IDLE_TIMEOUT_MS` — idle-client timeout before connection recycle (default `10000`).
+- `HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS` — connection acquisition timeout (default `5000`).
+- `HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS` — DB statement timeout enforced by pg client (default `5000`).
+- `HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS` — query timeout guardrail at client layer (default `5000`).
+- `HUMANONLY_POSTGRES_MAX_USES` — max queries per pooled connection before recycle (`0` disables max-uses churn).
+- `HUMANONLY_POSTGRES_SSL_MODE` — `require` (default), `prefer`, or `disable`.
+- `HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED` — production guardrail override. Required (`1`) if `NODE_ENV=production` and ssl mode is explicitly set to `disable`.
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
 - `HUMANONLY_DATA_FILE` — path for legacy JSON snapshot backend (only needed when `HUMANONLY_STORAGE_BACKEND=json-snapshot`).
 - `HUMANONLY_AUDIT_LOG_FILE` — append-only immutable audit trail with hash chaining (always JSONL).
@@ -87,6 +105,32 @@ npm run perf:storage-backend -- \
 ```
 
 This executes baseline/sustained/pressure load profiles with deterministic fixtures and writes reproducible compare reports for governance review.
+
+## 6) PostgreSQL cutover plan/apply/verify automation
+
+```bash
+# Plan only (snapshot SQLite + optional target parity if Postgres URL is configured)
+npm run db:cutover:postgres -w apps/web -- --action=plan --output=.tmp/postgres-cutover/plan.json
+
+# Apply SQLite -> Postgres cutover (requires explicit human approval reference)
+npm run db:cutover:postgres -w apps/web -- \
+  --action=apply \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-04 \
+  --postgres-url=postgres://humanonly_user:***@managed-host:5432/humanonly_db \
+  --output=.tmp/postgres-cutover/apply.json
+
+# Verify parity post-cutover
+npm run db:cutover:postgres -w apps/web -- \
+  --action=verify \
+  --postgres-url=postgres://humanonly_user:***@managed-host:5432/humanonly_db \
+  --output=.tmp/postgres-cutover/verify.json
+```
+
+The cutover script enforces governance controls:
+- **Human-governed decisions:** apply mode requires `--human-approval-ref` + `--execute`.
+- **Auditability:** deterministic JSON report is always written.
+- **Human override:** operators can abort before apply and keep SQLite as rollback source of truth.
 
 ## UI + API walkthrough (Sprint 4)
 

@@ -2,26 +2,39 @@
 
 ## Multi-Instance Production Deployment
 
-For the Sprint 4 pilot rollout on managed infrastructure, we define the following configuration baseline.
+For Sprint 6 production hardening, this is the governed baseline for managed PostgreSQL rollouts.
 
-### 1. Connection Pooling (PgBouncer/Supabase-style)
+### 1) Connection pooling defaults (finalized)
 
-To support multi-instance horizontal scaling (Next.js/Node.js), we use **Transaction Mode** pooling.
+HumanOnly now applies explicit pool policy when `HUMANONLY_STORAGE_BACKEND=postgres`:
 
-- **Pool Size:** `20` (default per instance, adjustable via `HUMANONLY_POSTGRES_POOL_SIZE`).
-- **Mode:** `transaction` (recommended for serverless/highly-concurrent Next.js APIs).
-- **Idle Timeout:** `10s` (aggressive cleanup for transient lambda/edge runners).
-- **Max Connections:** `100` (database-level cap).
+- **Pool size (`HUMANONLY_POSTGRES_POOL_SIZE`)**: `20` per app instance
+- **Idle timeout (`HUMANONLY_POSTGRES_IDLE_TIMEOUT_MS`)**: `10000`
+- **Connection timeout (`HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS`)**: `5000`
+- **Statement timeout (`HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS`)**: `5000`
+- **Query timeout (`HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS`)**: `5000`
+- **Connection max uses (`HUMANONLY_POSTGRES_MAX_USES`)**: `0` (disabled; no forced churn)
+- **TLS mode (`HUMANONLY_POSTGRES_SSL_MODE`)**: `require` by default
 
-### 2. Managed Postgres Configuration (Standard Baseline)
+Production guardrail:
+- If `NODE_ENV=production` and SSL mode is set to `disable` **without** `HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=1`, runtime forces `ssl=require`.
 
-- **Version:** `PostgreSQL 16.x`
-- **Instance Size:** `2 vCPU / 4GB RAM` (min recommendation for pilot).
-- **Storage:** `10GB SSD` (encrypted at rest).
-- **Backup:** `Daily automated snapshot` (7-day retention).
-- **Network:** `VPC only` (or restricted allowed-IPs if public-facing).
+This preserves:
+- Human expression only
+- AI-managed operations only
+- Human-governed decisions
+- Auditability + explicit override controls
 
-### 3. Environment Variables
+### 2) Managed Postgres baseline
+
+- **Version:** PostgreSQL `16.x`
+- **Instance class (minimum):** `2 vCPU / 4GB RAM`
+- **Storage:** encrypted SSD, min `10GB`
+- **Network:** private/VPC preferred (or strict IP allow-list)
+- **Backups:** daily snapshot (>= 7-day retention)
+- **Observability:** `pg_stat_statements`, connection saturation, and lock wait dashboards
+
+### 3) Environment contract
 
 ```bash
 # Backend selection
@@ -30,14 +43,52 @@ HUMANONLY_STORAGE_BACKEND=postgres
 # Connection details
 HUMANONLY_POSTGRES_URL="postgres://humanonly_user:secure_password@postgres-host:5432/humanonly_db?sslmode=require"
 
-# Advanced pooling (optional)
+# Pooling + timeout policy
 HUMANONLY_POSTGRES_POOL_SIZE=20
-HUMANONLY_POSTGRES_STATEMENT_TIMEOUT=5000 # 5s
+HUMANONLY_POSTGRES_IDLE_TIMEOUT_MS=10000
+HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_MAX_USES=0
+HUMANONLY_POSTGRES_APPLICATION_NAME=humanonly-web
+
+# TLS policy
+HUMANONLY_POSTGRES_SSL_MODE=require
+HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=0
 ```
 
-### 4. Deployment Manifests
+### 4) Cutover automation (SQLite → Postgres)
 
-#### Docker Compose (Local/Staging Integration)
+Use governed cutover script with explicit human approval references:
+
+```bash
+# 1) Plan (no writes)
+npm run db:cutover:postgres -w apps/web -- \
+  --action=plan \
+  --postgres-url="postgres://..." \
+  --output=.tmp/postgres-cutover/plan.json
+
+# 2) Apply (requires explicit approval reference)
+npm run db:cutover:postgres -w apps/web -- \
+  --action=apply \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-04 \
+  --postgres-url="postgres://..." \
+  --output=.tmp/postgres-cutover/apply.json
+
+# 3) Verify parity after cutover
+npm run db:cutover:postgres -w apps/web -- \
+  --action=verify \
+  --postgres-url="postgres://..." \
+  --output=.tmp/postgres-cutover/verify.json
+```
+
+Governance guarantees in cutover workflow:
+- **Human-governed decisions:** apply requires `--execute` + `--human-approval-ref`
+- **Auditability:** JSON report artifact on every run
+- **Human override:** rollback remains immediate via backend switch to SQLite
+
+### 5) Docker Compose (local/staging)
 
 ```yaml
 services:
@@ -62,18 +113,8 @@ volumes:
   postgres_data:
 ```
 
-#### Kubernetes / Managed Config (Conceptual)
+## Performance tuning recommendations
 
-Use a managed DB service (AWS RDS, GCP Cloud SQL, Supabase, Neon) where possible. 
-
-- **Migration execution:** `POST /api/admin/migration/run` (audited) or `npm run db:migrate`.
-- **Secret management:** Connection strings MUST be stored in a secure secret provider (Vault, AWS Secrets Manager, etc.).
-- **SSL:** `sslmode=require` (mandatory for non-local traffic).
-
----
-
-## Performance Tuning Recommendations
-
-1. **Indexes:** Ensure parity with SQLite (`apps/web/db/postgres/schema.sql`).
-2. **Vacuum:** Enable `autovacuum` for high-volume write tables (posts, reports).
-3. **Observability:** Monitor `pg_stat_statements` for slow query identification during pilot.
+1. Keep schema/index parity with SQLite baseline (`apps/web/db/postgres/schema.sql`).
+2. Ensure autovacuum tuning for write-heavy entities (`posts`, `reports`, `appeals`).
+3. Monitor p95 write latency + pool saturation during managed rollout validation.

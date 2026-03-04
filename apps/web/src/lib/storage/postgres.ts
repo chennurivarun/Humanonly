@@ -3,6 +3,7 @@ import type { StorageAdapter, StorageHealthDetail } from "./adapter";
 import type { GovernedStore } from "@/lib/governed-store";
 import type { IdentityProfile, Post, Report, Appeal } from "@/lib/store";
 import type { IdentityAssuranceLevel, IdentityAssuranceSignal } from "@/lib/auth/assurance";
+import { resolvePostgresPoolPolicy } from "./postgres-pool";
 
 // ── Schema SQL (mirrors apps/web/db/postgres/schema.sql) ─────────────────────
 
@@ -70,8 +71,8 @@ CREATE INDEX IF NOT EXISTS idx_appeals_updated_at ON appeals(updated_at DESC);
 
 // ── Env resolution ────────────────────────────────────────────────────────────
 
-function resolvePostgresUrl(): string {
-  const url = process.env.HUMANONLY_POSTGRES_URL?.trim();
+function resolvePostgresUrl(env: Record<string, string | undefined> = process.env): string {
+  const url = env.HUMANONLY_POSTGRES_URL?.trim();
   if (!url) {
     throw new Error(
       "HUMANONLY_POSTGRES_URL must be set when HUMANONLY_STORAGE_BACKEND=postgres"
@@ -292,10 +293,20 @@ export class PostgresStorageAdapter implements StorageAdapter {
 
   /**
    * @param pool Optional pg.Pool to use. If omitted, a pool is created from
-   *   the `HUMANONLY_POSTGRES_URL` environment variable.
+   *   env (`HUMANONLY_POSTGRES_URL` + pooling/tls policy env vars).
+   * @param env Optional env map for deterministic tests.
    */
-  constructor(pool?: Pool) {
-    this.pool = pool ?? new Pool({ connectionString: resolvePostgresUrl() });
+  constructor(pool?: Pool, env: Record<string, string | undefined> = process.env) {
+    if (pool) {
+      this.pool = pool;
+      return;
+    }
+
+    const policy = resolvePostgresPoolPolicy(env);
+    this.pool = new Pool({
+      connectionString: resolvePostgresUrl(env),
+      ...policy.config
+    });
   }
 
   private enqueueFlush(task: () => Promise<void>): Promise<void> {
@@ -530,6 +541,10 @@ export class PostgresStorageAdapter implements StorageAdapter {
         client.release();
       }
     });
+  }
+
+  async close(): Promise<void> {
+    await this.pool.end();
   }
 
   async healthCheck(): Promise<StorageHealthDetail> {

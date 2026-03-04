@@ -13,6 +13,13 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 6 — Postgres production pooling + governed cutover automation)
+- ✅ Finalized production-ready Postgres pool policy (size/timeouts/max-uses/TLS mode) with explicit production guardrail: `ssl=disable` requires human approval flag, otherwise runtime forces `ssl=require` (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/src/lib/postgres-pool.test.ts`).
+- ✅ Updated `PostgresStorageAdapter` to consume resolved pool policy and added explicit `close()` lifecycle for script-safe operations (`apps/web/src/lib/storage/postgres.ts`).
+- ✅ Delivered governed SQLite→Postgres cutover automation with deterministic plan/apply/verify JSON evidence and explicit human approval gate for write actions (`apps/web/scripts/postgres-cutover.ts`, `scripts/db-migrate-sqlite-to-postgres.sh`).
+- ✅ Added parity/integrity helper domain + regression tests for deterministic fingerprinting and FK reference checks (`apps/web/src/lib/postgres-cutover.ts`, `apps/web/src/lib/postgres-cutover.test.ts`).
+- ✅ Updated deployment/local docs for finalized pooling defaults and cutover sequencing (`infra/postgres/deployment.md`, `docs/LOCAL_DEVELOPMENT.md`, `README.md`).
+
 ## Latest run summary (Sprint 6 — PostgreSQL incremental persistence optimization)
 - ✅ Optimized `PostgresStorageAdapter.flush()` to use incremental diffs after initial baseline flush (only changed/new rows upserted, removed IDs deleted), avoiding full-snapshot write churn on every request (`apps/web/src/lib/storage/postgres.ts`).
 - ✅ Preserved FK-safe ordering and transactional guarantees while reducing write amplification in sustained load scenarios.
@@ -28,9 +35,9 @@
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
 ## Next actions
-1. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) with incremental flush enabled.
-2. Finalize multi-instance connection pooling defaults + cutover automation sequencing for production rollout.
-3. Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
+1. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) with incremental flush enabled and publish evidence artifact.
+2. Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
+3. Wire managed Postgres cutover script into production runbooks/automation jobs (plan → apply → verify cadence).
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -83,6 +90,10 @@
 - [x] Add SQLite-vs-Postgres harness comparison automation + report scaffold
 - [x] Execute SQLite-vs-Postgres benchmark with live PostgreSQL and publish validated deltas
 - [x] Decide default production audit mode policy with rollout/rollback guardrails
+- [x] Finalize multi-instance Postgres pooling defaults and enforce production TLS guardrails
+- [x] Deliver governed SQLite→Postgres cutover automation (plan/apply/verify + deterministic evidence reports)
+- [ ] Validate incremental persistence behavior on managed Postgres infrastructure and publish benchmark evidence
+- [ ] Add optional periodic full-reconcile job for long-lived multi-writer Postgres drift detection
 
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)

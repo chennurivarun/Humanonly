@@ -11,7 +11,8 @@
     "seed": "tsx scripts/seed.ts",
     "perf:harness": "tsx --tsconfig tsconfig.json scripts/perf-harness.ts",
     "perf:audit-mode": "tsx --tsconfig tsconfig.json scripts/perf-audit-mode-compare.ts",
-    "perf:storage-backend": "tsx --tsconfig tsconfig.json scripts/perf-storage-backend-compare.ts"
+    "perf:storage-backend": "tsx --tsconfig tsconfig.json scripts/perf-storage-backend-compare.ts",
+    "db:cutover:postgres": "tsx --tsconfig tsconfig.json scripts/postgres-cutover.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",

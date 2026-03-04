@@ -1,48 +1,30 @@
 #!/bin/bash
 
-# HumanOnly SQLite -> PostgreSQL Migration Script (V1 Prototype)
-# 
-# Purpose: Export current SQLite-backed app state to governed snapshot, then import to Postgres.
-# Usage:
-#   1. Export snapshot: ./scripts/db-migrate-sqlite-to-postgres.sh export <sqlite_db_file> <snapshot_file>
-#   2. Import to Postgres: ./scripts/db-migrate-sqlite-to-postgres.sh import <snapshot_file> <postgres_url>
-# 
-# Prerequisites:
-#   - jq, sqlite3, psql (for direct script usage)
-#   - HumanOnly app state (governed snapshot JSON)
-# 
-# SAFETY RULE:
-# - Always backup SQLite file before execution.
-# - Always run with maintenance mode (freeze write window) during export/import.
+# HumanOnly SQLite -> PostgreSQL cutover helper
+#
+# Thin shell wrapper for the governed TypeScript cutover script.
+# Prefer this command from repo root:
+#   npm run db:cutover:postgres -- --action=plan ...
+#
+# Backward-compatible usage:
+#   ./scripts/db-migrate-sqlite-to-postgres.sh plan   [extra flags]
+#   ./scripts/db-migrate-sqlite-to-postgres.sh apply  [extra flags]
+#   ./scripts/db-migrate-sqlite-to-postgres.sh verify [extra flags]
 
-set -e
+set -euo pipefail
 
-ACTION=$1
-INPUT=$2
-OUTPUT=$3
+ACTION=${1:-}
+shift || true
 
-function show_usage() {
-    echo "Usage: $0 export <sqlite_db_file> <snapshot_file>"
-    echo "       $0 import <snapshot_file> <postgres_url>"
-    exit 1
-}
-
-if [[ -z "$ACTION" || -z "$INPUT" || -z "$OUTPUT" ]]; then
-    show_usage
+if [[ -z "$ACTION" ]]; then
+  echo "Usage: $0 <plan|apply|verify> [flags]"
+  echo "Example: $0 apply --execute --human-approval-ref=CHANGE-123 --postgres-url=postgres://..."
+  exit 1
 fi
 
-if [[ "$ACTION" == "export" ]]; then
-    echo "[MIGRATE] Exporting snapshot from SQLite: $INPUT to $OUTPUT..."
-    # Placeholder for export logic (calling the app's export API or logic)
-    # Recommended: Use 'npm run db:export' when available.
-    echo "[INFO] Snapshot export complete (placeholder)."
-elif [[ "$ACTION" == "import" ]]; then
-    echo "[MIGRATE] Importing snapshot from $INPUT into Postgres: $OUTPUT..."
-    # Placeholder for import logic
-    # Recommended: Use 'npm run db:import' when available.
-    echo "[INFO] Snapshot import complete (placeholder)."
-else
-    show_usage
+if [[ "$ACTION" != "plan" && "$ACTION" != "apply" && "$ACTION" != "verify" ]]; then
+  echo "Invalid action '$ACTION'. Expected one of: plan, apply, verify"
+  exit 1
 fi
 
-echo "[MIGRATE] Operation $ACTION completed successfully."
+npm run db:cutover:postgres -w apps/web -- --action="$ACTION" "$@"

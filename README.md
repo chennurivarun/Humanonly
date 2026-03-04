@@ -42,6 +42,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Incident packet export delivered for governance review/postmortems (`GET /api/admin/incident/:incidentId/packet`)
 - ✅ CI now validates against a real PostgreSQL service container (typecheck + tests + build)
 - ✅ Sprint 5 moderation cockpit delivered (priority queue + SLA visibility + audited one-click handoffs)
+- ✅ Production-ready Postgres pooling policy + governed SQLite→Postgres cutover automation delivered (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/scripts/postgres-cutover.ts`)
 
 ## Local Development
 ```bash
@@ -70,6 +71,15 @@ HUMANONLY_AUDIT_ASYNC_APPROVED=0
 HUMANONLY_AUDIT_ASYNC_APPROVAL_REF=
 # Optional override for signed identity challenge tokens (falls back to NEXTAUTH_SECRET)
 HUMANONLY_IDENTITY_ASSURANCE_SECRET=replace-with-long-random-secret
+# Postgres pooling + TLS policy (used when backend=postgres)
+HUMANONLY_POSTGRES_POOL_SIZE=20
+HUMANONLY_POSTGRES_IDLE_TIMEOUT_MS=10000
+HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS=5000
+HUMANONLY_POSTGRES_MAX_USES=0
+HUMANONLY_POSTGRES_SSL_MODE=require
+HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=0
 ```
 
 Any onboarded handle matching the allow-lists gets the mapped role.

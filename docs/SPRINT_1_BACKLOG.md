@@ -55,12 +55,11 @@
 - Added test coverage for cockpit ranking/SLA behavior and handoff validation/state transitions (`apps/web/src/lib/moderation-cockpit.test.ts`, `apps/web/src/lib/moderation-handoff.test.ts`).
 
 ## Remaining priorities
-1. Run Sprint 5 scale-out performance testing (posts/feed/reports baseline + stress profile) and publish bottleneck report.
-2. Define managed PostgreSQL deployment manifests + connection-pooling defaults for multi-instance production rollout.
-3. Add cutover/rollback automation scripts for SQLite -> PostgreSQL migrations.
+1. Re-run benchmark validation against managed PostgreSQL with production-like network latency + pooling and publish signed-off evidence artifacts.
+2. Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
+3. Integrate cutover plan/apply/verify script into production release automation cadence.
 
 ## Risks
 - NextAuth beta runtime remains a dependency risk until stable v5 migration.
 - Cockpit prioritization currently computes trust joins in-process; large datasets should move ranking/SLA views to SQL-backed query paths.
-- Scale-out profile has not yet been executed, so real throughput bottlenecks under pilot-grade concurrency are not yet quantified.
-- Production-grade Postgres deployment manifests + managed pooling defaults are still pending.
+- Managed-Postgres validation evidence is not yet captured from target production infrastructure (currently local/embedded benchmarks + governed tooling readiness).

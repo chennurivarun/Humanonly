@@ -29,8 +29,8 @@ PostgreSQL is the next relational backend while preserving HumanOnly governance 
 
 ## Out of scope (next slice)
 
-- Dual-write or cutover automation scripts
-- Connection pooling + managed Postgres deployment manifests
+- Dual-write rollout strategy (still future work)
+- ✅ Follow-up completed in Sprint 6: governed SQLite→Postgres cutover automation (`apps/web/scripts/postgres-cutover.ts`) and finalized pooling/deployment baseline (`infra/postgres/deployment.md`, `apps/web/src/lib/storage/postgres-pool.ts`)
 
 ## Proposed schema parity
 

@@ -33,4 +33,5 @@ See [../ROADMAP.md](../ROADMAP.md) for the canonical tracker.
 - ✅ Executed live SQLite-vs-Postgres benchmark run and published validated deltas (`docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`, embedded live PostgreSQL runtime)
 - ✅ Locked production audit-mode policy with governance guardrails (default `sync`; production `async` requires explicit `HUMANONLY_AUDIT_ASYNC_APPROVED=1`)
 - ✅ PostgreSQL write persistence path optimized: adapter now applies incremental diffs after baseline flush, reducing per-write amplification versus full-snapshot rewrites (`apps/web/src/lib/storage/postgres.ts`).
-- 🔜 Next highest-priority unfinished milestone: validate incremental persistence on managed Postgres infra and finalize production pooling/cutover defaults.
+- ✅ Next highest-priority milestone completed: finalized production Postgres pooling policy + governed SQLite→Postgres cutover automation (policy env parsing, guardrails, deterministic plan/apply/verify reports) (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/scripts/postgres-cutover.ts`, `infra/postgres/deployment.md`).
+- 🔜 Next highest-priority unfinished milestone: validate incremental persistence on managed Postgres infrastructure with production-like latency/pooling and publish evidence; then add periodic full-reconcile drift detection for multi-writer deployments.
