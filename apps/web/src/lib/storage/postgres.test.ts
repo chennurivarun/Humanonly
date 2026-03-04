@@ -654,6 +654,44 @@ describe("PostgresStorageAdapter.flush", () => {
     assert.ok(secondFlush.some((entry) => entry.text === "BEGIN"));
     assert.ok(secondFlush.some((entry) => entry.text === "COMMIT"));
   });
+
+  it("supports explicit full reconcile", async () => {
+    const pool = makePool();
+    const adapter = new PostgresStorageAdapter(castPool(pool));
+    const store = buildStore();
+
+    await adapter.flush(store);
+    const firstFlushQueryCount = pool.log.length;
+
+    await adapter.reconcileFull(store);
+
+    const secondFlush = pool.log.slice(firstFlushQueryCount);
+    const deleteQueries = secondFlush.filter((entry) => entry.text.toUpperCase().startsWith("DELETE"));
+    const insertQueries = secondFlush.filter((entry) => entry.text.toUpperCase().startsWith("INSERT"));
+
+    assert.equal(deleteQueries.length, 4);
+    assert.equal(insertQueries.length, 4);
+  });
+
+  it("runs periodic full reconcile when configured", async () => {
+    const pool = makePool();
+    const adapter = new PostgresStorageAdapter(castPool(pool), {
+      HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES: "2"
+    });
+    const store = buildStore();
+
+    await adapter.flush(store);
+    const firstFlushQueryCount = pool.log.length;
+
+    await adapter.flush(store);
+
+    const secondFlush = pool.log.slice(firstFlushQueryCount);
+    const deleteQueries = secondFlush.filter((entry) => entry.text.toUpperCase().startsWith("DELETE"));
+    const insertQueries = secondFlush.filter((entry) => entry.text.toUpperCase().startsWith("INSERT"));
+
+    assert.equal(deleteQueries.length, 4);
+    assert.equal(insertQueries.length, 4);
+  });
 });
 
 // ── healthCheck ───────────────────────────────────────────────────────────────

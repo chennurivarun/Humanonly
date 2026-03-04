@@ -34,10 +34,14 @@
 - ✅ Added automated on-call escalation drill cadence with acknowledgement SLO tracking + evidence template (`docs/SPRINT_3_PILOT_RUNBOOK.md`).
 - ✅ Validation clean: typecheck clean, all tests passing, production build successful.
 
+## Latest run summary (Sprint 6 — periodic Postgres full-reconcile drift guardrail)
+- ✅ Added optional periodic full-reconcile cadence for PostgreSQL adapter via `HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES` to trigger deterministic full-sync passes on configured flush intervals (`apps/web/src/lib/storage/postgres.ts`).
+- ✅ Added explicit reconcile entrypoint (`adapter.reconcileFull`) and regression coverage for manual + interval-triggered reconcile behavior (`apps/web/src/lib/storage/postgres.test.ts`).
+- ✅ Added governed reconcile runner script for production maintenance windows with explicit human approval ref and audit report artifact output (`apps/web/scripts/postgres-full-reconcile.ts`, `npm run db:reconcile:postgres`).
+
 ## Next actions
 1. Re-run storage benchmark on managed Postgres infrastructure (network latency + real pooling) with incremental flush enabled and publish evidence artifact.
-2. Add optional periodic full-reconcile job for drift detection in long-lived multi-writer Postgres deployments.
-3. Wire managed Postgres cutover script into production runbooks/automation jobs (plan → apply → verify cadence).
+2. Wire managed Postgres cutover script into production runbooks/automation jobs (plan → apply → verify cadence).
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -93,7 +97,7 @@
 - [x] Finalize multi-instance Postgres pooling defaults and enforce production TLS guardrails
 - [x] Deliver governed SQLite→Postgres cutover automation (plan/apply/verify + deterministic evidence reports)
 - [ ] Validate incremental persistence behavior on managed Postgres infrastructure and publish benchmark evidence
-- [ ] Add optional periodic full-reconcile job for long-lived multi-writer Postgres drift detection
+- [x] Add optional periodic full-reconcile job for long-lived multi-writer Postgres drift detection
 
 ## Sprint 5 checklist
 - [x] Define next features for phase 5 (scoped in `ROADMAP.md`)

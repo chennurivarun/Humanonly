@@ -81,6 +81,20 @@ function resolvePostgresUrl(env: Record<string, string | undefined> = process.en
   return url;
 }
 
+function resolveFullReconcileInterval(env: Record<string, string | undefined>): number {
+  const raw = env.HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES?.trim();
+  if (!raw) return 0;
+
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    throw new Error(
+      "HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES must be a non-negative integer"
+    );
+  }
+
+  return parsed;
+}
+
 // ── Row types (postgres column names differ from SQLite) ──────────────────────
 // Postgres: identity_assurance_level, identity_assurance_signals (JSONB),
 //           identity_assurance_evaluated_at
@@ -290,6 +304,8 @@ export class PostgresStorageAdapter implements StorageAdapter {
   private readonly pool: Pool;
   private flushQueue: Promise<void> = Promise.resolve();
   private lastPersistedSnapshot?: SnapshotIndex;
+  private flushInvocations = 0;
+  private readonly fullReconcileEveryNFlushes: number;
 
   /**
    * @param pool Optional pg.Pool to use. If omitted, a pool is created from
@@ -297,6 +313,8 @@ export class PostgresStorageAdapter implements StorageAdapter {
    * @param env Optional env map for deterministic tests.
    */
   constructor(pool?: Pool, env: Record<string, string | undefined> = process.env) {
+    this.fullReconcileEveryNFlushes = resolveFullReconcileInterval(env);
+
     if (pool) {
       this.pool = pool;
       return;
@@ -357,46 +375,57 @@ export class PostgresStorageAdapter implements StorageAdapter {
    * empty arrays: `!= ALL('{}')` is vacuously true → deletes all rows.
    */
   async flush(store: GovernedStore): Promise<void> {
+    this.flushInvocations += 1;
+    const shouldForceFullReconcile =
+      this.fullReconcileEveryNFlushes > 0 &&
+      this.flushInvocations % this.fullReconcileEveryNFlushes === 0;
+
+    return this.flushInternal(store, shouldForceFullReconcile);
+  }
+
+  async reconcileFull(store: GovernedStore): Promise<void> {
+    return this.flushInternal(store, true);
+  }
+
+  private async flushInternal(store: GovernedStore, forceFullReconcile: boolean): Promise<void> {
     const snapshot = cloneStoreSnapshot(store);
 
     return this.enqueueFlush(async () => {
       const currentIndex = indexSnapshot(snapshot);
       const previousIndex = this.lastPersistedSnapshot;
       const hasBaseline = !!previousIndex;
+      const fullReconcile = forceFullReconcile || !hasBaseline;
 
-      const removedIds = {
-        users: hasBaseline
-          ? [...(previousIndex?.users.keys() ?? [])].filter((id) => !currentIndex.users.has(id))
-          : [],
-        posts: hasBaseline
-          ? [...(previousIndex?.posts.keys() ?? [])].filter((id) => !currentIndex.posts.has(id))
-          : [],
-        reports: hasBaseline
-          ? [...(previousIndex?.reports.keys() ?? [])].filter((id) => !currentIndex.reports.has(id))
-          : [],
-        appeals: hasBaseline
-          ? [...(previousIndex?.appeals.keys() ?? [])].filter((id) => !currentIndex.appeals.has(id))
-          : []
-      };
+      const removedIds = fullReconcile
+        ? { users: [] as string[], posts: [] as string[], reports: [] as string[], appeals: [] as string[] }
+        : {
+            users: [...(previousIndex?.users.keys() ?? [])].filter((id) => !currentIndex.users.has(id)),
+            posts: [...(previousIndex?.posts.keys() ?? [])].filter((id) => !currentIndex.posts.has(id)),
+            reports: [...(previousIndex?.reports.keys() ?? [])].filter((id) => !currentIndex.reports.has(id)),
+            appeals: [...(previousIndex?.appeals.keys() ?? [])].filter((id) => !currentIndex.appeals.has(id))
+          };
 
-      const changed = {
-        users: hasBaseline
-          ? snapshot.users.filter((user) => previousIndex?.users.get(user.id) !== currentIndex.users.get(user.id))
-          : snapshot.users,
-        posts: hasBaseline
-          ? snapshot.posts.filter((post) => previousIndex?.posts.get(post.id) !== currentIndex.posts.get(post.id))
-          : snapshot.posts,
-        reports: hasBaseline
-          ? snapshot.reports.filter(
+      const changed = fullReconcile
+        ? {
+            users: snapshot.users,
+            posts: snapshot.posts,
+            reports: snapshot.reports,
+            appeals: snapshot.appeals
+          }
+        : {
+            users: snapshot.users.filter(
+              (user) => previousIndex?.users.get(user.id) !== currentIndex.users.get(user.id)
+            ),
+            posts: snapshot.posts.filter(
+              (post) => previousIndex?.posts.get(post.id) !== currentIndex.posts.get(post.id)
+            ),
+            reports: snapshot.reports.filter(
               (report) => previousIndex?.reports.get(report.id) !== currentIndex.reports.get(report.id)
-            )
-          : snapshot.reports,
-        appeals: hasBaseline
-          ? snapshot.appeals.filter(
+            ),
+            appeals: snapshot.appeals.filter(
               (appeal) => previousIndex?.appeals.get(appeal.id) !== currentIndex.appeals.get(appeal.id)
             )
-          : snapshot.appeals
-      };
+          };
 
       const keepUserIds = snapshot.users.map((u) => u.id);
       const keepPostIds = snapshot.posts.map((p) => p.id);
@@ -408,7 +437,7 @@ export class PostgresStorageAdapter implements StorageAdapter {
         await client.query("BEGIN");
 
         // ── Delete removed records (children first) ───────────────────────────
-        if (!hasBaseline) {
+        if (fullReconcile) {
           await client.query("DELETE FROM appeals WHERE id != ALL($1::text[])", [keepAppealIds]);
           await client.query("DELETE FROM reports WHERE id != ALL($1::text[])", [keepReportIds]);
           await client.query("DELETE FROM posts WHERE id != ALL($1::text[])", [keepPostIds]);

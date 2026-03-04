@@ -38,6 +38,8 @@ HUMANONLY_POSTGRES_CONNECTION_TIMEOUT_MS=5000
 HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS=5000
 HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS=5000
 HUMANONLY_POSTGRES_MAX_USES=0
+# Optional drift guardrail: run full reconcile every N flushes (0 disables)
+HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES=0
 # TLS policy: require|prefer|disable (production disable requires HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=1)
 HUMANONLY_POSTGRES_SSL_MODE=require
 HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=0
@@ -52,6 +54,7 @@ HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED=0
 - `HUMANONLY_POSTGRES_STATEMENT_TIMEOUT_MS` — DB statement timeout enforced by pg client (default `5000`).
 - `HUMANONLY_POSTGRES_QUERY_TIMEOUT_MS` — query timeout guardrail at client layer (default `5000`).
 - `HUMANONLY_POSTGRES_MAX_USES` — max queries per pooled connection before recycle (`0` disables max-uses churn).
+- `HUMANONLY_POSTGRES_FULL_RECONCILE_EVERY_N_FLUSHES` — optional full-sync cadence for drift guardrails (`0` disables periodic full reconcile).
 - `HUMANONLY_POSTGRES_SSL_MODE` — `require` (default), `prefer`, or `disable`.
 - `HUMANONLY_POSTGRES_SSL_DISABLE_APPROVED` — production guardrail override. Required (`1`) if `NODE_ENV=production` and ssl mode is explicitly set to `disable`.
 - `HUMANONLY_SEED_FILE` — optional JSON snapshot used for first-run bootstrap.
@@ -131,6 +134,18 @@ The cutover script enforces governance controls:
 - **Human-governed decisions:** apply mode requires `--human-approval-ref` + `--execute`.
 - **Auditability:** deterministic JSON report is always written.
 - **Human override:** operators can abort before apply and keep SQLite as rollback source of truth.
+
+### Optional periodic/full reconcile maintenance run
+
+```bash
+npm run db:reconcile:postgres -w apps/web -- \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-04 \
+  --postgres-url=postgres://humanonly_user:***@managed-host:5432/humanonly_db \
+  --output=.tmp/postgres-reconcile/report.json
+```
+
+This executes a deterministic full reconcile pass against PostgreSQL and verifies post-reconcile parity + referential integrity, writing a governance evidence report artifact.
 
 ## UI + API walkthrough (Sprint 4)
 
