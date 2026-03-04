@@ -94,20 +94,20 @@ jobs:
         run: |
           npm run db:cutover:postgres -- --action=plan \
             --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
-            --output=.tmp/release-cadence/cutover-plan.json
+            --output=../../.tmp/release-cadence/cutover-plan.json
 
       - name: Apply governed cutover
         run: |
           npm run db:cutover:postgres -- --action=apply --execute \
             --human-approval-ref="$HUMANONLY_APPROVAL_REF" \
             --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
-            --output=.tmp/release-cadence/cutover-apply.json
+            --output=../../.tmp/release-cadence/cutover-apply.json
 
       - name: Verify governed cutover parity
         run: |
           npm run db:cutover:postgres -- --action=verify \
             --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
-            --output=.tmp/release-cadence/cutover-verify.json
+            --output=../../.tmp/release-cadence/cutover-verify.json
 
       - name: Run managed-profile incremental validation
         run: |

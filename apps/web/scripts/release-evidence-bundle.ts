@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import {
   renderReleaseGovernanceEvidenceMarkdown,
@@ -79,8 +79,30 @@ function parseTargetProfile(raw: string | undefined): TargetProfile {
   return "unknown";
 }
 
+function resolveInputPath(path: string): string {
+  const cwdResolved = resolve(process.cwd(), path);
+  if (existsSync(cwdResolved)) {
+    return cwdResolved;
+  }
+
+  const repoRootResolved = resolve(process.cwd(), "..", "..", path);
+  if (existsSync(repoRootResolved)) {
+    return repoRootResolved;
+  }
+
+  return cwdResolved;
+}
+
+function resolveOutputPath(path: string): string {
+  if (path.startsWith("/")) {
+    return path;
+  }
+
+  return resolve(process.cwd(), "..", "..", path);
+}
+
 function parseJsonFile<T>(path: string): T {
-  const absolute = resolve(process.cwd(), path);
+  const absolute = resolveInputPath(path);
   const content = readFileSync(absolute, "utf8");
   return JSON.parse(content) as T;
 }
@@ -197,7 +219,7 @@ function main() {
   };
 
   const markdown = renderReleaseGovernanceEvidenceMarkdown(bundle);
-  const absoluteOutput = resolve(process.cwd(), outputPath);
+  const absoluteOutput = resolveOutputPath(outputPath);
   mkdirSync(dirname(absoluteOutput), { recursive: true });
   writeFileSync(absoluteOutput, `${markdown}\n`, "utf8");
   console.log(`[release:evidence:bundle] wrote ${absoluteOutput}`);
