@@ -88,7 +88,26 @@ Governance guarantees in cutover workflow:
 - **Auditability:** JSON report artifact on every run
 - **Human override:** rollback remains immediate via backend switch to SQLite
 
-### 5) Docker Compose (local/staging)
+### 5) Managed-profile incremental persistence validation
+
+Run this before production cutover sign-off to validate incremental flush behavior under production-like pool settings and network RTT:
+
+```bash
+npm run perf:postgres-managed -w apps/web -- \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-04 \
+  --postgres-url="postgres://..." \
+  --simulated-latency-ms=12 \
+  --json-output=.tmp/perf-postgres-managed/report.json \
+  --markdown-output=docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
+```
+
+Governance guarantees in validation workflow:
+- **Human-governed decisions:** execution requires `--execute` + `--human-approval-ref`
+- **Auditability:** raw JSON samples + markdown report emitted every run
+- **Human override:** operators can abort and keep SQLite as active backend
+
+### 6) Docker Compose (local/staging)
 
 ```yaml
 services:

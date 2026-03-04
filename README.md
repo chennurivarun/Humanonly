@@ -29,6 +29,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Write-path phase instrumentation + configurable audit write mode (`HUMANONLY_AUDIT_WRITE_MODE`)
 - ✅ Sync-vs-async audit benchmark automation + published Sprint 6 deltas (`npm run perf:audit-mode`, `docs/SPRINT_6_AUDIT_MODE_BENCHMARK.md`)
 - ✅ Live SQLite-vs-Postgres benchmark run published with reproducible artifacts (`npm run perf:storage-backend`, `docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md`)
+- ✅ Managed-profile incremental persistence validation harness + evidence report published (`npm run perf:postgres-managed`, `docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`)
 - ✅ Production audit-mode policy guardrail enforced in code (default `sync`; production `async` requires `HUMANONLY_AUDIT_ASYNC_APPROVED=1`)
 - ✅ Sprint 2 trust scoring v1 baseline API/model delivered
 - ✅ Appeals workflow + immutable moderation action log APIs delivered

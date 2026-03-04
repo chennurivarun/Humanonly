@@ -105,9 +105,16 @@ npm run perf:audit-mode -w apps/web -- \
 # SQLite vs PostgreSQL comparison (auto-starts embedded Postgres if URL not set)
 npm run perf:storage-backend -- \
   --markdown-output=docs/SPRINT_6_STORAGE_BACKEND_BENCHMARK.md
+
+# Incremental flush vs forced full-reconcile validation under managed profile
+npm run perf:postgres-managed -- \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-04 \
+  --simulated-latency-ms=12 \
+  --markdown-output=docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
 ```
 
-This executes baseline/sustained/pressure load profiles with deterministic fixtures and writes reproducible compare reports for governance review.
+This executes baseline/sustained/pressure load profiles plus managed-profile incremental validation with deterministic fixtures and reproducible governance evidence artifacts.
 
 ## 6) PostgreSQL cutover plan/apply/verify automation
 

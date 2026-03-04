@@ -12,6 +12,7 @@
     "perf:harness": "tsx --tsconfig tsconfig.json scripts/perf-harness.ts",
     "perf:audit-mode": "tsx --tsconfig tsconfig.json scripts/perf-audit-mode-compare.ts",
     "perf:storage-backend": "tsx --tsconfig tsconfig.json scripts/perf-storage-backend-compare.ts",
+    "perf:postgres-managed": "tsx --tsconfig tsconfig.json scripts/perf-postgres-incremental-managed.ts",
     "db:cutover:postgres": "tsx --tsconfig tsconfig.json scripts/postgres-cutover.ts",
     "db:reconcile:postgres": "tsx --tsconfig tsconfig.json scripts/postgres-full-reconcile.ts"
   },
