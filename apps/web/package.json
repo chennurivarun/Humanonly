@@ -13,6 +13,7 @@
     "perf:audit-mode": "tsx --tsconfig tsconfig.json scripts/perf-audit-mode-compare.ts",
     "perf:storage-backend": "tsx --tsconfig tsconfig.json scripts/perf-storage-backend-compare.ts",
     "perf:postgres-managed": "tsx --tsconfig tsconfig.json scripts/perf-postgres-incremental-managed.ts",
+    "release:evidence:bundle": "tsx --tsconfig tsconfig.json scripts/release-evidence-bundle.ts",
     "db:cutover:postgres": "tsx --tsconfig tsconfig.json scripts/postgres-cutover.ts",
     "db:reconcile:postgres": "tsx --tsconfig tsconfig.json scripts/postgres-full-reconcile.ts"
   },

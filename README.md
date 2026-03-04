@@ -44,6 +44,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ CI now validates against a real PostgreSQL service container (typecheck + tests + build)
 - ✅ Sprint 5 moderation cockpit delivered (priority queue + SLA visibility + audited one-click handoffs)
 - ✅ Production-ready Postgres pooling policy + governed SQLite→Postgres cutover automation delivered (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/scripts/postgres-cutover.ts`)
+- ✅ Sprint 7 release-ticket evidence bundle template + generator delivered (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`)
 
 ## Local Development
 ```bash

@@ -142,6 +142,23 @@ The cutover script enforces governance controls:
 - **Auditability:** deterministic JSON report is always written.
 - **Human override:** operators can abort before apply and keep SQLite as rollback source of truth.
 
+### 7) Build release-ticket evidence bundle
+
+```bash
+npm run release:evidence:bundle -w apps/web -- \
+  --run-id=123456789 \
+  --run-url=https://github.com/chennurivarun/Humanonly/actions/runs/123456789 \
+  --target-profile=managed \
+  --approval-ref=CHANGE-2026-03-04 \
+  --cutover-plan-json=.tmp/release-cadence/cutover-plan.json \
+  --cutover-apply-json=.tmp/release-cadence/cutover-apply.json \
+  --cutover-verify-json=.tmp/release-cadence/cutover-verify.json \
+  --perf-json=.tmp/release-cadence/perf-postgres-managed.json \
+  --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
+```
+
+This renders a release sign-off bundle with governance gate status, required artifact references, and owner sign-off placeholders.
+
 ### Optional periodic/full reconcile maintenance run
 
 ```bash

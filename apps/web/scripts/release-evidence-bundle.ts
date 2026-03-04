@@ -1,0 +1,220 @@
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import {
+  renderReleaseGovernanceEvidenceMarkdown,
+  type CutoverEvidenceReport,
+  type ManagedValidationEvidenceReport,
+  type ReleaseGovernanceEvidenceBundle
+} from "@/lib/release-governance-evidence";
+
+type TargetProfile = "managed" | "ephemeral" | "unknown";
+
+const DEFAULT_OUTPUT_PATH = "docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md";
+
+function parseArg(flag: string): string | undefined {
+  const idx = process.argv.findIndex((token) => token === flag || token.startsWith(`${flag}=`));
+  if (idx === -1) return undefined;
+
+  const token = process.argv[idx];
+  if (token?.includes("=")) {
+    return token.split("=").slice(1).join("=");
+  }
+
+  const next = process.argv[idx + 1];
+  return next && !next.startsWith("--") ? next : undefined;
+}
+
+function parseMultiArg(flag: string): string[] {
+  const values: string[] = [];
+  for (let idx = 0; idx < process.argv.length; idx += 1) {
+    const token = process.argv[idx];
+    if (!token) continue;
+
+    if (token === flag) {
+      const next = process.argv[idx + 1];
+      if (next && !next.startsWith("--")) {
+        values.push(next);
+      }
+      continue;
+    }
+
+    if (token.startsWith(`${flag}=`)) {
+      values.push(token.split("=").slice(1).join("="));
+    }
+  }
+
+  return values;
+}
+
+function usage(): string {
+  return [
+    "Usage:",
+    "  npm run release:evidence:bundle -w apps/web -- \\",
+    "    --cutover-plan-json=.tmp/release-cadence/cutover-plan.json \\",
+    "    --cutover-apply-json=.tmp/release-cadence/cutover-apply.json \\",
+    "    --cutover-verify-json=.tmp/release-cadence/cutover-verify.json \\",
+    "    --perf-json=.tmp/release-cadence/perf-postgres-managed.json \\",
+    "    --run-id=<github-run-id> \\",
+    "    --run-url=<https://github.com/.../actions/runs/...> \\",
+    "    --approval-ref=CHANGE-123",
+    "",
+    "Optional:",
+    `  --output=${DEFAULT_OUTPUT_PATH}`,
+    "  --target-profile=managed|ephemeral|unknown",
+    "  --release-manager=<name>",
+    "  --incident-commander=<name>",
+    "  --platform-operator=<name>",
+    "  --governance-lead=<name>",
+    "  --artifact-link=\"Cutover plan|.tmp/release-cadence/cutover-plan.json|https://...\"",
+    "  --risk=\"Managed endpoint maintenance overlaps cadence\"",
+    "  --next-action=\"Attach evidence links in release ticket\""
+  ].join("\n");
+}
+
+function parseTargetProfile(raw: string | undefined): TargetProfile {
+  const normalized = raw?.trim().toLowerCase();
+  if (normalized === "managed" || normalized === "ephemeral" || normalized === "unknown") {
+    return normalized;
+  }
+  return "unknown";
+}
+
+function parseJsonFile<T>(path: string): T {
+  const absolute = resolve(process.cwd(), path);
+  const content = readFileSync(absolute, "utf8");
+  return JSON.parse(content) as T;
+}
+
+function requiredArg(flag: string): string {
+  const value = parseArg(flag)?.trim();
+  if (!value) {
+    throw new Error(`missing required argument: ${flag}`);
+  }
+  return value;
+}
+
+function parseArtifactLinks(links: string[]) {
+  return links
+    .map((link) => link.trim())
+    .filter((link) => link.length > 0)
+    .map((link) => {
+      const [label, path, url] = link.split("|").map((item) => item?.trim() ?? "");
+      if (!label || !path) {
+        throw new Error(`invalid --artifact-link value: ${link}`);
+      }
+      return {
+        label,
+        path,
+        url: url || undefined
+      };
+    });
+}
+
+function main() {
+  const outputPath = parseArg("--output") ?? DEFAULT_OUTPUT_PATH;
+  const runId = requiredArg("--run-id");
+  const runUrl = requiredArg("--run-url");
+
+  const plan = parseJsonFile<CutoverEvidenceReport>(requiredArg("--cutover-plan-json"));
+  const apply = parseJsonFile<CutoverEvidenceReport>(requiredArg("--cutover-apply-json"));
+  const verify = parseJsonFile<CutoverEvidenceReport>(requiredArg("--cutover-verify-json"));
+  const perfRaw = parseJsonFile<{ [key: string]: unknown }>(requiredArg("--perf-json"));
+
+  const managedValidation: ManagedValidationEvidenceReport = {
+    generatedAt: String(perfRaw.generatedAt ?? new Date().toISOString()),
+    humanApprovalRef: String(perfRaw.humanApprovalRef ?? parseArg("--approval-ref") ?? "UNKNOWN"),
+    simulatedNetworkLatencyMs: Number(perfRaw.simulatedNetworkLatencyMs ?? 0),
+    postgresSource: (perfRaw.postgresSource as ManagedValidationEvidenceReport["postgresSource"]) ??
+      "embedded",
+    incremental: {
+      averageDurationMs: Number((perfRaw.incremental as { averageDurationMs?: number })?.averageDurationMs ?? 0),
+      p95DurationMs: Number((perfRaw.incremental as { p95DurationMs?: number })?.p95DurationMs ?? 0),
+      averageMutatingQueries: Number(
+        (perfRaw.incremental as { averageMutatingQueries?: number })?.averageMutatingQueries ?? 0
+      )
+    },
+    fullReconcile: {
+      averageDurationMs: Number(
+        (perfRaw.fullReconcile as { averageDurationMs?: number })?.averageDurationMs ?? 0
+      ),
+      p95DurationMs: Number((perfRaw.fullReconcile as { p95DurationMs?: number })?.p95DurationMs ?? 0),
+      averageMutatingQueries: Number(
+        (perfRaw.fullReconcile as { averageMutatingQueries?: number })?.averageMutatingQueries ?? 0
+      )
+    }
+  };
+
+  const artifactLinks = parseArtifactLinks(parseMultiArg("--artifact-link"));
+
+  const artifacts =
+    artifactLinks.length > 0
+      ? artifactLinks
+      : [
+          {
+            label: "Cutover plan evidence",
+            path: requiredArg("--cutover-plan-json")
+          },
+          {
+            label: "Cutover apply evidence",
+            path: requiredArg("--cutover-apply-json")
+          },
+          {
+            label: "Cutover verify evidence",
+            path: requiredArg("--cutover-verify-json")
+          },
+          {
+            label: "Managed incremental validation evidence",
+            path: requiredArg("--perf-json")
+          }
+        ];
+
+  const approvalRef = parseArg("--approval-ref") ?? apply.humanApprovalRef ?? managedValidation.humanApprovalRef;
+
+  const bundle: ReleaseGovernanceEvidenceBundle = {
+    generatedAt: new Date().toISOString(),
+    approvalRef,
+    cadenceRun: {
+      runId,
+      runUrl,
+      targetProfile: parseTargetProfile(parseArg("--target-profile")),
+      executedAt: parseArg("--executed-at")
+    },
+    cutover: {
+      plan,
+      apply,
+      verify
+    },
+    managedValidation,
+    artifacts,
+    owners: {
+      releaseManager: parseArg("--release-manager"),
+      incidentCommander: parseArg("--incident-commander"),
+      platformOperator: parseArg("--platform-operator"),
+      governanceLead: parseArg("--governance-lead")
+    },
+    risks: parseMultiArg("--risk"),
+    nextActions: parseMultiArg("--next-action")
+  };
+
+  const markdown = renderReleaseGovernanceEvidenceMarkdown(bundle);
+  const absoluteOutput = resolve(process.cwd(), outputPath);
+  mkdirSync(dirname(absoluteOutput), { recursive: true });
+  writeFileSync(absoluteOutput, `${markdown}\n`, "utf8");
+  console.log(`[release:evidence:bundle] wrote ${absoluteOutput}`);
+}
+
+if (process.argv.includes("--help")) {
+  console.log(usage());
+  process.exit(0);
+}
+
+try {
+  main();
+} catch (error) {
+  console.error(
+    "[release:evidence:bundle] failed",
+    error instanceof Error ? error.message : error
+  );
+  console.error(usage());
+  process.exit(1);
+}

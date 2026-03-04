@@ -60,7 +60,7 @@
 ## Sprint 7 (Active)
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs) against current trunk before pre-go-live work.
 - [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off.
-- [ ] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields.
+- [x] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`).
 - [ ] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture.
 
 ### Sprint 5 feature definition (2026-03-03)

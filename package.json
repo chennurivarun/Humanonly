@@ -16,6 +16,7 @@
     "perf:audit-mode": "npm run perf:audit-mode -w apps/web --",
     "perf:storage-backend": "npm run perf:storage-backend -w apps/web --",
     "perf:postgres-managed": "npm run perf:postgres-managed -w apps/web --",
+    "release:evidence:bundle": "npm run release:evidence:bundle -w apps/web --",
     "db:cutover:postgres": "npm run db:cutover:postgres -w apps/web --",
     "db:reconcile:postgres": "npm run db:reconcile:postgres -w apps/web --"
   }

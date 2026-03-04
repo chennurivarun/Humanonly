@@ -13,6 +13,13 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — release-ticket evidence bundle template + generator)
+- ✅ Added a typed release evidence domain with explicit governance-gate evaluation and deterministic markdown rendering for release sign-off packets (`apps/web/src/lib/release-governance-evidence.ts`).
+- ✅ Added regression coverage for gate evaluation, artifact rendering, and owner fallback handling (`apps/web/src/lib/release-governance-evidence.test.ts`).
+- ✅ Added governed bundle generation CLI for release cadence artifacts (`npm run release:evidence:bundle`, `apps/web/scripts/release-evidence-bundle.ts`).
+- ✅ Extended release-governance cadence workflow with target-profile resolution (`ephemeral|managed`) and automated evidence bundle generation (`.github/workflows/release-governance-cadence.yml`).
+- ✅ Published Sprint 7 evidence bundle template and updated operator docs (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `docs/LOCAL_DEVELOPMENT.md`, `README.md`).
+
 ## Latest run summary (Sprint 7 kickoff — MVP baseline revalidation + pre-go-live sequencing)
 - ✅ Re-validated that the MVP baseline remains in-place on trunk: runnable Next.js app scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs on enforcement-sensitive flows.
 - ✅ Transitioned tracker state from Sprint 6 active to Sprint 7 active and captured pre-go-live priorities in roadmap/checklist docs (`ROADMAP.md`, `docs/ROADMAP.md`, `docs/SPRINT_CHECKLIST.md`).
@@ -57,7 +64,8 @@
 
 ## Next actions
 1. Execute the release-governance cadence workflow against the designated managed production-like Postgres target and retain artifact URLs.
-2. Publish/attach a release-ticket evidence bundle template containing cadence artifact links, approval refs, and owner sign-offs.
+2. Archive cadence artifact URLs + approval refs in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` and complete owner sign-offs.
+3. Complete pre-go-live rehearsal using the Sprint 3 runbook with incident/escalation timing evidence.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -104,6 +112,7 @@
 
 ## Sprint 7 checklist
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs)
+- [x] Publish release-ticket evidence bundle template + generation tooling
 - [ ] Execute release-governance cadence against designated managed Postgres target
 - [ ] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
 - [ ] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence

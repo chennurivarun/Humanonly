@@ -12,6 +12,18 @@ on:
         required: false
         default: "12"
         type: string
+      target_profile:
+        description: "Cadence target profile"
+        required: false
+        default: "ephemeral"
+        type: choice
+        options:
+          - ephemeral
+          - managed
+      postgres_url:
+        description: "Managed PostgreSQL URL override (optional; otherwise uses repo secret HUMANONLY_MANAGED_POSTGRES_URL)"
+        required: false
+        type: string
   schedule:
     - cron: "30 3 * * 3"
 
@@ -36,9 +48,9 @@ jobs:
 
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      HUMANONLY_POSTGRES_URL: postgresql://humanonly:humanonly@localhost:5432/humanonly_release
       HUMANONLY_APPROVAL_REF: ${{ github.event.inputs.human_approval_ref || format('AUTO-CADENCE-{0}', github.run_id) }}
       HUMANONLY_SIMULATED_LATENCY_MS: ${{ github.event.inputs.simulated_latency_ms || '12' }}
+      HUMANONLY_RELEASE_TARGET_PROFILE: ${{ github.event.inputs.target_profile || 'ephemeral' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -52,36 +64,72 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Resolve cadence PostgreSQL target
+        id: postgres-target
+        env:
+          INPUT_POSTGRES_URL: ${{ github.event.inputs.postgres_url }}
+          SECRET_POSTGRES_URL: ${{ secrets.HUMANONLY_MANAGED_POSTGRES_URL }}
+        run: |
+          PROFILE="${HUMANONLY_RELEASE_TARGET_PROFILE}"
+          if [ "$PROFILE" = "managed" ]; then
+            TARGET_URL="${INPUT_POSTGRES_URL}"
+            if [ -z "$TARGET_URL" ]; then
+              TARGET_URL="${SECRET_POSTGRES_URL}"
+            fi
+            if [ -z "$TARGET_URL" ]; then
+              echo "Managed profile selected but no postgres URL supplied via input or HUMANONLY_MANAGED_POSTGRES_URL secret."
+              exit 1
+            fi
+          else
+            TARGET_URL="postgresql://humanonly:humanonly@localhost:5432/humanonly_release"
+          fi
+
+          echo "::add-mask::$TARGET_URL"
+          echo "resolved_url=$TARGET_URL" >> "$GITHUB_OUTPUT"
+
       - name: Seed baseline SQLite snapshot
         run: npm run seed
 
       - name: Generate governed cutover plan evidence
         run: |
           npm run db:cutover:postgres -- --action=plan \
-            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
             --output=.tmp/release-cadence/cutover-plan.json
 
-      - name: Apply governed cutover in ephemeral release DB
+      - name: Apply governed cutover
         run: |
           npm run db:cutover:postgres -- --action=apply --execute \
             --human-approval-ref="$HUMANONLY_APPROVAL_REF" \
-            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
             --output=.tmp/release-cadence/cutover-apply.json
 
       - name: Verify governed cutover parity
         run: |
           npm run db:cutover:postgres -- --action=verify \
-            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
             --output=.tmp/release-cadence/cutover-verify.json
 
       - name: Run managed-profile incremental validation
         run: |
           npm run perf:postgres-managed -- --execute \
             --human-approval-ref="$HUMANONLY_APPROVAL_REF" \
-            --postgres-url="$HUMANONLY_POSTGRES_URL" \
+            --postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
             --simulated-latency-ms="$HUMANONLY_SIMULATED_LATENCY_MS" \
             --json-output=.tmp/release-cadence/perf-postgres-managed.json \
             --markdown-output=docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
+
+      - name: Generate release evidence bundle template
+        run: |
+          npm run release:evidence:bundle -- --run-id="${{ github.run_id }}" \
+            --run-url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --executed-at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --target-profile="$HUMANONLY_RELEASE_TARGET_PROFILE" \
+            --approval-ref="$HUMANONLY_APPROVAL_REF" \
+            --cutover-plan-json=.tmp/release-cadence/cutover-plan.json \
+            --cutover-apply-json=.tmp/release-cadence/cutover-apply.json \
+            --cutover-verify-json=.tmp/release-cadence/cutover-verify.json \
+            --perf-json=.tmp/release-cadence/perf-postgres-managed.json \
+            --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
 
       - name: Upload governance evidence artifacts
         uses: actions/upload-artifact@v4
@@ -90,3 +138,4 @@ jobs:
           path: |
             .tmp/release-cadence/*.json
             docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
+            docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
