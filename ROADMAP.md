@@ -60,9 +60,9 @@
 ## Sprint 7 (Active)
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs) against current trunk before pre-go-live work.
 - [x] Re-validated MVP baseline on 2026-03-05 (autopilot continuation): runnable Next.js app scaffold + posts/feed/reports APIs + audit stubs; local typecheck/test/build all passing.
-- [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off (latest run: `#22682903331` with managed-profile override; finalize after `HUMANONLY_MANAGED_POSTGRES_URL` secret is designated).
+- [ ] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off (latest success: `#22682903331` with managed-profile override; latest secret-backed attempt `#22703213363` failed at target resolution because `HUMANONLY_MANAGED_POSTGRES_URL` is not configured).
 - [x] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`).
-- [ ] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture.
+- [x] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture (`npm run pilot:rehearsal`, `docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`).
 
 ### Sprint 5 feature definition (2026-03-03)
 - ✅ Moderation cockpit v1 delivered: unified queue endpoint/view with queue/risk/age filters, priority ranking, and SLA breach visibility (`/api/moderation/cockpit`, `app/page.tsx`).

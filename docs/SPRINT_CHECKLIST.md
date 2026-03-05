@@ -13,6 +13,12 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — pre-go-live rehearsal evidence capture, 2026-03-05)
+- ✅ Delivered deterministic pre-go-live rehearsal automation that executes governed Sev-1/Sev-2/failover acknowledgement drills, exports incident packet artifacts, and renders governance gate outcomes (`apps/web/scripts/pre-go-live-rehearsal.ts`, `apps/web/src/lib/pilot-rehearsal-evidence.ts`).
+- ✅ Added regression coverage for rehearsal timing math, gate evaluation, and markdown rendering (`apps/web/src/lib/pilot-rehearsal-evidence.test.ts`).
+- ✅ Executed rehearsal run with explicit human approval reference and published Sprint 7 report artifact (`npm run pilot:rehearsal -- --execute --human-approval-ref=CHANGE-2026-03-05-PRE-GO-LIVE`, `docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`).
+- ⚠️ Remaining gate: managed-endpoint cadence rerun still pending until `HUMANONLY_MANAGED_POSTGRES_URL` secret is designated (dispatch run `#22703213363` failed during target resolution because secret is unset).
+
 ## Latest run summary (Sprint 7 — HumanOnly autopilot phase continuation, 2026-03-05)
 - ✅ Re-validated Sprint 1 MVP baseline on current trunk: runnable Next.js app scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and audit stubs in enforcement-sensitive flows.
 - ✅ Executed verification suite end-to-end: `npm run typecheck`, `npm run test`, and `npm run build` (all passing).
@@ -77,7 +83,7 @@
 ## Next actions
 1. Configure repository secret `HUMANONLY_MANAGED_POSTGRES_URL` and re-run cadence without `postgres_url` override.
 2. Capture refreshed managed-endpoint artifact URL in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` and complete owner sign-offs.
-3. Complete pre-go-live rehearsal using the Sprint 3 runbook with incident/escalation timing evidence.
+3. Attach Sprint 7 pre-go-live rehearsal report + packet artifacts to the release ticket and collect final human sign-offs.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -127,7 +133,7 @@
 - [x] Publish release-ticket evidence bundle template + generation tooling
 - [ ] Execute release-governance cadence against designated managed Postgres target (managed-profile run `#22682903331` complete via explicit URL override; awaiting designated secret-backed endpoint run)
 - [x] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
-- [ ] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence
+- [x] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence (`docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`)
 
 ## Sprint 6 checklist
 - [x] Plan Sprint 6 write-path optimization follow-through scope

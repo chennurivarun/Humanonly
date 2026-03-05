@@ -45,6 +45,7 @@ HumanOnly restores trust in public discourse by protecting human authorship whil
 - ✅ Sprint 5 moderation cockpit delivered (priority queue + SLA visibility + audited one-click handoffs)
 - ✅ Production-ready Postgres pooling policy + governed SQLite→Postgres cutover automation delivered (`apps/web/src/lib/storage/postgres-pool.ts`, `apps/web/scripts/postgres-cutover.ts`)
 - ✅ Sprint 7 release-ticket evidence bundle template + generator delivered (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`)
+- ✅ Sprint 7 pre-go-live rehearsal automation delivered with deterministic evidence artifacts (`npm run pilot:rehearsal`, `apps/web/scripts/pre-go-live-rehearsal.ts`, `docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`)
 
 ## Local Development
 ```bash

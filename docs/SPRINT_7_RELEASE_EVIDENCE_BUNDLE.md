@@ -49,8 +49,10 @@ Generated: 2026-03-04T18:20:25.800Z
 
 ## Risks
 - Managed profile currently uses workflow input override (localhost service container); repo secret HUMANONLY_MANAGED_POSTGRES_URL is not configured yet.
+- Secret-backed managed cadence remains blocked: dispatch run `#22703213363` failed at **Resolve cadence PostgreSQL target** because no URL was provided via input or `HUMANONLY_MANAGED_POSTGRES_URL` secret.
 
 ## Next actions
 1. Configure HUMANONLY_MANAGED_POSTGRES_URL secret for dedicated managed endpoint cadence runs.
 2. Re-run cadence without postgres_url override and append refreshed artifact URL to this bundle.
+3. Close Sprint 7 final release gate after the secret-backed managed cadence run passes.
 

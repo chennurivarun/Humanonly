@@ -159,6 +159,18 @@ npm run release:evidence:bundle -w apps/web -- \
 
 This renders a release sign-off bundle with governance gate status, required artifact references, and owner sign-off placeholders.
 
+### 8) Run Sprint 7 pre-go-live rehearsal evidence capture
+
+```bash
+npm run pilot:rehearsal -w apps/web -- \
+  --execute \
+  --human-approval-ref=CHANGE-2026-03-05 \
+  --output=docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md \
+  --json-output=.tmp/pre-go-live-rehearsal/report.json
+```
+
+This simulates Sev-1/Sev-2 acknowledgement drills + cross-role failover timing, exports incident packet artifacts, and renders a deterministic pre-go-live rehearsal report with governance gate outcomes.
+
 ### Optional periodic/full reconcile maintenance run
 
 ```bash
