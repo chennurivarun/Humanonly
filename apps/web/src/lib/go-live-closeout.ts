@@ -203,6 +203,12 @@ function deriveNextActions(
     actions.push(
       "Rotate HUMANONLY_MANAGED_POSTGRES_URL to the final external managed endpoint and rerun release-governance cadence."
     );
+
+    if (endpointGate.details.includes("source-governance=fail")) {
+      actions.push(
+        "Run the managed cadence without --postgres_url override so endpoint evidence is sourced from governed secrets (repo-secret/env)."
+      );
+    }
   }
 
   if (report.pendingSignOffRequests.length > 0) {

@@ -150,6 +150,42 @@ describe("go-live closeout report", () => {
     assert.match(markdown, /approval required before sending/);
   });
 
+  it("flags source governance follow-up when external endpoint is supplied via workflow override", () => {
+    const bundle = makeBundle();
+    bundle.managedEndpoint = {
+      source: "workflow-input",
+      url: "postgresql://humanonly:supersecret@db.humanonly.io:5432/humanonly"
+    };
+    bundle.signOffs = {
+      releaseManager: {
+        status: "approved",
+        approvalRef: "CHANGE-RM-001",
+        signedAt: "2026-03-05T10:00:00Z"
+      },
+      incidentCommander: {
+        status: "approved",
+        approvalRef: "CHANGE-IC-001",
+        signedAt: "2026-03-05T10:03:00Z"
+      },
+      platformOperator: {
+        status: "approved",
+        approvalRef: "CHANGE-PO-001",
+        signedAt: "2026-03-05T10:05:00Z"
+      },
+      governanceLead: {
+        status: "approved",
+        approvalRef: "CHANGE-GL-001",
+        signedAt: "2026-03-05T10:08:00Z"
+      }
+    };
+
+    const report = createGoLiveCloseoutReport(bundle);
+    assert.equal(report.recommendation, "blocked");
+    assert.equal(report.finalOutcome, "blocked");
+    assert.match(report.blockingItems.join("\n"), /source-governance=fail/);
+    assert.match(report.nextActions.join("\n"), /without --postgres_url override/);
+  });
+
   it("allows approved decision only when readiness gates pass", () => {
     const bundle = makeBundle();
     bundle.managedEndpoint = {

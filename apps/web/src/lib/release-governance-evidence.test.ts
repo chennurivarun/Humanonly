@@ -191,6 +191,20 @@ describe("release governance evidence bundle", () => {
     assert.equal(signOffGate?.status, "fail");
   });
 
+  it("fails endpoint readiness when endpoint host is external but source is workflow override", () => {
+    const bundle = makeBundle();
+    bundle.managedEndpoint = {
+      source: "workflow-input",
+      url: "postgres://humanonly_user:supersecret@db.humanonly.io:5432/humanonly"
+    };
+
+    const gates = evaluateGoLiveReadiness(bundle);
+    const endpointGate = gates.find((gate) => gate.gate.includes("Managed Postgres endpoint"));
+
+    assert.equal(endpointGate?.status, "fail");
+    assert.match(endpointGate?.details ?? "", /source-governance=fail/);
+  });
+
   it("renders markdown with sign-off matrix and endpoint governance", () => {
     const bundle = makeBundle();
     bundle.owners.releaseManager = "";

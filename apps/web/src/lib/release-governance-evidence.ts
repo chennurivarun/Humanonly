@@ -308,6 +308,26 @@ function signOffIsApproved(signOff: Required<ReleaseOwnerSignOff>): boolean {
   return true;
 }
 
+function isGovernedManagedEndpointSource(source: ManagedEndpointSource): boolean {
+  return source === "repo-secret" || source === "env";
+}
+
+function managedEndpointReadinessDetails(
+  endpoint: ManagedEndpointAssessment,
+  sourceGoverned: boolean
+): string {
+  const base = `source=${endpoint.source}, host=${endpoint.host}, classification=${endpoint.classification}`;
+  if (endpoint.classification !== "external") {
+    return base;
+  }
+
+  if (!sourceGoverned) {
+    return `${base}, source-governance=fail (requires repo-secret/env backed endpoint evidence)`;
+  }
+
+  return `${base}, source-governance=pass`;
+}
+
 export function evaluateCadenceGates(bundle: ReleaseGovernanceEvidenceBundle): CadenceGate[] {
   const plan = bundle.cutover.plan;
   const apply = bundle.cutover.apply;
@@ -360,6 +380,8 @@ export function evaluateGoLiveReadiness(bundle: ReleaseGovernanceEvidenceBundle)
   const cadencePass = evaluateCadenceGates(bundle).every((gate) => gate.status === "pass");
   const endpoint = classifyManagedPostgresEndpoint(bundle.managedEndpoint);
   const signOffs = resolveSignOffMatrix(bundle);
+  const sourceGoverned = isGovernedManagedEndpointSource(endpoint.source);
+  const endpointReady = endpoint.classification === "external" && sourceGoverned;
 
   const approvedRoles = (Object.keys(signOffs) as RoleKey[]).filter((role) => signOffIsApproved(signOffs[role]));
   const allSignOffsApproved = approvedRoles.length === 4;
@@ -377,8 +399,8 @@ export function evaluateGoLiveReadiness(bundle: ReleaseGovernanceEvidenceBundle)
     },
     {
       gate: "Managed Postgres endpoint rotated to external target",
-      status: gateStatus(endpoint.classification === "external"),
-      details: `source=${endpoint.source}, host=${endpoint.host}, classification=${endpoint.classification}`
+      status: gateStatus(endpointReady),
+      details: managedEndpointReadinessDetails(endpoint, sourceGoverned)
     },
     {
       gate: "Explicit human owner sign-offs",

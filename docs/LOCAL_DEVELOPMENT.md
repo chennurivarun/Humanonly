@@ -164,7 +164,7 @@ This renders both markdown + JSON release evidence bundles with cadence governan
 
 Prefer feeding a deterministic sign-off manifest (one JSON chunk with releaseManager/incidentCommander/platformOperator/governanceLead entries) via the new `--signoff-manifest-json` flag. Start from `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json`, copy it to a private working file, then fill in explicit human decisions. The manifest parser enforces required roles, valid `pending|approved|rejected` decisions, ISO timestamps, approval references for approved/rejected states, and optional contact channels/notes; bundler owners and sign-off records derive from those entries, keeping explicit human decisions traceable. CLI `--*-signoff*` flags remain available for ad-hoc updates when a manifest is not used.
 
-Progress: sign-off metadata ingestion is now deterministic and audit-ready, but the release governor still waits on the final external managed endpoint rotation + explicit owner acknowledgments before closing the final gate.
+Progress: sign-off metadata ingestion is deterministic and audit-ready, and go-live endpoint gates now enforce both external host classification and governed endpoint evidence sources (`repo-secret`/`env`). Workflow input overrides are treated as non-final evidence and keep closeout blocked until the managed secret is rotated.
 
 To record explicit human sign-offs, rerun the same command with signoff flags per role (for example `--release-manager-signoff=approved --release-manager-signoff-ref=CHANGE-2026-03-05-GO-LIVE --release-manager-signoff-at=2026-03-05T10:30:00Z`).
 
@@ -206,6 +206,7 @@ gh secret set HUMANONLY_MANAGED_POSTGRES_URL \
 
 - Keep this URL scoped to release cadence automation only.
 - For production launch evidence, point to the final external managed endpoint (not CI localhost/service-container targets).
+- Final closeout readiness intentionally fails when cadence endpoint evidence source is `workflow-input`; run managed cadence from governed `repo-secret`/`env` sources for production sign-off.
 
 ### 8) Run Sprint 7 pre-go-live rehearsal evidence capture
 

@@ -1,7 +1,7 @@
 # Sprint 7 Final Go-Live Governance Closeout
 
 Status: **In progress (human approvals + final endpoint rotation pending)**
-Updated: 2026-03-05 18:26 IST
+Updated: 2026-03-05 20:40 IST
 
 ## Objective
 Close the final Sprint 7 governance gate by rotating the managed Postgres cadence secret to the final external endpoint, re-running release cadence, and collecting explicit human sign-offs.
@@ -9,6 +9,7 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
 ## Progress
 - Sign-off metadata is now ingested from a deterministic manifest (`--signoff-manifest-json`) so release evidence + closeout tooling agree on decisions, ISO timestamps, contact channels, and notes without implicit approvals.
 - Manifest bootstrap template added at `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json` to standardize owner sign-off capture before ingestion.
+- Managed endpoint readiness gate now enforces governed source evidence in addition to external host classification: cadence runs sourced from `workflow-input` remain blocked for production closeout until `repo-secret`/`env` evidence is used.
 
 ## Preconditions
 - Managed endpoint owner has confirmed production-ready connection details.
@@ -34,13 +35,14 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
 | Platform Operator | TBD | PENDING | — | — |
 | Governance Lead | TBD | PENDING | — | — |
 
-## Verification snapshot (2026-03-05 18:26 IST)
+## Verification snapshot (2026-03-05 20:40 IST)
 - Local baseline revalidated: `npm run typecheck && npm run test && npm run build` ✅
 - MVP baseline still intact on trunk:
   - Runnable Next.js app in `apps/web` ✅
   - MVP APIs: `/api/posts`, `/api/feed`, `/api/reports` ✅
   - Immutable audit stubs active in enforcement-sensitive flows ✅
 - Release evidence bundle includes deterministic go-live readiness gates + endpoint classification + explicit sign-off matrix (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `.json`) ✅
+- Endpoint readiness guardrail now requires governed endpoint evidence source (`repo-secret`/`env`) in addition to external host classification; workflow override evidence remains blocked for production closeout (`apps/web/src/lib/release-governance-evidence.ts`) ✅
 - Go-live closeout status report automation now emits blockers + draft sign-off outreach packets for explicit human review before sending (`docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md`, `.json`) ✅
 - Deterministic sign-off manifest parsing + template now enforce role completeness, ISO timestamps, approval references, and contact metadata handoff (`apps/web/src/lib/sign-off-intake.ts`, `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json`) ✅
 
