@@ -61,6 +61,8 @@
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs) against current trunk before pre-go-live work.
 - [x] Re-validated MVP baseline on 2026-03-05 (autopilot continuation): runnable Next.js app scaffold + posts/feed/reports APIs + audit stubs; local typecheck/test/build all passing.
 - [x] Re-validated MVP baseline on 2026-03-05 12:22 IST (autopilot continuation): scaffold + posts/feed/reports APIs + immutable audit stubs confirmed; typecheck/test/build passing.
+- [x] Re-validated MVP baseline on 2026-03-05 14:22 IST (autopilot continuation): runnable scaffold + posts/feed/reports APIs + immutable audit stubs confirmed; typecheck/test/build passing.
+- [x] Added explicit final go-live governance closeout checklist + owner sign-off matrix (`docs/SPRINT_7_GO_LIVE_CLOSEOUT.md`).
 - [x] Harden managed validation evidence redaction so cadence artifacts never retain raw PostgreSQL credentials (`apps/web/src/lib/postgres-incremental-benchmark.ts`, `apps/web/src/lib/postgres-incremental-benchmark.test.ts`).
 - [x] Execute release-governance cadence against designated managed Postgres endpoint and capture evidence links for change sign-off (secret-backed managed-profile run: `#22706417635`, artifact `#5774499356`, no `postgres_url` override).
 - [x] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`).
