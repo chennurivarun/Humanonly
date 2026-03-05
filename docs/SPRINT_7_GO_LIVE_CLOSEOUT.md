@@ -34,7 +34,7 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
 | Platform Operator | TBD | PENDING | — | — |
 | Governance Lead | TBD | PENDING | — | — |
 
-## Verification snapshot (2026-03-05 16:26 IST)
+## Verification snapshot (2026-03-05 18:26 IST)
 - Local baseline revalidated: `npm run typecheck && npm run test && npm run build` ✅
 - MVP baseline still intact on trunk:
   - Runnable Next.js app in `apps/web` ✅
@@ -42,6 +42,7 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
   - Immutable audit stubs active in enforcement-sensitive flows ✅
 - Release evidence bundle includes deterministic go-live readiness gates + endpoint classification + explicit sign-off matrix (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `.json`) ✅
 - Go-live closeout status report automation now emits blockers + draft sign-off outreach packets for explicit human review before sending (`docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md`, `.json`) ✅
+- Deterministic sign-off manifest parsing + template now enforce role completeness, ISO timestamps, approval references, and contact metadata handoff (`apps/web/src/lib/sign-off-intake.ts`, `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json`) ✅
 
 ## Current blocker
 Final external managed endpoint rotation + explicit human owner approvals are governance-controlled human actions and are intentionally not auto-approved by autopilot; the manifest only records their decisions so the evidence can be handed off audit-ready once those human actions conclude.
