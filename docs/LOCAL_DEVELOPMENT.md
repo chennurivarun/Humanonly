@@ -159,6 +159,17 @@ npm run release:evidence:bundle -w apps/web -- \
 
 This renders a release sign-off bundle with governance gate status, required artifact references, and owner sign-off placeholders.
 
+### 7.1) Configure managed cadence secret for workflow runs
+
+```bash
+gh secret set HUMANONLY_MANAGED_POSTGRES_URL \
+  --repo chennurivarun/Humanonly \
+  --body "postgresql://humanonly_user:***@managed-host:5432/humanonly_db"
+```
+
+- Keep this URL scoped to release cadence automation only.
+- For production launch evidence, point to the final external managed endpoint (not CI localhost/service-container targets).
+
 ### 8) Run Sprint 7 pre-go-live rehearsal evidence capture
 
 ```bash

@@ -1,36 +1,36 @@
 # Sprint 7 Release Governance Evidence Bundle
 
-Generated: 2026-03-04T18:20:25.800Z
+Generated: 2026-03-05T07:09:05.324Z
 
 ## Cadence run metadata
-- Run ID: `22682903331`
-- Run URL: https://github.com/chennurivarun/Humanonly/actions/runs/22682903331
+- Run ID: `22706417635`
+- Run URL: https://github.com/chennurivarun/Humanonly/actions/runs/22706417635
 - Target profile: `managed`
-- Executed at: `2026-03-04T18:15:42Z`
-- Human approval reference: `CHANGE-2026-03-04-RELEASE-CADENCE`
+- Executed at: `2026-03-05T07:07:59Z`
+- Human approval reference: `CHANGE-2026-03-05-MANAGED-SECRET-RUN-RETRY`
 
 ## Governance gate outcomes
 | Gate | Status | Details |
 |---|---|---|
-| Governed cutover plan generated | PASS | action=plan, generatedAt=2026-03-04T18:16:20.657Z |
-| Governed cutover apply executed with human approval | PASS | approvalRef=CHANGE-2026-03-04-RELEASE-CADENCE |
+| Governed cutover plan generated | PASS | action=plan, generatedAt=2026-03-05T07:04:34.563Z |
+| Governed cutover apply executed with human approval | PASS | approvalRef=CHANGE-2026-03-05-MANAGED-SECRET-RUN-RETRY |
 | Cutover parity verification | PASS | apply(counts=ok, fingerprint=ok); verify(counts=ok, fingerprint=ok) |
 | Managed-profile incremental validation | PASS | avgLatencyDelta=-99.1%, mutatingQueryDelta=-99.5% |
 
 ## Managed-profile validation deltas
 - Avg latency delta (incremental vs full reconcile): -99.1%
-- p95 latency delta (incremental vs full reconcile): -98.9%
+- p95 latency delta (incremental vs full reconcile): -98.8%
 - Avg mutating SQL delta (incremental vs full reconcile): -99.5%
 - Simulated network latency per SQL round trip: 12ms
 - Validation PostgreSQL source: `cli`
 
 ## Required evidence artifacts
-- Cadence artifact bundle: [release-governance-cadence-22682903331](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
-- Cutover plan evidence: [.tmp/release-cadence/cutover-plan.json](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
-- Cutover apply evidence: [.tmp/release-cadence/cutover-apply.json](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
-- Cutover verify evidence: [.tmp/release-cadence/cutover-verify.json](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
-- Managed incremental validation evidence: [.tmp/release-cadence/perf-postgres-managed.json](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
-- Managed incremental validation markdown: [docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md](https://github.com/chennurivarun/Humanonly/actions/runs/22682903331/artifacts/5765319499)
+- Cadence artifact bundle: [release-governance-cadence-22706417635](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
+- Cutover plan evidence: [.tmp/release-cadence/cutover-plan.json](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
+- Cutover apply evidence: [.tmp/release-cadence/cutover-apply.json](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
+- Cutover verify evidence: [.tmp/release-cadence/cutover-verify.json](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
+- Managed incremental validation evidence: [.tmp/release-cadence/perf-postgres-managed.json](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
+- Managed incremental validation markdown: [docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md](https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356)
 
 ## Ownership + sign-off
 | Role | Owner | Sign-off |
@@ -48,11 +48,9 @@ Generated: 2026-03-04T18:20:25.800Z
 - Human override reserved for admins
 
 ## Risks
-- Managed profile currently uses workflow input override (localhost service container); repo secret HUMANONLY_MANAGED_POSTGRES_URL is not configured yet.
-- Secret-backed managed cadence remains blocked: dispatch run `#22703213363` failed at **Resolve cadence PostgreSQL target** because no URL was provided via input or `HUMANONLY_MANAGED_POSTGRES_URL` secret.
+- HUMANONLY_MANAGED_POSTGRES_URL currently targets GitHub-hosted localhost service for cadence simulation; update secret to final external managed endpoint before production launch.
 
 ## Next actions
-1. Configure HUMANONLY_MANAGED_POSTGRES_URL secret for dedicated managed endpoint cadence runs.
-2. Re-run cadence without postgres_url override and append refreshed artifact URL to this bundle.
-3. Close Sprint 7 final release gate after the secret-backed managed cadence run passes.
+1. Rotate HUMANONLY_MANAGED_POSTGRES_URL to the final external managed endpoint and re-run cadence.
+2. Collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead) in this evidence bundle.
 

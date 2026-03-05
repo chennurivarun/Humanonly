@@ -1,6 +1,6 @@
 # Sprint 6 Managed Postgres Incremental Persistence Validation
 
-Generated: 2026-03-04T18:19:44.053Z
+Generated: 2026-03-05T07:07:59.195Z
 
 ## Goal
 Validate that PostgreSQL incremental persistence remains effective under managed-production-like pool policy and network latency conditions.
@@ -8,7 +8,7 @@ Validate that PostgreSQL incremental persistence remains effective under managed
 ## Execution details
 - PostgreSQL source: `cli`
 - PostgreSQL URL (redacted): `postgresql://humanonly:***@localhost:5432/humanonly_release`
-- Human approval reference: `CHANGE-2026-03-04-RELEASE-CADENCE`
+- Human approval reference: `CHANGE-2026-03-05-MANAGED-SECRET-RUN-RETRY`
 - Simulated network latency: `12ms` per SQL round-trip
 
 ### Pool policy (resolved)
@@ -33,12 +33,12 @@ Validate that PostgreSQL incremental persistence remains effective under managed
 
 | Mode | Iterations | Avg latency (ms) | p95 latency (ms) | Max latency (ms) | Avg changed entities | Avg mutating SQL queries | Avg total SQL queries |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Incremental flush | 24 | 65.34 | 88.66 | 89.76 | 3.1 | 3.1 | 5.1 |
-| Forced full reconcile | 24 | 7677.19 | 7755.44 | 7778.84 | 3.1 | 611.0 | 613.0 |
+| Incremental flush | 24 | 66.48 | 90.34 | 90.74 | 3.1 | 3.1 | 5.1 |
+| Forced full reconcile | 24 | 7717.73 | 7796.61 | 7821.42 | 3.1 | 611.0 | 613.0 |
 
 ## Key deltas (incremental relative to forced full reconcile)
 - Avg latency delta: -99.1%
-- p95 latency delta: -98.9%
+- p95 latency delta: -98.8%
 - Mutating SQL query delta: -99.5%
 
 ## Governance controls (enforced)

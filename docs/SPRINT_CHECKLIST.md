@@ -13,6 +13,13 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — managed cadence secret-backed execution + artifact hardening, 2026-03-05)
+- ✅ Fixed a governance-critical artifact sanitization bug so managed validation reports never retain raw PostgreSQL credentials (`apps/web/src/lib/postgres-incremental-benchmark.ts`, `apps/web/src/lib/postgres-incremental-benchmark.test.ts`).
+- ✅ Configured repository secret `HUMANONLY_MANAGED_POSTGRES_URL` and executed release-governance cadence without `postgres_url` override (`https://github.com/chennurivarun/Humanonly/actions/runs/22706417635`).
+- ✅ Captured audit trail for one failed dispatch caused by malformed secret payload (`#22706372131`), then corrected secret wiring and reran successfully (`#22706417635`).
+- ✅ Refreshed Sprint 6/7 governance evidence docs from the successful secret-backed cadence artifacts (`docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md`, `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`).
+- ⚠️ Residual production risk: secret currently points to GitHub Actions localhost service for cadence simulation; rotate to final external managed endpoint before launch.
+
 ## Latest run summary (Sprint 7 — HumanOnly autopilot phase continuation, 2026-03-05 12:22 IST)
 - ✅ Re-validated Sprint 1 MVP baseline on trunk: runnable Next.js scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs in enforcement-sensitive flows.
 - ✅ Executed local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.
@@ -87,9 +94,9 @@
 - ✅ Updated roadmap trackers to close the final Sprint 6 unfinished milestone (`ROADMAP.md`, `docs/ROADMAP.md`).
 
 ## Next actions
-1. Configure repository secret `HUMANONLY_MANAGED_POSTGRES_URL` and re-run cadence without `postgres_url` override.
-2. Capture refreshed managed-endpoint artifact URL in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` and complete owner sign-offs.
-3. Attach Sprint 7 pre-go-live rehearsal report + packet artifacts to the release ticket and collect final human sign-offs.
+1. Rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint (instead of GitHub-hosted localhost simulation) and re-run cadence for production launch evidence.
+2. Attach Sprint 7 cadence + pre-go-live artifacts to the release ticket and collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead).
+3. Lock go-live decision only after explicit human approval on the release evidence bundle.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).
@@ -137,9 +144,10 @@
 ## Sprint 7 checklist
 - [x] Re-verify MVP baseline readiness (runnable Next.js app + posts/feed/reports APIs + audit stubs)
 - [x] Publish release-ticket evidence bundle template + generation tooling
-- [ ] Execute release-governance cadence against designated managed Postgres target (managed-profile run `#22682903331` complete via explicit URL override; awaiting designated secret-backed endpoint run)
+- [x] Execute release-governance cadence against designated managed Postgres target (secret-backed managed-profile run `#22706417635` completed without `postgres_url` override; evidence archived in `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`)
 - [x] Archive cadence artifact URLs + approval refs in release ticket evidence bundle
 - [x] Complete pre-go-live rehearsal using Sprint 3 runbook and record incident/escalation timing evidence (`docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`)
+- [ ] Final go-live governance closeout: rotate managed cadence secret to the final external endpoint, rerun cadence, and collect explicit human owner sign-offs on `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`
 
 ## Sprint 6 checklist
 - [x] Plan Sprint 6 write-path optimization follow-through scope
