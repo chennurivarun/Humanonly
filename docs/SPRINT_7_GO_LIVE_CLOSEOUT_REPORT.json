@@ -1,0 +1,120 @@
+{
+  "generatedAt": "2026-03-05T11:02:17.121Z",
+  "sourceEvidenceGeneratedAt": "2026-03-05T09:06:57.086Z",
+  "cadenceRunId": "22706417635",
+  "cadenceRunUrl": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635",
+  "readinessGates": [
+    {
+      "gate": "Cadence governance gates",
+      "status": "pass",
+      "details": "all cadence gates PASS"
+    },
+    {
+      "gate": "Managed Postgres endpoint rotated to external target",
+      "status": "fail",
+      "details": "source=repo-secret, host=localhost, classification=loopback"
+    },
+    {
+      "gate": "Explicit human owner sign-offs",
+      "status": "fail",
+      "details": "awaiting sign-offs: Release Manager=PENDING, Incident Commander=PENDING, Platform Operator=PENDING, Governance Lead=PENDING"
+    }
+  ],
+  "signOffStates": [
+    {
+      "role": "releaseManager",
+      "roleLabel": "Release Manager",
+      "owner": "TBD",
+      "status": "pending",
+      "approvalRef": "—",
+      "signedAt": "—",
+      "notes": "—",
+      "approved": false
+    },
+    {
+      "role": "incidentCommander",
+      "roleLabel": "Incident Commander",
+      "owner": "TBD",
+      "status": "pending",
+      "approvalRef": "—",
+      "signedAt": "—",
+      "notes": "—",
+      "approved": false
+    },
+    {
+      "role": "platformOperator",
+      "roleLabel": "Platform Operator",
+      "owner": "TBD",
+      "status": "pending",
+      "approvalRef": "—",
+      "signedAt": "—",
+      "notes": "—",
+      "approved": false
+    },
+    {
+      "role": "governanceLead",
+      "roleLabel": "Governance Lead",
+      "owner": "TBD",
+      "status": "pending",
+      "approvalRef": "—",
+      "signedAt": "—",
+      "notes": "—",
+      "approved": false
+    }
+  ],
+  "pendingSignOffRequests": [
+    {
+      "role": "releaseManager",
+      "roleLabel": "Release Manager",
+      "owner": "TBD",
+      "status": "pending",
+      "subject": "HumanOnly Sprint 7 go-live sign-off request — Release Manager",
+      "message": "Hi TBD,\n\nRequesting your explicit Release Manager sign-off for HumanOnly Sprint 7 go-live governance closeout.\n- Cadence run: https://github.com/chennurivarun/Humanonly/actions/runs/22706417635\n- Evidence bundle: docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md\n- Required decision metadata: status=approved/rejected, approval reference, ISO timestamp\n\nPlease respond with your decision so we can update the governed evidence bundle.\n(Draft only — requires explicit human approval before external sending.)"
+    },
+    {
+      "role": "incidentCommander",
+      "roleLabel": "Incident Commander",
+      "owner": "TBD",
+      "status": "pending",
+      "subject": "HumanOnly Sprint 7 go-live sign-off request — Incident Commander",
+      "message": "Hi TBD,\n\nRequesting your explicit Incident Commander sign-off for HumanOnly Sprint 7 go-live governance closeout.\n- Cadence run: https://github.com/chennurivarun/Humanonly/actions/runs/22706417635\n- Evidence bundle: docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md\n- Required decision metadata: status=approved/rejected, approval reference, ISO timestamp\n\nPlease respond with your decision so we can update the governed evidence bundle.\n(Draft only — requires explicit human approval before external sending.)"
+    },
+    {
+      "role": "platformOperator",
+      "roleLabel": "Platform Operator",
+      "owner": "TBD",
+      "status": "pending",
+      "subject": "HumanOnly Sprint 7 go-live sign-off request — Platform Operator",
+      "message": "Hi TBD,\n\nRequesting your explicit Platform Operator sign-off for HumanOnly Sprint 7 go-live governance closeout.\n- Cadence run: https://github.com/chennurivarun/Humanonly/actions/runs/22706417635\n- Evidence bundle: docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md\n- Required decision metadata: status=approved/rejected, approval reference, ISO timestamp\n\nPlease respond with your decision so we can update the governed evidence bundle.\n(Draft only — requires explicit human approval before external sending.)"
+    },
+    {
+      "role": "governanceLead",
+      "roleLabel": "Governance Lead",
+      "owner": "TBD",
+      "status": "pending",
+      "subject": "HumanOnly Sprint 7 go-live sign-off request — Governance Lead",
+      "message": "Hi TBD,\n\nRequesting your explicit Governance Lead sign-off for HumanOnly Sprint 7 go-live governance closeout.\n- Cadence run: https://github.com/chennurivarun/Humanonly/actions/runs/22706417635\n- Evidence bundle: docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md\n- Required decision metadata: status=approved/rejected, approval reference, ISO timestamp\n\nPlease respond with your decision so we can update the governed evidence bundle.\n(Draft only — requires explicit human approval before external sending.)"
+    }
+  ],
+  "blockingItems": [
+    "Managed Postgres endpoint rotated to external target: source=repo-secret, host=localhost, classification=loopback",
+    "Explicit human owner sign-offs: awaiting sign-offs: Release Manager=PENDING, Incident Commander=PENDING, Platform Operator=PENDING, Governance Lead=PENDING",
+    "Release Manager sign-off pending",
+    "Incident Commander sign-off pending",
+    "Platform Operator sign-off pending",
+    "Governance Lead sign-off pending"
+  ],
+  "recommendation": "blocked",
+  "finalOutcome": "blocked",
+  "governance": {
+    "humanExpressionOnly": true,
+    "aiManagedOperationsOnly": true,
+    "humanGovernedDecisionsOnly": true,
+    "auditabilityRequired": true,
+    "humanOverrideReservedForAdmins": true
+  },
+  "nextActions": [
+    "Rotate HUMANONLY_MANAGED_POSTGRES_URL to the final external managed endpoint and rerun release-governance cadence.",
+    "Collect explicit human owner sign-offs and update docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.{md,json} with approved/rejected decisions."
+  ]
+}

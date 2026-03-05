@@ -13,6 +13,14 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — closeout status automation + sign-off outreach drafts, 2026-03-05 16:26 IST)
+- ✅ Added governed closeout domain module for deterministic go-live status evaluation, blocker extraction, owner sign-off normalization, and decision guardrails (`apps/web/src/lib/go-live-closeout.ts`).
+- ✅ Added regression coverage for blocked/ready decision paths, outreach draft generation, and governance enforcement against premature approval (`apps/web/src/lib/go-live-closeout.test.ts`).
+- ✅ Added `npm run go-live:closeout` CLI + workflow integration to auto-generate closeout markdown/JSON artifacts in cadence runs (`apps/web/scripts/go-live-closeout.ts`, `.github/workflows/release-governance-cadence.yml`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.json`).
+- ✅ Updated roadmap/local docs/go-live checklist with the new deterministic closeout automation path (`ROADMAP.md`, `docs/ROADMAP.md`, `docs/LOCAL_DEVELOPMENT.md`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT.md`).
+- ✅ Executed full local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.
+- ⚠️ Remaining blocker unchanged: rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint and collect explicit human owner sign-offs.
+
 ## Latest run summary (Sprint 7 — HumanOnly autopilot continuation, 2026-03-05 16:22 IST)
 - ✅ Re-verified Sprint 1 MVP baseline on trunk: runnable Next.js scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs in enforcement-sensitive flows.
 - ✅ Executed full local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.

@@ -164,7 +164,33 @@ This renders both markdown + JSON release evidence bundles with cadence governan
 
 To record explicit human sign-offs, rerun the same command with signoff flags per role (for example `--release-manager-signoff=approved --release-manager-signoff-ref=CHANGE-2026-03-05-GO-LIVE --release-manager-signoff-at=2026-03-05T10:30:00Z`).
 
-### 7.1) Configure managed cadence secret for workflow runs
+### 7.1) Generate deterministic go-live closeout status + outreach drafts
+
+```bash
+npm run go-live:closeout -w apps/web -- \
+  --bundle-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json \
+  --output=docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md \
+  --output-json=docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.json
+```
+
+This generates a governed closeout report with:
+- readiness gate status (PASS/FAIL)
+- explicit blocker list
+- owner sign-off status matrix
+- **draft sign-off outreach messages** (draft only; requires explicit human approval before sending externally)
+
+When final human decision is ready, append explicit decision metadata:
+
+```bash
+npm run go-live:closeout -w apps/web -- \
+  --bundle-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json \
+  --decision=approved \
+  --decision-ref=CHANGE-2026-03-05-GO-LIVE \
+  --decision-by="Release Board" \
+  --decision-at=2026-03-05T11:00:00Z
+```
+
+### 7.2) Configure managed cadence secret for workflow runs
 
 ```bash
 gh secret set HUMANONLY_MANAGED_POSTGRES_URL \

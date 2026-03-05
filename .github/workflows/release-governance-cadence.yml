@@ -138,6 +138,12 @@ jobs:
             --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md \
             --output-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json
 
+      - name: Generate go-live closeout status report
+        run: |
+          npm run go-live:closeout -- --bundle-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json \
+            --output=docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md \
+            --output-json=docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.json
+
       - name: Upload governance evidence artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -147,3 +153,5 @@ jobs:
             docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
             docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
             docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json
+            docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md
+            docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.json
