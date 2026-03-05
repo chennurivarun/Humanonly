@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  classifyManagedPostgresEndpoint,
   evaluateCadenceGates,
+  evaluateGoLiveReadiness,
   renderReleaseGovernanceEvidenceMarkdown,
   type ReleaseGovernanceEvidenceBundle
 } from "@/lib/release-governance-evidence";
@@ -96,13 +98,39 @@ function makeBundle(): ReleaseGovernanceEvidenceBundle {
       platformOperator: "Platform Team",
       governanceLead: "Governance Council"
     },
+    signOffs: {
+      releaseManager: {
+        status: "approved",
+        approvalRef: "RM-APPROVAL-1",
+        signedAt: "2026-03-05T10:00:00.000Z"
+      },
+      incidentCommander: {
+        status: "approved",
+        approvalRef: "IC-APPROVAL-1",
+        signedAt: "2026-03-05T10:05:00.000Z"
+      },
+      platformOperator: {
+        status: "approved",
+        approvalRef: "PO-APPROVAL-1",
+        signedAt: "2026-03-05T10:10:00.000Z"
+      },
+      governanceLead: {
+        status: "approved",
+        approvalRef: "GL-APPROVAL-1",
+        signedAt: "2026-03-05T10:15:00.000Z"
+      }
+    },
+    managedEndpoint: {
+      source: "repo-secret",
+      url: "postgres://humanonly_user:supersecret@db.humanonly.io:5432/humanonly"
+    },
     risks: ["Managed endpoint maintenance window overlaps weekly cadence by 15 minutes."],
     nextActions: ["Attach sign-off screenshot to release ticket."]
   } satisfies ReleaseGovernanceEvidenceBundle;
 }
 
 describe("release governance evidence bundle", () => {
-  it("marks gates as pass when cutover parity and validation deltas are healthy", () => {
+  it("marks cadence gates as pass when cutover parity and validation deltas are healthy", () => {
     const gates = evaluateCadenceGates(makeBundle());
     assert.equal(gates.every((gate) => gate.status === "pass"), true);
   });
@@ -119,15 +147,69 @@ describe("release governance evidence bundle", () => {
     assert.equal(parityGate?.status, "fail");
   });
 
-  it("renders markdown with linked artifacts and owner fallback", () => {
+  it("classifies managed postgres endpoint source and redacts credentials", () => {
+    const assessment = classifyManagedPostgresEndpoint({
+      source: "repo-secret",
+      url: "postgres://humanonly_user:supersecret@db.humanonly.io:5432/humanonly"
+    });
+
+    assert.equal(assessment.classification, "external");
+    assert.equal(assessment.host, "db.humanonly.io");
+    assert.match(assessment.redactedUrl ?? "", /postgres:\/\/\*\*\*:\*\*\*@db\.humanonly\.io:5432\/humanonly/);
+  });
+
+  it("marks go-live readiness as fail when endpoint is loopback or sign-offs are pending", () => {
+    const bundle = makeBundle();
+    bundle.managedEndpoint = {
+      source: "repo-secret",
+      url: "postgres://humanonly:humanonly@localhost:5432/humanonly_release"
+    };
+    bundle.signOffs = {
+      releaseManager: {
+        status: "approved",
+        approvalRef: "RM-APPROVAL-1",
+        signedAt: "2026-03-05T10:00:00.000Z"
+      },
+      incidentCommander: {
+        status: "pending"
+      },
+      platformOperator: {
+        status: "approved",
+        approvalRef: "PO-APPROVAL-1",
+        signedAt: "2026-03-05T10:10:00.000Z"
+      },
+      governanceLead: {
+        status: "pending"
+      }
+    };
+
+    const gates = evaluateGoLiveReadiness(bundle);
+    const endpointGate = gates.find((gate) => gate.gate.includes("Managed Postgres endpoint"));
+    const signOffGate = gates.find((gate) => gate.gate.includes("owner sign-offs"));
+
+    assert.equal(endpointGate?.status, "fail");
+    assert.equal(signOffGate?.status, "fail");
+  });
+
+  it("renders markdown with sign-off matrix and endpoint governance", () => {
     const bundle = makeBundle();
     bundle.owners.releaseManager = "";
-    bundle.owners.incidentCommander = "Incident Lead";
+    bundle.signOffs = {
+      releaseManager: {
+        status: "pending"
+      },
+      incidentCommander: {
+        status: "approved",
+        approvalRef: "IC-APPROVAL-1",
+        signedAt: "2026-03-05T10:05:00.000Z"
+      }
+    };
 
     const markdown = renderReleaseGovernanceEvidenceMarkdown(bundle);
-    assert.match(markdown, /\| Release Manager \| TBD \| ☐ \|/);
-    assert.match(markdown, /\| Incident Commander \| Incident Lead \| ☐ \|/);
-    assert.match(markdown, /\[\.tmp\/release-cadence\/cutover-plan\.json\]\(https:\/\/github\.com\/chennurivarun\/Humanonly\/actions\/runs\/123456789\/artifacts\/1\)/);
-    assert.match(markdown, /Managed validation report: \.tmp\/release-cadence\/perf-postgres-managed\.json/);
+    assert.match(markdown, /\| Release Manager \| TBD \| PENDING \| — \| — \| — \|/);
+    assert.match(markdown, /\| Incident Commander \| Ops Lead \| APPROVED \| IC-APPROVAL-1 \| 2026-03-05T10:05:00.000Z \| — \|/);
+    assert.match(markdown, /## Managed endpoint governance/);
+    assert.match(markdown, /Endpoint classification: `external`/);
+    assert.match(markdown, /## Go-live readiness gates/);
   });
 });

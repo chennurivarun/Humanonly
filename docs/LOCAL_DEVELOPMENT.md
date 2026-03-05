@@ -150,14 +150,19 @@ npm run release:evidence:bundle -w apps/web -- \
   --run-url=https://github.com/chennurivarun/Humanonly/actions/runs/123456789 \
   --target-profile=managed \
   --approval-ref=CHANGE-2026-03-04 \
+  --managed-postgres-source=repo-secret \
+  --managed-postgres-url=postgres://humanonly_user:***@managed-host:5432/humanonly_db \
   --cutover-plan-json=.tmp/release-cadence/cutover-plan.json \
   --cutover-apply-json=.tmp/release-cadence/cutover-apply.json \
   --cutover-verify-json=.tmp/release-cadence/cutover-verify.json \
   --perf-json=.tmp/release-cadence/perf-postgres-managed.json \
-  --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
+  --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md \
+  --output-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json
 ```
 
-This renders a release sign-off bundle with governance gate status, required artifact references, and owner sign-off placeholders.
+This renders both markdown + JSON release evidence bundles with cadence governance gates, managed-endpoint classification, and owner sign-off records.
+
+To record explicit human sign-offs, rerun the same command with signoff flags per role (for example `--release-manager-signoff=approved --release-manager-signoff-ref=CHANGE-2026-03-05-GO-LIVE --release-manager-signoff-at=2026-03-05T10:30:00Z`).
 
 ### 7.1) Configure managed cadence secret for workflow runs
 

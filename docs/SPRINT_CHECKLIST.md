@@ -13,6 +13,15 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — governance closeout automation + sign-off gating, 2026-03-05 14:40 IST)
+- ✅ Added managed-endpoint governance assessment + go-live readiness gate evaluation to release evidence domain (`apps/web/src/lib/release-governance-evidence.ts`).
+- ✅ Added regression coverage for endpoint classification, sign-off readiness gating, and markdown rendering updates (`apps/web/src/lib/release-governance-evidence.test.ts`).
+- ✅ Extended release evidence bundle generator to emit both markdown + JSON artifacts, parse explicit role sign-offs, and redact managed endpoint credentials before persistence (`apps/web/scripts/release-evidence-bundle.ts`).
+- ✅ Updated cadence workflow to pass managed endpoint source metadata and upload JSON evidence artifact (`.github/workflows/release-governance-cadence.yml`).
+- ✅ Refreshed Sprint 7 release evidence + closeout docs to reflect new governance gates and explicit sign-off capture flow (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT.md`, `docs/LOCAL_DEVELOPMENT.md`).
+- ✅ Executed full local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.
+- ⚠️ Remaining blocker: rotate `HUMANONLY_MANAGED_POSTGRES_URL` to final external endpoint, rerun cadence, and collect explicit human owner approvals.
+
 ## Latest run summary (Sprint 7 — governance closeout prep + baseline revalidation, 2026-03-05 14:22 IST)
 - ✅ Re-validated MVP baseline on trunk: runnable Next.js scaffold (`apps/web`), MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs in enforcement-sensitive flows.
 - ✅ Executed full local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.
@@ -101,7 +110,7 @@
 
 ## Next actions
 1. Rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint (instead of GitHub-hosted localhost simulation) and re-run cadence for production launch evidence.
-2. Attach Sprint 7 cadence + pre-go-live artifacts to the release ticket and collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead).
+2. Attach Sprint 7 cadence + pre-go-live artifacts to the release ticket and collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead) via `npm run release:evidence:bundle ... --*-signoff=approved --*-signoff-ref=... --*-signoff-at=...`.
 3. Lock go-live decision only after explicit human approval on the release evidence bundle.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)

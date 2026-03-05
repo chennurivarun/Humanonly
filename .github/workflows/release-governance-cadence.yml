@@ -73,8 +73,10 @@ jobs:
           PROFILE="${HUMANONLY_RELEASE_TARGET_PROFILE}"
           if [ "$PROFILE" = "managed" ]; then
             TARGET_URL="${INPUT_POSTGRES_URL}"
+            TARGET_SOURCE="workflow-input"
             if [ -z "$TARGET_URL" ]; then
               TARGET_URL="${SECRET_POSTGRES_URL}"
+              TARGET_SOURCE="repo-secret"
             fi
             if [ -z "$TARGET_URL" ]; then
               echo "Managed profile selected but no postgres URL supplied via input or HUMANONLY_MANAGED_POSTGRES_URL secret."
@@ -82,10 +84,12 @@ jobs:
             fi
           else
             TARGET_URL="postgresql://humanonly:humanonly@localhost:5432/humanonly_release"
+            TARGET_SOURCE="ephemeral-default"
           fi
 
           echo "::add-mask::$TARGET_URL"
           echo "resolved_url=$TARGET_URL" >> "$GITHUB_OUTPUT"
+          echo "resolved_source=$TARGET_SOURCE" >> "$GITHUB_OUTPUT"
 
       - name: Seed baseline SQLite snapshot
         run: npm run seed
@@ -125,11 +129,14 @@ jobs:
             --executed-at="$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --target-profile="$HUMANONLY_RELEASE_TARGET_PROFILE" \
             --approval-ref="$HUMANONLY_APPROVAL_REF" \
+            --managed-postgres-url="${{ steps.postgres-target.outputs.resolved_url }}" \
+            --managed-postgres-source="${{ steps.postgres-target.outputs.resolved_source }}" \
             --cutover-plan-json=.tmp/release-cadence/cutover-plan.json \
             --cutover-apply-json=.tmp/release-cadence/cutover-apply.json \
             --cutover-verify-json=.tmp/release-cadence/cutover-verify.json \
             --perf-json=.tmp/release-cadence/perf-postgres-managed.json \
-            --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
+            --output=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md \
+            --output-json=docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json
 
       - name: Upload governance evidence artifacts
         uses: actions/upload-artifact@v4
@@ -139,3 +146,4 @@ jobs:
             .tmp/release-cadence/*.json
             docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md
             docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md
+            docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json

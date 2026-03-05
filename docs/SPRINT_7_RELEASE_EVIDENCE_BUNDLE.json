@@ -1,0 +1,254 @@
+{
+  "generatedAt": "2026-03-05T09:06:57.086Z",
+  "approvalRef": "CHANGE-2026-03-05-MANAGED-SECRET-RUN-RETRY",
+  "cadenceRun": {
+    "runId": "22706417635",
+    "runUrl": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635",
+    "targetProfile": "managed",
+    "executedAt": "2026-03-05T07:07:59Z"
+  },
+  "cutover": {
+    "plan": {
+      "generatedAt": "2026-03-04T18:16:20.657Z",
+      "action": "plan",
+      "governance": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true
+      },
+      "source": {
+        "backend": "sqlite",
+        "sqliteFile": "/home/runner/work/Humanonly/Humanonly/apps/web/.data/store.db",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "productionGuardrails": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true,
+        "writeActionExecuted": false
+      },
+      "target": {
+        "backend": "postgres",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "parity": {
+        "sourceCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "targetCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "countsMatch": true,
+        "sourceFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "targetFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "fingerprintMatch": true
+      }
+    },
+    "apply": {
+      "generatedAt": "2026-03-04T18:16:21.327Z",
+      "action": "apply",
+      "governance": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true
+      },
+      "source": {
+        "backend": "sqlite",
+        "sqliteFile": "/home/runner/work/Humanonly/Humanonly/apps/web/.data/store.db",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "productionGuardrails": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true,
+        "writeActionExecuted": true
+      },
+      "humanApprovalRef": "CHANGE-2026-03-04-RELEASE-CADENCE",
+      "target": {
+        "backend": "postgres",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "parity": {
+        "sourceCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "targetCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "countsMatch": true,
+        "sourceFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "targetFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "fingerprintMatch": true
+      }
+    },
+    "verify": {
+      "generatedAt": "2026-03-04T18:16:21.978Z",
+      "action": "verify",
+      "governance": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true
+      },
+      "source": {
+        "backend": "sqlite",
+        "sqliteFile": "/home/runner/work/Humanonly/Humanonly/apps/web/.data/store.db",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "productionGuardrails": {
+        "humanExpressionOnly": true,
+        "aiManagedOperationsOnly": true,
+        "humanGovernedDecisionsOnly": true,
+        "auditabilityRequired": true,
+        "humanOverrideReservedForAdmins": true,
+        "writeActionExecuted": false
+      },
+      "target": {
+        "backend": "postgres",
+        "counts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "fingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "integrityViolations": []
+      },
+      "parity": {
+        "sourceCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "targetCounts": {
+          "users": 0,
+          "posts": 0,
+          "reports": 0,
+          "appeals": 0
+        },
+        "countsMatch": true,
+        "sourceFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "targetFingerprint": "8703461a28859c4533740e00f868568e1f834f31d37b6e575aa865b9e0097ab2",
+        "fingerprintMatch": true
+      }
+    }
+  },
+  "managedValidation": {
+    "generatedAt": "2026-03-04T18:19:44.053Z",
+    "humanApprovalRef": "CHANGE-2026-03-04-RELEASE-CADENCE",
+    "simulatedNetworkLatencyMs": 12,
+    "postgresSource": "cli",
+    "incremental": {
+      "averageDurationMs": 65.34123475,
+      "p95DurationMs": 88.659117,
+      "averageMutatingQueries": 3.0833333333333335
+    },
+    "fullReconcile": {
+      "averageDurationMs": 7677.189536791666,
+      "p95DurationMs": 7755.441637,
+      "averageMutatingQueries": 611
+    }
+  },
+  "artifacts": [
+    {
+      "label": "Cadence artifact bundle",
+      "path": "release-governance-cadence-22706417635",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    },
+    {
+      "label": "Cutover plan evidence",
+      "path": ".tmp/release-cadence/cutover-plan.json",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    },
+    {
+      "label": "Cutover apply evidence",
+      "path": ".tmp/release-cadence/cutover-apply.json",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    },
+    {
+      "label": "Cutover verify evidence",
+      "path": ".tmp/release-cadence/cutover-verify.json",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    },
+    {
+      "label": "Managed incremental validation evidence",
+      "path": ".tmp/release-cadence/perf-postgres-managed.json",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    },
+    {
+      "label": "Managed incremental validation markdown",
+      "path": "docs/SPRINT_6_MANAGED_POSTGRES_INCREMENTAL_VALIDATION.md",
+      "url": "https://github.com/chennurivarun/Humanonly/actions/runs/22706417635/artifacts/5774499356"
+    }
+  ],
+  "owners": {},
+  "signOffs": {},
+  "managedEndpoint": {
+    "redactedUrl": "postgresql://***:***@localhost:5432/humanonly_release",
+    "source": "repo-secret"
+  },
+  "risks": [
+    "HUMANONLY_MANAGED_POSTGRES_URL currently targets GitHub-hosted localhost service for cadence simulation; update secret to final external managed endpoint before production launch."
+  ],
+  "nextActions": [
+    "Rotate HUMANONLY_MANAGED_POSTGRES_URL to the final external managed endpoint and re-run cadence.",
+    "Collect explicit owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead) in this evidence bundle."
+  ]
+}
