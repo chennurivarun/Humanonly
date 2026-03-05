@@ -13,6 +13,13 @@
 - [x] Basic UI for create post / feed / report
 - [x] Add smoke tests for core flows
 
+## Latest run summary (Sprint 7 — managed endpoint governance classifier hardening, 2026-03-05 22:35 IST)
+- ✅ Hardened managed endpoint readiness classification to reject non-Postgres protocols (`postgres://`/`postgresql://` required) before go-live gates can pass (`apps/web/src/lib/release-governance-evidence.ts`).
+- ✅ Expanded endpoint network safety checks to fail reserved/private target classes (CGNAT, documentation, multicast/reserved blocks, internal-only suffixes, and single-label hosts) so internal/test targets cannot be misclassified as production-ready (`apps/web/src/lib/release-governance-evidence.ts`).
+- ✅ Added regression coverage for reserved-range classification and protocol enforcement to keep endpoint governance deterministic (`apps/web/src/lib/release-governance-evidence.test.ts`).
+- ✅ Executed validation suite clean: `npm run typecheck`, `npm run test`, `npm run build`.
+- ⚠️ Remaining blocker unchanged: rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint, rerun managed cadence without URL override, and collect explicit human owner sign-offs.
+
 ## Latest run summary (Sprint 7 — HumanOnly autopilot continuation, 2026-03-05 22:22 IST)
 - ✅ Re-validated Sprint 1 MVP baseline on trunk: runnable Next.js scaffold in `apps/web`, MVP APIs (`/api/posts`, `/api/feed`, `/api/reports`), and immutable audit stubs in enforcement-sensitive flows.
 - ✅ Executed full local verification suite clean: `npm run typecheck`, `npm run test`, `npm run build`.

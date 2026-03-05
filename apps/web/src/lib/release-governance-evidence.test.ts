@@ -205,6 +205,30 @@ describe("release governance evidence bundle", () => {
     assert.match(endpointGate?.details ?? "", /source-governance=fail/);
   });
 
+  it("classifies reserved/private endpoint ranges and single-label hosts as non-external", () => {
+    const cgnat = classifyManagedPostgresEndpoint({
+      source: "repo-secret",
+      url: "postgres://humanonly_user:supersecret@100.64.10.10:5432/humanonly"
+    });
+    const singleLabel = classifyManagedPostgresEndpoint({
+      source: "repo-secret",
+      url: "postgres://humanonly_user:supersecret@postgres:5432/humanonly"
+    });
+
+    assert.equal(cgnat.classification, "private-network");
+    assert.equal(singleLabel.classification, "private-network");
+  });
+
+  it("marks endpoint as invalid when protocol is not postgres", () => {
+    const assessment = classifyManagedPostgresEndpoint({
+      source: "repo-secret",
+      url: "https://db.humanonly.io:5432/humanonly"
+    });
+
+    assert.equal(assessment.classification, "invalid");
+    assert.match(assessment.details, /must use postgres:\/\//);
+  });
+
   it("renders markdown with sign-off matrix and endpoint governance", () => {
     const bundle = makeBundle();
     bundle.owners.releaseManager = "";

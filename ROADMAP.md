@@ -75,6 +75,7 @@
 - [x] Publish release-ticket evidence bundle template with required cadence artifacts and ownership fields (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`, `apps/web/scripts/release-evidence-bundle.ts`).
 - [x] Run pilot pre-go-live rehearsal using Sprint 3 runbook checklist with explicit incident/escalation timing capture (`npm run pilot:rehearsal`, `docs/SPRINT_7_PRE_GO_LIVE_REHEARSAL_REPORT.md`).
 - [x] Harden go-live endpoint readiness governance so production closeout only passes with external host classification **and** governed endpoint evidence source (`repo-secret`/`env`); workflow override evidence remains blocked (`apps/web/src/lib/release-governance-evidence.ts`, `apps/web/src/lib/go-live-closeout.ts`).
+- [x] Harden managed endpoint classifier to block protocol drift (`postgres://`/`postgresql://` required), reserved/private address ranges (including CGNAT/documentation ranges), and single-label/internal hostnames from passing production readiness (`apps/web/src/lib/release-governance-evidence.ts`, `apps/web/src/lib/release-governance-evidence.test.ts`).
 - [ ] Final go-live governance closeout: rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint, rerun cadence, and collect explicit human owner sign-offs on `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md`.
 
 ### Sprint 5 feature definition (2026-03-03)

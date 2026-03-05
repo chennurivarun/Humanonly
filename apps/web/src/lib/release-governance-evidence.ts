@@ -176,6 +176,28 @@ function isPrivateIpv4(octets: number[]): boolean {
   if (octets[0] === 192 && octets[1] === 168) return true;
   if (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) return true;
   if (octets[0] === 169 && octets[1] === 254) return true;
+  if (octets[0] === 100 && octets[1] >= 64 && octets[1] <= 127) return true;
+  if (octets[0] === 192 && octets[1] === 0 && octets[2] === 0) return true;
+  if (octets[0] === 192 && octets[1] === 0 && octets[2] === 2) return true;
+  if (octets[0] === 198 && octets[1] === 18) return true;
+  if (octets[0] === 198 && octets[1] === 19) return true;
+  if (octets[0] === 198 && octets[1] === 51 && octets[2] === 100) return true;
+  if (octets[0] === 203 && octets[1] === 0 && octets[2] === 113) return true;
+  if (octets[0] === 224 || octets[0] === 0) return true;
+  if (octets[0] >= 240) return true;
+  return false;
+}
+
+function isPrivateIpv6(host: string): boolean {
+  const normalized = host.replace(/\[|\]/g, "").toLowerCase();
+  if (!normalized) return true;
+
+  if (normalized === "::") return true;
+  if (normalized.startsWith("fc") || normalized.startsWith("fd")) return true;
+  if (normalized.startsWith("fe80:")) return true;
+  if (normalized.startsWith("ff")) return true;
+  if (normalized.startsWith("2001:db8")) return true;
+
   return false;
 }
 
@@ -183,11 +205,18 @@ function classifyHostname(hostname: string): ManagedEndpointClassification {
   const host = hostname.trim().toLowerCase();
   if (!host) return "unknown";
 
-  if (host === "localhost" || host === "::1") {
+  if (host === "localhost" || host.endsWith(".localhost") || host === "::1") {
     return "loopback";
   }
 
-  if (host.endsWith(".local") || host.endsWith(".internal")) {
+  if (
+    host.endsWith(".local") ||
+    host.endsWith(".internal") ||
+    host.endsWith(".home.arpa") ||
+    host.endsWith(".example") ||
+    host.endsWith(".invalid") ||
+    host.endsWith(".test")
+  ) {
     return "private-network";
   }
 
@@ -201,9 +230,11 @@ function classifyHostname(hostname: string): ManagedEndpointClassification {
   if (host.includes(":")) {
     const normalized = host.replace(/\[|\]/g, "");
     if (normalized === "::1") return "loopback";
-    if (normalized.startsWith("fc") || normalized.startsWith("fd") || normalized.startsWith("fe80:")) {
-      return "private-network";
-    }
+    if (isPrivateIpv6(normalized)) return "private-network";
+  }
+
+  if (!host.includes(".")) {
+    return "private-network";
   }
 
   return "external";
@@ -253,6 +284,17 @@ export function classifyManagedPostgresEndpoint(
     };
   }
 
+  const protocol = parsed.protocol.toLowerCase();
+  if (protocol !== "postgres:" && protocol !== "postgresql:") {
+    return {
+      source: endpoint?.source ?? "unknown",
+      classification: "invalid",
+      host: parsed.hostname || "invalid",
+      redactedUrl: endpoint?.redactedUrl ?? redactManagedEndpointUrl(candidateUrl),
+      details: `managed endpoint URL must use postgres:// or postgresql:// (received ${parsed.protocol})`
+    };
+  }
+
   const classification = classifyHostname(parsed.hostname);
 
   return {
@@ -266,7 +308,7 @@ export function classifyManagedPostgresEndpoint(
         : classification === "loopback"
           ? "endpoint points to localhost/loopback; rotate to externally managed host"
           : classification === "private-network"
-            ? "endpoint points to private/internal network; confirm final external production endpoint"
+            ? "endpoint points to private/internal/reserved network; confirm final external production endpoint"
             : "endpoint classification unavailable"
   };
 }
