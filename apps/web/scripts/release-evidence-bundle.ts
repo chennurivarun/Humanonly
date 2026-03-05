@@ -6,9 +6,12 @@ import {
   type CutoverEvidenceReport,
   type ManagedValidationEvidenceReport,
   type ReleaseGovernanceEvidenceBundle,
+  type ReleaseEvidenceOwners,
   type ReleaseEvidenceSignOffs,
   type SignOffStatus
 } from "@/lib/release-governance-evidence";
+import { SIGN_OFF_ROLES } from "@/lib/sign-off-domain";
+import { parseSignOffManifest, type SignOffManifest } from "@/lib/sign-off-intake";
 
 type TargetProfile = "managed" | "ephemeral" | "unknown";
 
@@ -77,6 +80,7 @@ function usage(): string {
     "  --release-manager-signoff-at=2026-03-05T07:30:00Z",
     "  --release-manager-signoff-notes='Approved after rollback validation'",
     "  (same signoff flags for incident-commander/platform-operator/governance-lead)",
+    "  --signoff-manifest-json=path/to/signoff-manifest.json",
     "  --artifact-link=\"Cutover plan|.tmp/release-cadence/cutover-plan.json|https://...\"",
     "  --risk=\"Managed endpoint maintenance overlaps cadence\"",
     "  --next-action=\"Attach evidence links in release ticket\""
@@ -185,6 +189,22 @@ function parseRoleSignOff(prefix: RoleFlagPrefix): ReleaseEvidenceSignOffs[keyof
   };
 }
 
+function manifestToReleaseSignOffs(manifest: SignOffManifest): ReleaseEvidenceSignOffs {
+  const signOffs: ReleaseEvidenceSignOffs = {};
+  for (const role of SIGN_OFF_ROLES) {
+    const entry = manifest[role];
+    signOffs[role] = {
+      owner: entry.owner,
+      status: entry.status,
+      approvalRef: entry.approvalRef,
+      signedAt: entry.signedAt,
+      notes: entry.notes,
+      contact: entry.contact
+    };
+  }
+  return signOffs;
+}
+
 function main() {
   const outputPath = parseArg("--output") ?? DEFAULT_OUTPUT_PATH;
   const outputJsonPath = parseArg("--output-json") ?? DEFAULT_OUTPUT_JSON_PATH;
@@ -195,6 +215,11 @@ function main() {
   const apply = parseJsonFile<CutoverEvidenceReport>(requiredArg("--cutover-apply-json"));
   const verify = parseJsonFile<CutoverEvidenceReport>(requiredArg("--cutover-verify-json"));
   const perfRaw = parseJsonFile<{ [key: string]: unknown }>(requiredArg("--perf-json"));
+
+  const signOffManifestPath = parseArg("--signoff-manifest-json");
+  const signOffManifest = signOffManifestPath
+    ? parseSignOffManifest(parseJsonFile<unknown>(signOffManifestPath), signOffManifestPath)
+    : undefined;
 
   const managedValidation: ManagedValidationEvidenceReport = {
     generatedAt: String(perfRaw.generatedAt ?? new Date().toISOString()),
@@ -246,12 +271,22 @@ function main() {
 
   const approvalRef = parseArg("--approval-ref") ?? apply.humanApprovalRef ?? managedValidation.humanApprovalRef;
 
-  const signOffs: ReleaseEvidenceSignOffs = {
-    releaseManager: parseRoleSignOff("release-manager"),
-    incidentCommander: parseRoleSignOff("incident-commander"),
-    platformOperator: parseRoleSignOff("platform-operator"),
-    governanceLead: parseRoleSignOff("governance-lead")
+  const owners: ReleaseEvidenceOwners = {
+    releaseManager: signOffManifest?.releaseManager.owner ?? parseArg("--release-manager"),
+    incidentCommander: signOffManifest?.incidentCommander.owner ?? parseArg("--incident-commander"),
+    platformOperator: signOffManifest?.platformOperator.owner ?? parseArg("--platform-operator"),
+    governanceLead: signOffManifest?.governanceLead.owner ?? parseArg("--governance-lead")
   };
+
+  const manifestSignOffs = signOffManifest ? manifestToReleaseSignOffs(signOffManifest) : undefined;
+  const signOffs: ReleaseEvidenceSignOffs =
+    manifestSignOffs ??
+    {
+      releaseManager: parseRoleSignOff("release-manager"),
+      incidentCommander: parseRoleSignOff("incident-commander"),
+      platformOperator: parseRoleSignOff("platform-operator"),
+      governanceLead: parseRoleSignOff("governance-lead")
+    };
 
   const managedEndpointUrl = parseArg("--managed-postgres-url");
 
@@ -271,12 +306,7 @@ function main() {
     },
     managedValidation,
     artifacts,
-    owners: {
-      releaseManager: parseArg("--release-manager"),
-      incidentCommander: parseArg("--incident-commander"),
-      platformOperator: parseArg("--platform-operator"),
-      governanceLead: parseArg("--governance-lead")
-    },
+    owners,
     signOffs,
     managedEndpoint: {
       redactedUrl: managedEndpointUrl ? redactManagedEndpointUrl(managedEndpointUrl) : undefined,

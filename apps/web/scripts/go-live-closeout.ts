@@ -5,6 +5,7 @@ import {
   renderGoLiveCloseoutMarkdown,
   type GoLiveDecisionStatus
 } from "@/lib/go-live-closeout";
+import { manifestContactChannels, parseSignOffManifest } from "@/lib/sign-off-intake";
 import type { ReleaseGovernanceEvidenceBundle } from "@/lib/release-governance-evidence";
 
 const DEFAULT_OUTPUT_MD = "docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md";
@@ -85,12 +86,19 @@ function usage(): string {
     "  --release-manager-contact=release.manager@example.com",
     "  --incident-commander-contact=incident.commander@example.com",
     "  --platform-operator-contact=platform.operator@example.com",
-    "  --governance-lead-contact=governance.lead@example.com"
+    "  --governance-lead-contact=governance.lead@example.com",
+    "  --signoff-manifest-json=path/to/signoff-manifest.json"
   ].join("\n");
 }
 
 function main() {
   const bundle = parseJsonFile<ReleaseGovernanceEvidenceBundle>(requiredArg("--bundle-json"));
+
+  const manifestPath = parseArg("--signoff-manifest-json");
+  const signOffManifest = manifestPath
+    ? parseSignOffManifest(parseJsonFile<unknown>(manifestPath), manifestPath)
+    : undefined;
+  const manifestContacts = signOffManifest ? manifestContactChannels(signOffManifest) : {};
 
   const decisionStatus = parseDecisionStatus(parseArg("--decision"));
   const decision = decisionStatus
@@ -106,10 +114,10 @@ function main() {
   const report = createGoLiveCloseoutReport(bundle, {
     decision,
     signOffContacts: {
-      releaseManager: parseArg("--release-manager-contact"),
-      incidentCommander: parseArg("--incident-commander-contact"),
-      platformOperator: parseArg("--platform-operator-contact"),
-      governanceLead: parseArg("--governance-lead-contact")
+      releaseManager: parseArg("--release-manager-contact") ?? manifestContacts.releaseManager,
+      incidentCommander: parseArg("--incident-commander-contact") ?? manifestContacts.incidentCommander,
+      platformOperator: parseArg("--platform-operator-contact") ?? manifestContacts.platformOperator,
+      governanceLead: parseArg("--governance-lead-contact") ?? manifestContacts.governanceLead
     }
   });
 

@@ -34,6 +34,7 @@ export type GoLiveSignOffState = {
   signedAt: string;
   notes: string;
   approved: boolean;
+  contact?: string;
 };
 
 export type SignOffRequestDraft = {
@@ -90,6 +91,11 @@ function normalizeText(raw?: string): string {
   return value && value.length > 0 ? value : "—";
 }
 
+function normalizeContact(raw?: string): string | undefined {
+  const value = raw?.trim();
+  return value && value !== "—" ? value : undefined;
+}
+
 function isApprovedSignOff(state: {
   owner: string;
   status: SignOffStatus;
@@ -123,6 +129,7 @@ function collectSignOffStates(bundle: ReleaseGovernanceEvidenceBundle): GoLiveSi
       approvalRef: normalizeText(rawSignOff?.approvalRef),
       signedAt: normalizeText(rawSignOff?.signedAt),
       notes: normalizeText(rawSignOff?.notes),
+      contact: normalizeContact(rawSignOff?.contact),
       approved: false
     };
 
@@ -136,7 +143,9 @@ function buildSignOffDraft(
   bundle: ReleaseGovernanceEvidenceBundle,
   contact?: string
 ): SignOffRequestDraft {
-  const recipient = contact?.trim() || role.owner;
+  const override = contact?.trim();
+  const channel = override && override.length > 0 ? override : role.contact;
+  const recipient = channel ?? role.owner;
   const subject = `HumanOnly Sprint 7 go-live sign-off request — ${role.roleLabel}`;
 
   const message = [
@@ -155,7 +164,7 @@ function buildSignOffDraft(
     role: role.role,
     roleLabel: role.roleLabel,
     owner: role.owner,
-    contact: contact?.trim() || undefined,
+    contact: channel,
     status: role.status,
     subject,
     message

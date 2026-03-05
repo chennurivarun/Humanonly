@@ -1,3 +1,7 @@
+import type { SignOffRole, SignOffStatus } from "@/lib/sign-off-domain";
+
+export type { SignOffStatus } from "@/lib/sign-off-domain";
+
 export type CadenceAction = "plan" | "apply" | "verify";
 
 export type CutoverEvidenceReport = {
@@ -48,14 +52,13 @@ export type ReleaseEvidenceOwners = {
   governanceLead?: string;
 };
 
-export type SignOffStatus = "pending" | "approved" | "rejected";
-
 export type ReleaseOwnerSignOff = {
   owner?: string;
   status?: SignOffStatus;
   approvalRef?: string;
   signedAt?: string;
   notes?: string;
+  contact?: string;
 };
 
 export type ReleaseEvidenceSignOffs = {
@@ -129,14 +132,14 @@ export type GoLiveReadinessGate = {
   details: string;
 };
 
-const ROLE_LABELS = {
+const ROLE_LABELS: Record<SignOffRole, string> = {
   releaseManager: "Release Manager",
   incidentCommander: "Incident Commander",
   platformOperator: "Platform Operator",
   governanceLead: "Governance Lead"
-} as const;
+};
 
-type RoleKey = keyof typeof ROLE_LABELS;
+type RoleKey = SignOffRole;
 
 function percentDelta(from: number, to: number): number {
   if (from === 0) return to === 0 ? 0 : 100;
@@ -277,7 +280,8 @@ function normalizeSignOff(
     status: rawSignOff?.status ?? "pending",
     approvalRef: rawSignOff?.approvalRef ?? "—",
     signedAt: rawSignOff?.signedAt ?? "—",
-    notes: rawSignOff?.notes ?? "—"
+    notes: rawSignOff?.notes ?? "—",
+    contact: rawSignOff?.contact ?? "—"
   };
 }
 

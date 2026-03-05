@@ -162,6 +162,10 @@ npm run release:evidence:bundle -w apps/web -- \
 
 This renders both markdown + JSON release evidence bundles with cadence governance gates, managed-endpoint classification, and owner sign-off records.
 
+Prefer feeding a deterministic sign-off manifest (one JSON chunk with releaseManager/incidentCommander/platformOperator/governanceLead entries) via the new `--signoff-manifest-json` flag. Start from `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json`, copy it to a private working file, then fill in explicit human decisions. The manifest parser enforces required roles, valid `pending|approved|rejected` decisions, ISO timestamps, approval references for approved/rejected states, and optional contact channels/notes; bundler owners and sign-off records derive from those entries, keeping explicit human decisions traceable. CLI `--*-signoff*` flags remain available for ad-hoc updates when a manifest is not used.
+
+Progress: sign-off metadata ingestion is now deterministic and audit-ready, but the release governor still waits on the final external managed endpoint rotation + explicit owner acknowledgments before closing the final gate.
+
 To record explicit human sign-offs, rerun the same command with signoff flags per role (for example `--release-manager-signoff=approved --release-manager-signoff-ref=CHANGE-2026-03-05-GO-LIVE --release-manager-signoff-at=2026-03-05T10:30:00Z`).
 
 ### 7.1) Generate deterministic go-live closeout status + outreach drafts
@@ -178,6 +182,8 @@ This generates a governed closeout report with:
 - explicit blocker list
 - owner sign-off status matrix
 - **draft sign-off outreach messages** (draft only; requires explicit human approval before sending externally)
+
+Manifest-driven owners/contact info can feed the outreach drafts too: supply the same `--signoff-manifest-json` file here and the contact channels embedded in each role entry will populate the `pending sign-off outreach` drafts unless a CLI `--*-contact` override is provided.
 
 When final human decision is ready, append explicit decision metadata:
 

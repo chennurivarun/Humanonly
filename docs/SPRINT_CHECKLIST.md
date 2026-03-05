@@ -130,8 +130,10 @@
 
 ## Next actions
 1. Rotate `HUMANONLY_MANAGED_POSTGRES_URL` to the final external managed endpoint (instead of GitHub-hosted localhost simulation) and re-run cadence for production launch evidence.
-2. Attach Sprint 7 cadence + pre-go-live artifacts to the release ticket and collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead) via `npm run release:evidence:bundle ... --*-signoff=approved --*-signoff-ref=... --*-signoff-at=...`.
+2. Attach Sprint 7 cadence + pre-go-live artifacts to the release ticket and collect owner sign-offs (Release Manager, Incident Commander, Platform Operator, Governance Lead) via `npm run release:evidence:bundle ... --signoff-manifest-json=your-manifest.json` (start from `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json`; use per-role `--*-signoff` flags only for patch updates) so the manifest double-checks `pending|approved|rejected` statuses, ISO timestamps, approval references, and optional contact channels/notes.
 3. Lock go-live decision only after explicit human approval on the release evidence bundle.
+
+Progress: deterministic sign-off manifest intake + closeout automation now keeps the evidence bundle and outreach drafts in sync without implicit approvals; remaining blocker is the human-controlled endpoint rotation + explicit owner acknowledgments before closing the final gate.
 
 ## Latest run summary (Sprint 6 — storage backend live benchmark + audit policy lock)
 - ✅ Extended backend comparison runner to auto-provision a live embedded PostgreSQL instance when `HUMANONLY_POSTGRES_URL` is not configured (`apps/web/scripts/perf-storage-backend-compare.ts`, `embedded-postgres`).

@@ -1,10 +1,14 @@
 # Sprint 7 Final Go-Live Governance Closeout
 
 Status: **In progress (human approvals + final endpoint rotation pending)**
-Updated: 2026-03-05 16:26 IST
+Updated: 2026-03-05 18:26 IST
 
 ## Objective
 Close the final Sprint 7 governance gate by rotating the managed Postgres cadence secret to the final external endpoint, re-running release cadence, and collecting explicit human sign-offs.
+
+## Progress
+- Sign-off metadata is now ingested from a deterministic manifest (`--signoff-manifest-json`) so release evidence + closeout tooling agree on decisions, ISO timestamps, contact channels, and notes without implicit approvals.
+- Manifest bootstrap template added at `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json` to standardize owner sign-off capture before ingestion.
 
 ## Preconditions
 - Managed endpoint owner has confirmed production-ready connection details.
@@ -14,10 +18,11 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
 ## Execution checklist
 - [ ] Rotate `HUMANONLY_MANAGED_POSTGRES_URL` to final external managed endpoint (human action).
 - [ ] Trigger release-governance cadence run in `managed` profile without URL override.
-- [ ] Regenerate release evidence bundle (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` + `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json`).
+- [ ] Regenerate release evidence bundle (`docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.md` + `docs/SPRINT_7_RELEASE_EVIDENCE_BUNDLE.json`) using `--signoff-manifest-json` so the manifest that captures roles/contacts also seeds the provable evidence artifacts.
 - [x] Generate deterministic closeout status report + sign-off outreach drafts (`npm run go-live:closeout`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md`, `docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.json`).
+  Reuse the same manifest while generating the closeout report so the drafted outreach contacts stay aligned with the recorded decisions.
 - [ ] Confirm `Managed Postgres endpoint rotated to external target` gate is PASS.
-- [ ] Collect explicit sign-offs from required owners in evidence bundle (`--*-signoff=approved`, approval ref, timestamp).
+- [ ] Collect explicit sign-offs from required owners in evidence bundle (preferred: manifest from `docs/SPRINT_7_SIGNOFF_MANIFEST_TEMPLATE.json` + `--signoff-manifest-json`; fallback: per-role `--*-signoff` flags).
 - [ ] Confirm `Explicit human owner sign-offs` gate is PASS.
 - [ ] Record final go-live decision with approval reference.
 
@@ -39,4 +44,4 @@ Close the final Sprint 7 governance gate by rotating the managed Postgres cadenc
 - Go-live closeout status report automation now emits blockers + draft sign-off outreach packets for explicit human review before sending (`docs/SPRINT_7_GO_LIVE_CLOSEOUT_REPORT.md`, `.json`) ✅
 
 ## Current blocker
-Final external managed endpoint rotation + explicit human owner approvals are governance-controlled human actions and are intentionally not auto-approved by autopilot.
+Final external managed endpoint rotation + explicit human owner approvals are governance-controlled human actions and are intentionally not auto-approved by autopilot; the manifest only records their decisions so the evidence can be handed off audit-ready once those human actions conclude.

@@ -1,0 +1,34 @@
+{
+  "releaseManager": {
+    "owner": "Release Manager Name",
+    "contact": "release.manager@example.com",
+    "status": "pending",
+    "approvalRef": "",
+    "signedAt": "",
+    "notes": ""
+  },
+  "incidentCommander": {
+    "owner": "Incident Commander Name",
+    "contact": "incident.commander@example.com",
+    "status": "pending",
+    "approvalRef": "",
+    "signedAt": "",
+    "notes": ""
+  },
+  "platformOperator": {
+    "owner": "Platform Operator Name",
+    "contact": "platform.operator@example.com",
+    "status": "pending",
+    "approvalRef": "",
+    "signedAt": "",
+    "notes": ""
+  },
+  "governanceLead": {
+    "owner": "Governance Lead Name",
+    "contact": "governance.lead@example.com",
+    "status": "pending",
+    "approvalRef": "",
+    "signedAt": "",
+    "notes": ""
+  }
+}
