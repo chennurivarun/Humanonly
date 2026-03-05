@@ -88,6 +88,7 @@ describe("postgres-incremental-benchmark", () => {
 
     const markdown = renderIncrementalValidationMarkdown(report);
 
+    assert.equal(Object.hasOwn(report, "postgresUrl"), false);
     assert.match(markdown, /postgres:\/\/human:\*\*\*@db\.example\.com:5432\/humanonly/);
     assert.match(markdown, /Human approval reference: `CHANGE-2026-03-04`/);
     assert.match(markdown, /Governance controls \(enforced\)/);

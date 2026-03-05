@@ -170,9 +170,13 @@ ${rows}
 `;
 }
 
-export function withRedactedUrl(report: Omit<IncrementalValidationReport, "postgresUrlRedacted"> & { postgresUrl: string }): IncrementalValidationReport {
+export function withRedactedUrl(
+  report: Omit<IncrementalValidationReport, "postgresUrlRedacted"> & { postgresUrl: string }
+): IncrementalValidationReport {
+  const { postgresUrl, ...sanitized } = report;
+
   return {
-    ...report,
-    postgresUrlRedacted: redactedUrl(report.postgresUrl)
+    ...sanitized,
+    postgresUrlRedacted: redactedUrl(postgresUrl)
   };
 }
